@@ -5,8 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "prebuild": "npm run security-check",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "security-check": "node scripts/security-check.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -24,6 +26,7 @@
     "react-dom": "19.2.3",
     "react-hook-form": "^7.71.1",
     "recharts": "^3.7.0",
+    "server-only": "^0.0.1",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
     "tailwindcss-animate": "^1.0.7",

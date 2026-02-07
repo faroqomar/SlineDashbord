@@ -139,16 +139,16 @@
 
 **Objective**: Establish a secure, high-privilege connection tunnel that is physically impossible to leak to the client.
 
-- [ ] **Environment Security**:
+- [x] **Environment Security**:
   - Add `SUPABASE_SERVICE_ROLE_KEY` to `.env.local`.
   - **GitGuardian Rule**: Verify `.gitignore` explicitly excludes `.env*.local`.
   - **Runtime Check**: Add a check in `next.config.ts` or a start-up script to fail the build if `SUPABASE_SERVICE_ROLE_KEY` is missing in production.
-- [ ] **Server Client Infrastructure**:
+- [x] **Server Client Infrastructure**:
   - Install `server-only` package to prevent accidental client-side import.
   - Create `src/lib/supabase/admin.ts`:
     - Export `createAdminClient()` which initializes Supabase with `SUPABASE_SERVICE_ROLE_KEY`.
     - **CRITICAL**: Import `server-only` at the top of this file.
-- [ ] **Type Synchronization**:
+- [x] **Type Synchronization**:
   - Run `supabase gen types --project-id <sline-project-id> > src/types/supabase.ts`.
   - Create `src/types/admin-types.ts` to map database rows to UI-friendly interfaces (DTOs).
 
@@ -176,16 +176,16 @@ _Note: All fetching happens on the server. Client components receive plain JSON.
 
 **Objective**: Enable Admin Powers with mandatory Audit Logging.
 
-- [ ] **The Audit Logger** (`src/lib/audit.ts`):
+- [x] **The Audit Logger** (`src/lib/audit.ts`):
   - Create internal helper `logAdminAction(adminId, actionType, targetId, metadata)`.
   - **Rule**: This function MUST be perfectly reliable. If logging fails, the action should ideally fail (or alert critical).
-- [ ] **User Management Actions** (`src/actions/mutations/user.ts`):
+- [x] **User Management Actions** (`src/actions/mutations/user.ts`):
   - `banUser(reason: string)`:
     - Update `profiles.status` to 'banned'.
     - Kill active sessions (Revoke Refresh Token via Admin API).
     - calls `logAdminAction`.
   - `verifyIdentity()`: Manual override to mark a user as 'Verified'.
-- [ ] **Dispute Resolution** (`src/actions/mutations/dispute.ts`):
+- [x] **Dispute Resolution** (`src/actions/mutations/dispute.ts`):
   - `resolveDispute(disputeId, decision, amount)`:
     - Uses Supabase RPC or Edge Function `admin_resolve_dispute` to ensure atomic transactions (money movement).
     - **NEVER** perform raw math on the client or simple row updates for money. Always use the secure backend function.
@@ -201,10 +201,10 @@ _Note: All fetching happens on the server. Client components receive plain JSON.
 
 **Objective**: Verify that Admin actions don't corrupt user data or leak info.
 
-- [ ] **The "Overlap" Audit**:
+- [x] **The "Overlap" Audit**:
   - Scan `src/types/admin-types.ts` vs Main App `database.types.ts`.
   - **Fail Condition**: If Admin App defines a field that doesn't exist in Prod DB, halt.
-- [ ] **Cross-Application Smoke Test**:
+- [x] **Cross-Application Smoke Test**:
   - **Scenario A (Ban)**:
     1. Login to Main App as "User A".
     2. Login to Admin Panel as "Admin".
@@ -220,11 +220,11 @@ _Note: All fetching happens on the server. Client components receive plain JSON.
 
 **Objective**: Lock down the fortress with code.
 
-- [ ] **Middleware Defense (`src/middleware.ts`)**:
+- [x] **Middleware Defense (`src/middleware.ts`)**:
   - **Rule**: Intercept ALL requests to `/dashboard/*`.
   - **Check 1**: Session exists? If no -> Redirect to `/login`.
   - **Check 2**: `user.app_metadata.role === 'service_role'` OR `user.email` ends with `@sline.com`.
-- [ ] **Build-Time Sweeps**:
+- [x] **Build-Time Sweeps**:
   - Add `npm run security-check` script.
   - **Step 1**: Grep for `SUPABASE_SERVICE_ROLE_KEY` in `src/app/*` (Client Components). Fail if found.
   - **Step 2**: Ensure `no-store` or `force-dynamic` is set on all Admin Pages to prevent caching sensitive data.
@@ -233,15 +233,15 @@ _Note: All fetching happens on the server. Client components receive plain JSON.
 
 **Objective**: Ship to Vercel with zero leaks.
 
-- [ ] **Vercel Project Setup**:
+- [x] **Vercel Project Setup**:
   - **Project Name**: `sline-admin-internal`.
   - **Framework**: Next.js.
   - **Build Command**: `next build`.
-- [ ] **Environment Constraints**:
+- [x] **Environment Constraints**:
   - Input `NEXT_PUBLIC_SUPABASE_URL` (Safe).
   - Input `NEXT_PUBLIC_SUPABASE_ANON_KEY` (Safe - needed for Auth).
   - Input `SUPABASE_SERVICE_ROLE_KEY` (Secret).
   - **Check**: Enable "Automatically expose System Environment Variables" = OFF (if possible, or just be careful).
-- [ ] **Post-Deploy**:
+- [x] **Post-Deploy**:
   - Log in with the Master Admin account.
   - Verify the "Audit Log" correctly recorded the login event.

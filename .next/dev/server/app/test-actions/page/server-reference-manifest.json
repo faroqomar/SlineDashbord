@@ -1,0 +1,50 @@
+{
+  "node": {
+    "00b0037ad22d9f40e1c42f7bcaf4ab77c719fadbd3": {
+      "workers": {
+        "app/test-actions/page": {
+          "moduleId": "[project]/.next-internal/server/app/test-actions/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/actions/dashboard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/actions/users.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getOverviewStats",
+          "filename": "src/actions/dashboard.ts"
+        }
+      },
+      "layer": {
+        "app/test-actions/page": "rsc"
+      },
+      "exportedName": "getOverviewStats",
+      "filename": "src/actions/dashboard.ts"
+    },
+    "40ae758a227b1ff5ed29a37414091d89aa1da7639a": {
+      "workers": {
+        "app/test-actions/page": {
+          "moduleId": "[project]/.next-internal/server/app/test-actions/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/actions/dashboard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/actions/users.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getUserFullProfile",
+          "filename": "src/actions/users.ts"
+        }
+      },
+      "layer": {
+        "app/test-actions/page": "rsc"
+      },
+      "exportedName": "getUserFullProfile",
+      "filename": "src/actions/users.ts"
+    },
+    "706730fd0e009fa2ef4075dad81a98f174537b8d30": {
+      "workers": {
+        "app/test-actions/page": {
+          "moduleId": "[project]/.next-internal/server/app/test-actions/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/actions/dashboard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/actions/users.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getUsers",
+          "filename": "src/actions/users.ts"
+        }
+      },
+      "layer": {
+        "app/test-actions/page": "rsc"
+      },
+      "exportedName": "getUsers",
+      "filename": "src/actions/users.ts"
+    }
+  },
+  "edge": {}
+}

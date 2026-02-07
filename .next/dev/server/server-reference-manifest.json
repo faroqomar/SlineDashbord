@@ -1,5 +1,170 @@
 {
-  "node": {},
+  "node": {
+    "00b0037ad22d9f40e1c42f7bcaf4ab77c719fadbd3": {
+      "workers": {
+        "app/test-actions/page": {
+          "moduleId": "[project]/.next-internal/server/app/test-actions/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/actions/dashboard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/actions/users.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getOverviewStats",
+          "filename": "src/actions/dashboard.ts"
+        }
+      },
+      "layer": {
+        "app/test-actions/page": "rsc"
+      },
+      "filename": "src/actions/dashboard.ts",
+      "exportedName": "getOverviewStats"
+    },
+    "40ae758a227b1ff5ed29a37414091d89aa1da7639a": {
+      "workers": {
+        "app/test-actions/page": {
+          "moduleId": "[project]/.next-internal/server/app/test-actions/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/actions/dashboard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/actions/users.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getUserFullProfile",
+          "filename": "src/actions/users.ts"
+        },
+        "app/test-mutations/page": {
+          "moduleId": "[project]/.next-internal/server/app/test-mutations/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/actions/users.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/actions/test-helpers.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/actions/user-mutations.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/src/actions/dispute-mutations.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getUserFullProfile",
+          "filename": "src/actions/users.ts"
+        }
+      },
+      "layer": {
+        "app/test-actions/page": "rsc",
+        "app/test-mutations/page": "rsc"
+      },
+      "filename": "src/actions/users.ts",
+      "exportedName": "getUserFullProfile"
+    },
+    "706730fd0e009fa2ef4075dad81a98f174537b8d30": {
+      "workers": {
+        "app/test-actions/page": {
+          "moduleId": "[project]/.next-internal/server/app/test-actions/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/actions/dashboard.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/actions/users.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getUsers",
+          "filename": "src/actions/users.ts"
+        },
+        "app/test-mutations/page": {
+          "moduleId": "[project]/.next-internal/server/app/test-mutations/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/actions/users.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/actions/test-helpers.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/actions/user-mutations.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/src/actions/dispute-mutations.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getUsers",
+          "filename": "src/actions/users.ts"
+        }
+      },
+      "layer": {
+        "app/test-actions/page": "rsc",
+        "app/test-mutations/page": "rsc"
+      },
+      "filename": "src/actions/users.ts",
+      "exportedName": "getUsers"
+    },
+    "00665dccd515fb00667cc0dee8b94c8da67fe404a9": {
+      "workers": {
+        "app/test-mutations/page": {
+          "moduleId": "[project]/.next-internal/server/app/test-mutations/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/actions/users.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/actions/test-helpers.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/actions/user-mutations.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/src/actions/dispute-mutations.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getDisputes",
+          "filename": "src/actions/test-helpers.ts"
+        }
+      },
+      "layer": {
+        "app/test-mutations/page": "rsc"
+      },
+      "filename": "src/actions/test-helpers.ts",
+      "exportedName": "getDisputes"
+    },
+    "40dcc46a7347ef1eb9385ae3e499e1147c7f4d3a98": {
+      "workers": {
+        "app/test-mutations/page": {
+          "moduleId": "[project]/.next-internal/server/app/test-mutations/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/actions/users.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/actions/test-helpers.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/actions/user-mutations.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/src/actions/dispute-mutations.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "createTestDispute",
+          "filename": "src/actions/test-helpers.ts"
+        }
+      },
+      "layer": {
+        "app/test-mutations/page": "action-browser"
+      },
+      "filename": "src/actions/test-helpers.ts",
+      "exportedName": "createTestDispute"
+    },
+    "701fb78b77502817307eb56dee303026e4993c19cc": {
+      "workers": {
+        "app/test-mutations/page": {
+          "moduleId": "[project]/.next-internal/server/app/test-mutations/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/actions/users.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/actions/test-helpers.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/actions/user-mutations.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/src/actions/dispute-mutations.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "banUser",
+          "filename": "src/actions/user-mutations.ts"
+        }
+      },
+      "layer": {
+        "app/test-mutations/page": "action-browser"
+      },
+      "filename": "src/actions/user-mutations.ts",
+      "exportedName": "banUser"
+    },
+    "60a78c8b85a36cd0077c8c08f7daf14ea5cad69d9f": {
+      "workers": {
+        "app/test-mutations/page": {
+          "moduleId": "[project]/.next-internal/server/app/test-mutations/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/actions/users.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/actions/test-helpers.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/actions/user-mutations.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/src/actions/dispute-mutations.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "unbanUser",
+          "filename": "src/actions/user-mutations.ts"
+        }
+      },
+      "layer": {
+        "app/test-mutations/page": "action-browser"
+      },
+      "filename": "src/actions/user-mutations.ts",
+      "exportedName": "unbanUser"
+    },
+    "60c002753d7f3160ffae211509dee4979f29043c3a": {
+      "workers": {
+        "app/test-mutations/page": {
+          "moduleId": "[project]/.next-internal/server/app/test-mutations/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/actions/users.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/actions/test-helpers.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/actions/user-mutations.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/src/actions/dispute-mutations.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "verifyUser",
+          "filename": "src/actions/user-mutations.ts"
+        }
+      },
+      "layer": {
+        "app/test-mutations/page": "action-browser"
+      },
+      "filename": "src/actions/user-mutations.ts",
+      "exportedName": "verifyUser"
+    },
+    "70975ed37745046ed8202a837392ed260a08b31049": {
+      "workers": {
+        "app/test-mutations/page": {
+          "moduleId": "[project]/.next-internal/server/app/test-mutations/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/actions/users.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/actions/test-helpers.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE2 => \"[project]/src/actions/user-mutations.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE3 => \"[project]/src/actions/dispute-mutations.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "resolveDispute",
+          "filename": "src/actions/dispute-mutations.ts"
+        }
+      },
+      "layer": {
+        "app/test-mutations/page": "action-browser"
+      },
+      "filename": "src/actions/dispute-mutations.ts",
+      "exportedName": "resolveDispute"
+    },
+    "409b1bb69145623e23a51f17e47026bd64071e923f": {
+      "workers": {
+        "app/login/page": {
+          "moduleId": "[project]/.next-internal/server/app/login/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/actions/auth.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "login",
+          "filename": "src/actions/auth.ts"
+        }
+      },
+      "layer": {
+        "app/login/page": "action-browser"
+      },
+      "filename": "src/actions/auth.ts",
+      "exportedName": "login"
+    }
+  },
   "edge": {},
   "encryptionKey": "+YegMKje1dG79YhwMwNpQqN68DkMcLn8aitqpGfu6zQ="
 }

@@ -6,5 +6,8 @@
   "/dashboard/page": "app/dashboard/page.js",
   "/dashboard/settings/page": "app/dashboard/settings/page.js",
   "/dashboard/users/page": "app/dashboard/users/page.js",
-  "/page": "app/page.js"
+  "/design-test/page": "app/design-test/page.js",
+  "/login/page": "app/login/page.js",
+  "/test-actions/page": "app/test-actions/page.js",
+  "/test-mutations/page": "app/test-mutations/page.js"
 }

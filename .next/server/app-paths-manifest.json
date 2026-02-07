@@ -1,14 +1,14 @@
 {
   "/_global-error/page": "app/_global-error/page.js",
   "/_not-found/page": "app/_not-found/page.js",
-  "/dashboard/disputes/page": "app/dashboard/disputes/page.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/design-test/page": "app/design-test/page.js",
+  "/page": "app/page.js",
   "/dashboard/finance/page": "app/dashboard/finance/page.js",
-  "/dashboard/logs/page": "app/dashboard/logs/page.js",
   "/dashboard/page": "app/dashboard/page.js",
-  "/dashboard/settings/page": "app/dashboard/settings/page.js",
+  "/dashboard/disputes/page": "app/dashboard/disputes/page.js",
   "/dashboard/users/[id]/page": "app/dashboard/users/[id]/page.js",
   "/dashboard/users/page": "app/dashboard/users/page.js",
-  "/design-test/page": "app/design-test/page.js",
-  "/favicon.ico/route": "app/favicon.ico/route.js",
-  "/page": "app/page.js"
+  "/dashboard/logs/page": "app/dashboard/logs/page.js",
+  "/dashboard/settings/page": "app/dashboard/settings/page.js"
 }

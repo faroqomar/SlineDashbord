@@ -1,14 +1,14 @@
 {
   "/_global-error/page": "/_global-error",
   "/_not-found/page": "/_not-found",
-  "/dashboard/disputes/page": "/dashboard/disputes",
+  "/favicon.ico/route": "/favicon.ico",
+  "/design-test/page": "/design-test",
+  "/page": "/",
   "/dashboard/finance/page": "/dashboard/finance",
-  "/dashboard/logs/page": "/dashboard/logs",
   "/dashboard/page": "/dashboard",
-  "/dashboard/settings/page": "/dashboard/settings",
+  "/dashboard/disputes/page": "/dashboard/disputes",
   "/dashboard/users/[id]/page": "/dashboard/users/[id]",
   "/dashboard/users/page": "/dashboard/users",
-  "/design-test/page": "/design-test",
-  "/favicon.ico/route": "/favicon.ico",
-  "/page": "/"
+  "/dashboard/logs/page": "/dashboard/logs",
+  "/dashboard/settings/page": "/dashboard/settings"
 }
