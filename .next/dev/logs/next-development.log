@@ -1,0 +1,231 @@
+[00:00:01.259] Server  LOG     ✓ Ready in 866ms
+[00:00:03.043] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:26.811] Server  LOG     ○ Compiling /dashboard ...
+[00:00:27.947] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:31.492] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:33.447] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:21:27.769] Server  LOG     ✓ Compiled in 224ms
+[00:21:29.689] Server  LOG     ✓ Compiled in 140ms
+[00:21:45.143] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[00:21:45.144] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[00:22:51.936] Server  WARN    The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[00:22:52.180] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:22:52.560] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[00:22:52.562] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[00:26:00.115] Server  LOG     ✓ Compiled in 211ms
+[00:26:21.517] Server  LOG     ✓ Compiled in 161ms
+[00:27:22.095] Server  WARN    The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[00:27:22.297] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:27:22.505] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[00:27:22.505] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[00:27:37.974] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:27:39.756] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:27:40.013] Browser ERROR   uncaughtError: Error: Hydration failed because the server rendered text didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <SegmentViewNode type="page" pagePath="dashboard/...">
+      <SegmentTrieNode>
+      <ClientPageRoot Component={function UsersPage} serverProvidedParams={{...}}>
+        <UsersPage params={Promise} searchParams={Promise}>
+          <div className="space-y-6 ...">
+            <div>
+            <div>
+            <div className="rounded-md...">
+              <Table>
+                <div data-slot="table-cont..." className="relative w...">
+                  <table data-slot="table" className="w-full cap...">
+                    <TableHeader>
+                    <TableBody>
+                      <tbody data-slot="table-body" className={"[&_tr:la..."}>
+                        <TableRow>
+                          <tr data-slot="table-row" className="hover:bg-m...">
+                            <TableCell>
+                            <TableCell>
+                            <TableCell>
+                              <td data-slot="table-cell" className={"p-2 alig..."}>
+                                <Badge variant="destructive" className="">
+                                  <span
+                                    data-slot="badge"
++                                   data-variant="destructive"
+-                                   data-variant="secondary"
++                                   className={"inline-flex items-center justify-center rounded-full border border-tr..."}
+-                                   className={"inline-flex items-center justify-center rounded-full border border-tr..."}
+                                  >
++                                   Suspended
+-                                   Pending
+                            ...
+                        ...
+            ...
+
+[00:29:50.588] Server  LOG     ✓ Compiled in 190ms
+[00:33:26.578] Server  LOG     ✓ Compiled in 138ms
+[00:36:31.186] Server  LOG     ✓ Compiled in 0ms
+[00:36:50.687] Server  LOG     ✓ Compiled in 0ms
+[00:37:29.452] Server  LOG     ✓ Compiled in 197ms
+[00:38:09.568] Server  LOG     ✓ Compiled in 164ms
+[00:42:39.705] Server  WARN    The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[00:42:40.031] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:42:40.780] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[00:42:40.780] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[00:42:40.780] Browser ERROR   A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+%s%s https://react.dev/link/hydration-mismatch 
+
+  ...
+    <SegmentViewNode type="layout" pagePath="dashboard/...">
+      <SegmentTrieNode>
+      <script>
+      <script>
+      <script>
+      <Layout>
+        <DashboardLayout>
+          <div className="min-h-scre...">
+            <Sidebar isCollapsed={false} setIsCollapsed={function bound dispatchSetState}>
+              <aside>
+              <Sheet>
+                <Dialog data-slot="sheet">
+                  <DialogProvider scope={undefined} triggerRef={{current:null}} contentRef={{current:null}} ...>
+                    <SheetTrigger asChild={true}>
+                      <DialogTrigger data-slot="sheet-trigger" asChild={true}>
+                        <Primitive.button type="button" aria-haspopup="dialog" aria-expanded={false} ...>
+                          <Primitive.button.Slot type="button" aria-haspopup="dialog" aria-expanded={false} ...>
+                            <Primitive.button.SlotClone type="button" aria-haspopup="dialog" aria-expanded={false} ...>
+                              <Button variant="ghost" size="icon" className="md:hidden ..." type="button" ...>
+                                <button
+                                  data-slot="sheet-trigger"
+                                  data-variant="ghost"
+                                  data-size="icon"
+                                  className={"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded..."}
+                                  type="button"
+                                  aria-haspopup="dialog"
+                                  aria-expanded={false}
++                                 aria-controls="radix-_R_j5rlb_"
+-                                 aria-controls="radix-_R_2d5rlb_"
+                                  data-state="closed"
+                                  onClick={function handleEvent}
+                                  ref={function}
+                                >
+                    ...
+            ...
+              <div className="ml-auto fl...">
+                <div>
+                <Button>
+                ...
+                  <PopperAnchor __scopePopper={{Menu:[...], ...}} asChild={true} ref={null}>
+                    <Primitive.div asChild={true} ref={function}>
+                      <Primitive.div.Slot ref={function}>
+                        <Primitive.div.SlotClone ref={function}>
+                          <Primitive.button type="button" id="radix-_R_f..." aria-haspopup="menu" aria-expanded={false} ...>
+                            <Primitive.button.Slot type="button" id="radix-_R_f..." aria-haspopup="menu" ...>
+                              <Primitive.button.SlotClone type="button" id="radix-_R_f..." aria-haspopup="menu" ...>
+                                <Button variant="ghost" size="icon" className="rounded-full" type="button" ...>
+                                  <button
+                                    data-slot="dropdown-menu-trigger"
+                                    data-variant="ghost"
+                                    data-size="icon"
+                                    className={"inline-flex items-center justify-center gap-2 whitespace-nowrap text-..."}
+                                    type="button"
++                                   id="radix-_R_fd5rlb_"
+-                                   id="radix-_R_1tl5rlb_"
+                                    aria-haspopup="menu"
+                                    aria-expanded={false}
+                                    aria-controls={undefined}
+                                    data-state="closed"
+                                    data-disabled={undefined}
+                                    disabled={false}
+                                    onPointerDown={function handleEvent}
+                                    onKeyDown={function handleEvent}
+                                    ref={function}
+                                  >
+                ...
+                  <PopperAnchor __scopePopper={{Menu:[...], ...}} asChild={true} ref={null}>
+                    <Primitive.div asChild={true} ref={function}>
+                      <Primitive.div.Slot ref={function}>
+                        <Primitive.div.SlotClone ref={function}>
+                          <Primitive.button type="button" id="radix-_R_j..." aria-haspopup="menu" aria-expanded={false} ...>
+                            <Primitive.button.Slot type="button" id="radix-_R_j..." aria-haspopup="menu" ...>
+                              <Primitive.button.SlotClone type="button" id="radix-_R_j..." aria-haspopup="menu" ...>
+                                <Button variant="ghost" className="relative h..." type="button" id="radix-_R_j..." ...>
+                                  <button
+                                    data-slot="dropdown-menu-trigger"
+                                    data-variant="ghost"
+                                    data-size="default"
+                                    className={"inline-flex items-center justify-center gap-2 whitespace-nowrap text-..."}
+                                    type="button"
++                                   id="radix-_R_jd5rlb_"
+-                                   id="radix-_R_2dl5rlb_"
+                                    aria-haspopup="menu"
+                                    aria-expanded={false}
+                                    aria-controls={undefined}
+                                    data-state="closed"
+                                    data-disabled={undefined}
+                                    disabled={false}
+                                    onPointerDown={function handleEvent}
+                                    onKeyDown={function handleEvent}
+                                    ref={function}
+                                  >
+
+[00:43:09.579] Server  WARN    The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[00:43:09.743] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:43:09.962] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[00:43:09.962] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.

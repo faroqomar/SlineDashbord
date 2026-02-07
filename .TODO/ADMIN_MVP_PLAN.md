@@ -29,17 +29,17 @@
 
 **Objective**: Set up the project skeleton and styling engine to match `Dasbord_Design` 1:1.
 
-- [ ] **Project Configuration**:
+- [x] **Project Configuration**:
   - Verify `sline-admin-temp` is running Next.js 15+ (App Router).
   - Ensure `tsconfig.json` has `strict: true` and path aliases configured (`"@/*": ["./src/*"]`).
   - **Action**: Clean `src/app/page.tsx` and `src/app/layout.tsx` to remove default Next.js boilerplate.
-- [ ] **Tailwind & CSS Migration**:
+- [x] **Tailwind & CSS Migration**:
   - **Config**: Port `Dasbord_Design/tailwind.config.ts` to `tailwind.config.ts`.
     - _Critical_: Preserve all `extend.colors` (sidebar, chart, etc.) and `extend.animation`.
   - **Global Styles**: Copy `Dasbord_Design/src/index.css` to `src/app/globals.css`.
     - _Critical_: Ensure all `@layer base` CSS variables (HSL values) are present.
   - **Fonts**: Setup `Inter` via `next/font/google` in `layout.tsx`.
-- [ ] **Shadcn Core Integration**:
+- [x] **Shadcn Core Integration**:
   - Run `npx shadcn@latest init` (if not done).
   - **Batch Install Components**:
     `npx shadcn@latest add button card input dropdown-menu badge avatar table sheet dialog select tabs scroll-area calendar popover separator form`
@@ -49,10 +49,10 @@
 
 **Objective**: Build the responsive, collapsible layout frame.
 
-- [ ] **Layout Structure**:
+- [x] **Layout Structure**:
   - Create `src/components/layout/DashboardLayout.tsx`.
   - Create `src/app/dashboard/layout.tsx` to wrap all dashboard routes.
-- [ ] **Sidebar Component** (`src/components/layout/Sidebar.tsx`):
+- [x] **Sidebar Component** (`src/components/layout/Sidebar.tsx`):
   - **State**: `isCollapsed` (Zustand store or Context, to persist across navigations - _optional for MVP, local state ok_).
   - **Navigation Menu**:
     - Dashboard (Home Icon)
@@ -62,25 +62,25 @@
     - System Logs (FileText Icon)
     - Settings (Settings Icon)
   - **Active State**: Use `usePathname()` to highlight the current route.
-- [ ] **Header Component** (`src/components/layout/Header.tsx`):
+- [x] **Header Component** (`src/components/layout/Header.tsx`):
   - **Breadcrumbs**: specific breadcrumb component based on route segments.
   - **Theme Toggle**: Use `next-themes` (ensure hydration safety).
   - **User Dropdown**: Static "Admin User" avatar + "Log out" button (visual only).
-- [ ] **Mobile Responsiveness**:
+- [x] **Mobile Responsiveness**:
   - Implement `Sheet` (Drawer) from Shadcn for the Sidebar on mobile screens (`hidden md:block`).
 
 ### 🆕 Sub-Phase 1.3: Dashboard Overview (Command Center)
 
 **Objective**: Build the landing page with high-level metrics.
 
-- [ ] **Mock Data Layer**:
+- [x] **Mock Data Layer**:
   - Create `src/data/mock/overview.ts`.
   - Export typed constants: `MOCK_KPI_STATS`, `MOCK_REVENUE_DATA`, `MOCK_RECENT_ACTIVITY`.
-- [ ] **Smart Components**:
+- [x] **Smart Components**:
   - **StatsGrid**: 4-card grid displaying Total Revenue, Active Users, Pending Disputes, Active Jobs.
   - **RevenueChart**: `Recharts` AreaChart component (port from design).
   - **ActivityFeed**: List component with status indicators (Green=Success, Red=Issue, Blue=Info).
-- [ ] **Page Assembly**:
+- [x] **Page Assembly**:
   - `src/app/dashboard/page.tsx`.
   - Import mock data -> Pass to Components -> Render.
 
@@ -88,14 +88,14 @@
 
 **Objective**: Detailed tables and profile views for managing generic users.
 
-- [ ] **The User Table**:
+- [x] **The User Table**:
   - **Mock Data**: `src/data/mock/users.ts` (Generate 50 users using a loop or faker-like static data).
   - **Columns**: Avatar+Name, Role (Badge), Status (Active/Suspended), Join Date, Actions (Three-dot menu).
   - **Features**:
     - **Pagination**: Client-side logic for the table.
     - **Filtering**: Text input for name, Dropdown for Role.
   - **Page**: `src/app/dashboard/users/page.tsx`.
-- [ ] **User Detail Profile**:
+- [x] **User Detail Profile**:
   - **Route**: `src/app/dashboard/users/[id]/page.tsx`.
   - **Header**: Large card with Profile Pic, "Ban User" (Red Button), "Reset Pass" (Ghost Button).
   - **Tabs**:
@@ -107,12 +107,12 @@
 
 **Objective**: The core operational tools for Support Agents.
 
-- [ ] **Dispute Center** (`src/app/dashboard/disputes/page.tsx`):
+- [x] **Dispute Center** (`src/app/dashboard/disputes/page.tsx`):
   - **Kanban/List Toggle**: View disputes by status (Open, Investigating, Resolved).
   - **Dispute Detail View**:
     - **Chat Replica**: Visual mockup of a chat between Client/Freelancer (read-only).
     - **Admin Controls**: Panel with "Refund Client", "Release to Freelancer" buttons.
-- [ ] **Finance Treasury** (`src/app/dashboard/finance/page.tsx`):
+- [x] **Finance Treasury** (`src/app/dashboard/finance/page.tsx`):
   - **Transaction Table**: All system payments.
   - **Status Badging**: Pending (Yellow), Cleared (Green), Failed (Red).
   - **Mock Data**: `src/data/mock/finance.ts`.
@@ -121,11 +121,11 @@
 
 **Objective**: Observability and configuration controls.
 
-- [ ] **Global Settings**:
+- [x] **Global Settings**:
   - `src/app/dashboard/settings/page.tsx`.
   - **Toggles**: "Maintenance Mode", "Disable Signups", "Force Update".
   - **Visuals**: Use Shadcn `Switch` component.
-- [ ] **System Logs**:
+- [x] **System Logs**:
   - `src/app/dashboard/logs/page.tsx`.
   - **Console View**: Dark-themed table looking like a terminal.
   - **Mock Data**: Log entries with Timestamps and Severity Levels.
