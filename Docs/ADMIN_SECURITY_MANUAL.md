@@ -1,88 +1,75 @@
-# 🛡 Admin Security Manual (The Shield)
+# 🛡️ ADMIN_SECURITY_MANUAL (The Shield)
+
+> **Goal**: Zero data leaks, absolute accountability, and strict isolation.
+
+## 🔑 The Service Role Strategy
+
+We use the **Supabase Service Role Key** (`SUPABASE_SERVICE_ROLE_KEY`) to bypass Row Level Security (RLS) for Admin actions.
 
 > [!CAUTION]
-> **Data Integrity is Paramount.** This dashboard has "God Mode" access. A single mistake can wipe production data. Follow these rules or standard operating procedures strictly.
+> **NEVER** expose this key to the client (browser). It resides ONLY in `.env.local` and is accessed via `src/lib/supabase/admin.ts`.
+
+### How we protect it:
+
+1.  **Server-Only Execution**: It is imported only in `src/actions/*` files marked with `'use server'`.
+2.  **Double Auth Check**: Before **ANY** Service Role query, we verify:
+    - Is the user authenticated? (`supabase.auth.getUser()`)
+    - Is the user an ADMIN? (Check `admin_users` table).
 
 ---
 
-## 1. The Service Role Key
+## 🚧 RBAC & Middleware
 
-We use the `SUPABASE_SERVICE_ROLE_KEY` to bypass Row Level Security (RLS). This allows Admins to see and edit ANY data.
+### Middleware (`src/middleware.ts`)
 
-### 🔒 Protection Rules
+The first line of defense.
 
-1.  **Server-Only**: This key is only available in `src/lib/supabase/admin.ts`.
-2.  **Never Leak**: Never verify or use this key in files starting with `'use client'`.
-3.  **Build Check**: The project has a script (`scripts/security-check.js`) that runs before build to verify no leaks.
+1.  Intercepts ALL requests to `/dashboard`.
+2.  Checks strictly against the **`admin_users` table**.
+3.  If user is not in `admin_users` -> Redirect to `/unauthorized`.
+4.  If user is in `admin_users` -> Allow access.
 
----
-
-## 2. Authentication & Authorization (RBAC)
-
-Access is controlled via `src/proxy.ts` (Middleware).
-
-### Verification Flow
-
-1.  **Session Check**: User must have a valid Supabase Auth session.
-2.  **Domain Check**: Email must end with `@sline.com` (or exist in a specific allowed list).
-3.  **Role Check**: (Future) Check `app_metadata.role` for 'admin' or 'super_admin'.
-
-```typescript
-// Middleware Logic
-if (!email.endsWith("@sline.com")) {
-  return NextResponse.redirect(new URL("/login?error=Unauthorized", req.url));
-}
-```
+> [!IMPORTANT]
+> The middleware handles **Routing Security**. Server Actions handle **Data Security**. You must have BOTH.
 
 ---
 
-## 3. Audit Logging (Mandatory)
+## 📜 Audit Logging (Mandatory)
 
-**Everything** must be logged. If it's not logged, it didn't happen (and is a security violation).
+**Rule**: If it changes data, it must be logged.
 
-### The `admin_logs` Protocol
+All mutations call `logAdminAction()`.
 
-We use the `activity_log` table.
-
-| Column        | Description                                                  |
-| :------------ | :----------------------------------------------------------- |
-| `admin_id`    | UUID of the admin performing actions.                        |
-| `action_type` | Enum: `user_banned`, `dispute_resolved`, `refund_processed`. |
-| `entity_id`   | UUID of the target (User, Task, Transaction).                |
-| `entity_type` | 'user', 'task', 'dispute'.                                   |
-| `details`     | JSONB. Must include `reason` and snapshot of change.         |
-| `ip_address`  | (Optional) IP of the admin.                                  |
-
-**Usage:**
-
-```typescript
-import { logAdminAction } from "@/lib/audit";
-await logAdminAction(adminId, "user_banned", userId, "user", {
-  reason: "ToS Violation",
-});
-```
+- **Table**: `admin_logs`
+- **Schema**:
+  - `actor_id`: UUID of the admin.
+  - `action`: e.g., `ban_user`, `refund_dispute`.
+  - `target_resource`: e.g., `user`, `dispute`.
+  - `target_id`: UUID of the affected item.
+  - `metadata`: JSON blob with details (reason, previous value).
 
 ---
 
-## 4. Data Isolation (The Airlock)
+## 🏝️ Data Isolation Protocol
 
-The Admin Dashboard is a separate application from the Main App (`SlineDashbord`).
+Dashboard Admins and App Users are completely separate entities.
 
-- **Shared**: The Supabase Database (Project ID: `isddrknbjsgaantjojhm`).
-- **Separated**:
-  - **Environment Vars**: Admin has its own `.env.local`.
-  - **Codebase**: No shared code imports between projects. Copy types if needed.
-  - **Deployment**: Admin deployed separately (e.g., `admin.sline.com`).
+- **App Users**: Stored in `auth.users` + `public.profiles`.
+- **Admins**: Stored in `auth.users` + `public.admin_users`.
+- **Isolation**:
+  - Admins login via `/login` (checks `admin_users`).
+  - App users login via App (checks `profiles`).
+  - Accounts created via `/signup` (Admin) are **namespaced** (e.g., `admin.user@email.com` internally) to prevent collisions if the same email exists in the App.
 
----
+s---
 
-## 5. Destructive Actions Protocol
+## 🧨 Destructive Actions
 
-For high-risk actions (Banning, Refunds):
+For high-risk actions (Bans, Refunds, Deletions):
 
-1.  **Reason Required**: UI must force the admin to type a reason (> 5 chars).
-2.  **Confirmation Dialog**: "Are you sure?" modal is mandatory.
-3.  **Atomic Transactions**: Financial moves must use SQL RPC (e.g., `admin_resolve_dispute`) to ensure money isn't lost if the server crashes mid-action.
+1.  **UI**: Must use a Modal/Dialog ("Are you sure?").
+2.  **Reason**: Must require a typed "Reason" string from the admin.
+3.  **Logs**: The "Reason" must be saved in the Audit Log metadata.
 
 > [!WARNING]
-> Never manually update `wallet_balances` view. Always insert into `wallet_transactions` or use the RPC.
+> Never implement a "Delete" button without a confirmation dialog and a reason input.

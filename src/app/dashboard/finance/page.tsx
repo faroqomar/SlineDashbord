@@ -1,5 +1,3 @@
-"use client";
-
 import { 
   Table, 
   TableBody, 
@@ -10,11 +8,13 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { MOCK_TRANSACTIONS } from "@/data/mock/finance";
 import { ArrowUpRight, ArrowDownRight, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getTransactions } from "@/actions/finance";
 
-export default function FinancePage() {
+export default async function FinancePage() {
+  const { transactions } = await getTransactions(1, 'all', 20);
+
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex items-center justify-between">
@@ -72,13 +72,13 @@ export default function FinancePage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {MOCK_TRANSACTIONS.map((txn) => (
+            {transactions.map((txn: any) => (
               <TableRow key={txn.id}>
-                <TableCell className="font-mono text-xs">{txn.id}</TableCell>
+                <TableCell className="font-mono text-xs">{txn.id.slice(0, 8)}...</TableCell>
                 <TableCell>
                   <div className="flex flex-col">
-                    <span className="font-medium text-sm">{txn.user.name}</span>
-                    <span className="text-xs text-muted-foreground">{txn.user.email}</span>
+                    <span className="font-medium text-sm">{txn.user?.full_name || 'Unknown'}</span>
+                    <span className="text-xs text-muted-foreground">{txn.user?.email}</span>
                   </div>
                 </TableCell>
                 <TableCell>
@@ -86,26 +86,35 @@ export default function FinancePage() {
                     {txn.type}
                    </Badge>
                 </TableCell>
-                <TableCell className="text-muted-foreground text-sm">{txn.date}</TableCell>
+                <TableCell className="text-muted-foreground text-sm">
+                    {new Date(txn.created_at).toLocaleDateString()}
+                </TableCell>
                 <TableCell>
                   <Badge 
                     variant="outline" 
                     className={
-                      txn.status === 'Cleared' ? 'bg-success/10 text-success border-success/20' : 
-                      txn.status === 'Failed' ? 'bg-destructive/10 text-destructive border-destructive/20' : 
-                      'bg-warning/10 text-warning border-warning/20'
+                      txn.status === 'completed' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 
+                      txn.status === 'failed' ? 'bg-red-500/10 text-red-500 border-red-500/20' : 
+                      'bg-orange-500/10 text-orange-500 border-orange-500/20'
                     }
                   >
                     {txn.status}
                   </Badge>
                 </TableCell>
                 <TableCell className={`text-right font-medium ${
-                    txn.type === 'Deposit' || txn.type === 'Fee' ? 'text-success' : ''
+                    txn.type === 'deposit' || txn.type === 'platform_fee' ? 'text-green-500' : ''
                 }`}>
-                  {txn.amount}
+                  ${txn.amount}
                 </TableCell>
               </TableRow>
             ))}
+            {transactions.length === 0 && (
+                <TableRow>
+                    <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
+                        No transactions found.
+                    </TableCell>
+                </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>

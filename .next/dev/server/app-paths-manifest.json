@@ -5,9 +5,12 @@
   "/dashboard/logs/page": "app/dashboard/logs/page.js",
   "/dashboard/page": "app/dashboard/page.js",
   "/dashboard/settings/page": "app/dashboard/settings/page.js",
+  "/dashboard/users/[id]/page": "app/dashboard/users/[id]/page.js",
   "/dashboard/users/page": "app/dashboard/users/page.js",
   "/design-test/page": "app/design-test/page.js",
   "/login/page": "app/login/page.js",
+  "/page": "app/page.js",
+  "/signup/page": "app/signup/page.js",
   "/test-actions/page": "app/test-actions/page.js",
-  "/test-mutations/page": "app/test-mutations/page.js"
+  "/unauthorized/page": "app/unauthorized/page.js"
 }

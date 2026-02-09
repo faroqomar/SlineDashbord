@@ -12,6 +12,18 @@ import { createServerClient } from '@supabase/ssr';
 // However, since this is an Admin App, maybe we just want to verify credentials.
 // Standard Supabase Auth flow:
 
+const ADMIN_PREFIX = "admin.";
+
+/**
+ * Adds an isolation prefix to the email to separate Admin Dashboard accounts
+ * from the main App users in the same Supabase project.
+ */
+function toAdminAuthEmail(email: string): string {
+  // If we wanted to support legacy accounts without prefix, we'd need complex logic.
+  // For now, we enforce isolation for all dashboard access.
+  return `${ADMIN_PREFIX}${email}`;
+}
+
 async function createAuthClient() {
   const cookieStore = await cookies();
 
@@ -47,17 +59,22 @@ export async function login(formData: FormData) {
 
   const supabase = await createAuthClient();
 
+  // Use the prefixed email for the actual auth attempt to ensure isolation
   const { error } = await supabase.auth.signInWithPassword({
-    email,
+    email: toAdminAuthEmail(email), 
     password,
   });
 
   if (error) {
-    return { error: error.message };
+    // If login fails, it might be an old account (dev phase).
+    // Optional: could try fallback here if strictly necessary, but better to stick to one pattern.
+    return { error: "Invalid credentials." }; // Generic error message
   }
 
   redirect('/dashboard');
 }
+
+
 
 export async function logout() {
   const supabase = await createAuthClient();

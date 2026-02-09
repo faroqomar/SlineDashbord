@@ -1,4 +1,65 @@
 {
-  "node": {},
+  "node": {
+    "40609b02afa6c2cd14c4b5590463fe3dbd65ebd0f3": {
+      "workers": {
+        "app/dashboard/users/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/users/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/actions/users.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/lib/admin-logger.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getUserDeepProfile",
+          "filename": "src/actions/users.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/users/page": "rsc"
+      },
+      "exportedName": "getUserDeepProfile",
+      "filename": "src/actions/users.ts"
+    },
+    "604bf2d3df2b70d29345ec0b6eb73c485b6e5a55a6": {
+      "workers": {
+        "app/dashboard/users/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/users/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/actions/users.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/lib/admin-logger.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "banUser",
+          "filename": "src/actions/users.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/users/page": "action-browser"
+      },
+      "exportedName": "banUser",
+      "filename": "src/actions/users.ts"
+    },
+    "786730fd0e009fa2ef4075dad81a98f174537b8d30": {
+      "workers": {
+        "app/dashboard/users/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/users/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/actions/users.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/lib/admin-logger.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getUsers",
+          "filename": "src/actions/users.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/users/page": "rsc"
+      },
+      "exportedName": "getUsers",
+      "filename": "src/actions/users.ts"
+    },
+    "7cb4e4c4a946680e3a97cd86666f1df8b2278975ed": {
+      "workers": {
+        "app/dashboard/users/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/users/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/actions/users.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/lib/admin-logger.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "logAdminAction",
+          "filename": "src/lib/admin-logger.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/users/page": "rsc"
+      },
+      "exportedName": "logAdminAction",
+      "filename": "src/lib/admin-logger.ts"
+    }
+  },
   "edge": {}
 }

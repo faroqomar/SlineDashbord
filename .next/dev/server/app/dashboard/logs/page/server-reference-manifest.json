@@ -1,4 +1,20 @@
 {
-  "node": {},
+  "node": {
+    "70ed30a1633ee6cda3fb98170787f070d3b92d5da9": {
+      "workers": {
+        "app/dashboard/logs/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/logs/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/actions/logs.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getSystemLogs",
+          "filename": "src/actions/logs.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/logs/page": "rsc"
+      },
+      "exportedName": "getSystemLogs",
+      "filename": "src/actions/logs.ts"
+    }
+  },
   "edge": {}
 }

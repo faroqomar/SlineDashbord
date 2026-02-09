@@ -1,460 +1,154 @@
-[00:00:01.599] Server  LOG     ✓ Ready in 1193ms
-[00:00:03.083] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:00:56.636] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:01:24.535] Server  LOG     ○ Compiling /design-test ...
-[00:01:25.186] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:02:11.944] Server  WARN    The width(-1) and height(-1) of chart should be greater than 0,
+[00:00:01.537] Server  WARN    ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+[00:00:01.687] Server  LOG     ✓ Ready in 1299ms
+[00:00:05.694] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:06.208] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:13.733] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:33.493] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:01:28.356] Server  LOG     ✓ Compiled in 1447ms
+[00:01:36.103] Server  LOG     [Middleware] Processing request for: /
+[00:01:36.115] Server  LOG     ✓ Compiled in 131ms
+[00:01:36.292] Server  LOG     [Middleware] User authenticated: true admin@sline.com
+[00:01:59.784] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:02:01.793] Server  LOG     [Middleware] Processing request for: /login
+[00:02:01.983] Server  LOG     [Middleware] User authenticated: true admin@sline.com
+[00:02:01.984] Server  LOG     [Middleware] User at /login, redirecting to /dashboard
+[00:02:01.999] Server  LOG     [Middleware] Processing request for: /dashboard
+[00:02:02.093] Server  LOG     [Middleware] User authenticated: true admin@sline.com
+[00:02:02.216] Server  LOG     [Middleware] Admin check: null {
+  code: '42P17',
+  details: null,
+  hint: null,
+  message: 'infinite recursion detected in policy for relation "admin_users"'
+}
+[00:02:02.217] Server  LOG     [Middleware] Not an admin, redirecting to /
+[00:02:02.224] Server  LOG     [Middleware] Processing request for: /
+[00:02:02.329] Server  LOG     [Middleware] User authenticated: true admin@sline.com
+[00:02:02.574] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:02:27.910] Server  LOG     [Middleware] Processing request for: /n2
+[00:02:28.120] Server  LOG     [Middleware] User authenticated: true admin@sline.com
+[00:02:30.106] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:02:35.445] Server  LOG     [Middleware] Processing request for: /
+[00:02:35.583] Server  LOG     [Middleware] User authenticated: true admin@sline.com
+[00:02:35.754] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:02:39.696] Server  LOG     [Middleware] Processing request for: /dashboard
+[00:02:39.828] Server  LOG     [Middleware] User authenticated: true admin@sline.com
+[00:02:40.053] Server  LOG     [Middleware] Admin check: null {
+  code: '42P17',
+  details: null,
+  hint: null,
+  message: 'infinite recursion detected in policy for relation "admin_users"'
+}
+[00:02:40.053] Server  LOG     [Middleware] Not an admin, redirecting to /
+[00:02:40.069] Server  LOG     [Middleware] Processing request for: /
+[00:02:40.167] Server  LOG     [Middleware] User authenticated: true admin@sline.com
+[00:02:40.376] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:03:42.108] Server  LOG     [Middleware] Processing request for: /
+[00:03:42.119] Server  LOG     ✓ Compiled in 166ms
+[00:03:42.357] Server  LOG     [Middleware] User authenticated: true admin@sline.com
+[00:03:44.067] Server  LOG     ✓ Compiled in 123ms
+[00:04:10.952] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:04:17.526] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:04:25.395] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:04:34.032] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:04:42.577] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:04:52.115] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:05:13.505] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:06:27.324] Server  LOG     ✓ Compiled in 364ms
+[00:06:29.322] Server  LOG     ✓ Compiled in 130ms
+[00:06:58.202] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:07:10.307] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:08:51.910] Server  LOG     ✓ Compiled in 278ms
+[00:08:54.101] Server  LOG     ✓ Compiled in 0ms
+[00:09:12.240] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:12:28.330] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:14:28.102] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:17:09.794] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:18:39.758] Server  LOG     ✓ Compiled in 268ms
+[00:18:46.750] Server  LOG     ✓ Compiled in 154ms
+[00:18:48.693] Server  LOG     ✓ Compiled in 88ms
+[00:19:28.107] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:19:57.934] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
        please check the style of container, or the props width(100%) and height(100%),
        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
        height and width.
-[00:02:12.436] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:02:12.660] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+[00:19:57.934] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
        please check the style of container, or the props width(100%) and height(100%),
        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
        height and width.
-[00:02:12.661] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+[00:19:57.935] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
        please check the style of container, or the props width(100%) and height(100%),
        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
        height and width.
-[00:02:12.661] Browser ERROR   A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
-
-- A server/client branch `if (typeof window !== 'undefined')`.
-- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
-- Date formatting in a user's locale which doesn't match the server.
-- External changing data without sending a snapshot of it along with the HTML.
-- Invalid HTML tag nesting.
-
-It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
-
-%s%s https://react.dev/link/hydration-mismatch 
-
-  ...
-    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
-      <AppDevOverlayErrorBoundary globalError={[...]}>
-        <ReplaySsrOnlyErrors>
-        <DevRootHTTPAccessFallbackBoundary>
-          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
-            <HTTPAccessFallbackErrorBoundary pathname="/dashboard" notFound={<NotAllowedRootHTTPFallbackError>} ...>
-              <RedirectBoundary>
-                <RedirectErrorBoundary router={{...}}>
-                  <Head>
-                  <__next_root_layout_boundary__>
-                    <SegmentViewNode type="layout" pagePath="layout.tsx">
-                      <SegmentTrieNode>
-                      <link>
-                      <script>
-                      <RootLayout>
-                        <html lang="en">
-                          <body
-                            className="inter_b2991b2-module__9mH_6q__variable font-sans antialiased"
--                           data-new-gr-c-s-check-loaded="14.1271.0"
--                           data-gr-ext-installed=""
-                          >
-                  ...
-
-[00:05:43.219] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+[00:19:57.935] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
        please check the style of container, or the props width(100%) and height(100%),
        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
        height and width.
-[00:05:43.220] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+[00:20:35.762] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
        please check the style of container, or the props width(100%) and height(100%),
        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
        height and width.
-[00:06:24.407] Server  WARN    The width(-1) and height(-1) of chart should be greater than 0,
+[00:20:35.763] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
        please check the style of container, or the props width(100%) and height(100%),
        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
        height and width.
-[00:06:24.662] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:06:25.001] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+[00:20:35.763] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
        please check the style of container, or the props width(100%) and height(100%),
        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
        height and width.
-[00:06:25.002] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+[00:20:35.763] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
        please check the style of container, or the props width(100%) and height(100%),
        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
        height and width.
-[00:08:14.608] Server  LOG     ✓ Compiled in 247ms
-[00:08:16.550] Server  LOG     ✓ Compiled in 153ms
-[00:08:45.306] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:08:45.803] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:09:13.401] Server  ERROR   Error resolving dispute: {}
-[00:09:13.788] Server  ERROR   ⨯ Error: Failed to resolve dispute: cannot update view "wallet_balances"
-[00:09:21.419] Server  ERROR   Error resolving dispute: {}
-[00:09:21.672] Server  ERROR   ⨯ Error: Failed to resolve dispute: cannot update view "wallet_balances"
-[00:10:06.500] Server  ERROR   Error resolving dispute: {}
-[00:10:06.800] Server  ERROR   ⨯ Error: Failed to resolve dispute: cannot update view "wallet_balances"
-[00:11:48.737] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:11:49.163] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:11:53.651] Server  ERROR   Error resolving dispute: {}
-[00:11:53.994] Server  ERROR   ⨯ Error: Failed to resolve dispute: new row for relation "tasks" violates check constraint "chk_tasks_status_basic"
-[00:12:02.709] Server  ERROR   Error resolving dispute: {}
-[00:12:03.004] Server  ERROR   ⨯ Error: Failed to resolve dispute: null value in column "user_id" of relation "wallet_transactions" violates not-null constraint
-[00:12:14.012] Server  ERROR   Error resolving dispute: {}
-[00:12:14.370] Server  ERROR   ⨯ Error: Failed to resolve dispute: new row for relation "tasks" violates check constraint "chk_tasks_status_basic"
-[00:13:21.113] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:13:21.649] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:13:39.001] Server  ERROR   Error resolving dispute: {}
-[00:13:39.304] Server  ERROR   ⨯ Error: Failed to resolve dispute: Cannot release to freelancer: No freelancer assigned to task f451d49a-a5a2-48dc-a48e-6d857653a591
-[00:14:11.215] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:14:11.388] Browser ERROR   A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
-
-- A server/client branch `if (typeof window !== 'undefined')`.
-- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
-- Date formatting in a user's locale which doesn't match the server.
-- External changing data without sending a snapshot of it along with the HTML.
-- Invalid HTML tag nesting.
-
-It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
-
-%s%s https://react.dev/link/hydration-mismatch 
-
-  ...
-    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
-      <AppDevOverlayErrorBoundary globalError={[...]}>
-        <ReplaySsrOnlyErrors>
-        <DevRootHTTPAccessFallbackBoundary>
-          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
-            <HTTPAccessFallbackErrorBoundary pathname="/test-muta..." notFound={<NotAllowedRootHTTPFallbackError>} ...>
-              <RedirectBoundary>
-                <RedirectErrorBoundary router={{...}}>
-                  <Head>
-                  <__next_root_layout_boundary__>
-                    <SegmentViewNode type="layout" pagePath="layout.tsx">
-                      <SegmentTrieNode>
-                      <link>
-                      <script>
-                      <RootLayout>
-                        <html lang="en">
-                          <body
-                            className="inter_b2991b2-module__9mH_6q__variable font-sans antialiased"
--                           data-new-gr-c-s-check-loaded="14.1271.0"
--                           data-gr-ext-installed=""
-                          >
-                  ...
-
-[00:14:11.563] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:15:24.766] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+[00:21:14.453] Server  WARN    The width(-1) and height(-1) of chart should be greater than 0,
        please check the style of container, or the props width(100%) and height(100%),
        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
        height and width.
-[00:15:24.767] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+[00:21:14.458] Server  WARN    The width(-1) and height(-1) of chart should be greater than 0,
        please check the style of container, or the props width(100%) and height(100%),
        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
        height and width.
-[00:18:58.060] Server  WARN    ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-[00:21:25.410] Browser ERROR   uncaughtError: Error: Cannot find the middleware module
-[00:22:43.127] Server  ERROR   ⨯ The file "./src/proxy.ts" must export a function, either as a default export or as a named "proxy" export.
-This function is what Next.js runs for every request handled by this proxy (previously called middleware).
-
-Why this happens:
-- You are migrating from `middleware` to `proxy`, but haven't updated the exported function.
-- The file exists but doesn't export a function.
-- The export is not a function (e.g., an object or constant).
-- There's a syntax error preventing the export from being recognized.
-
-To fix it:
-- Ensure this file has either a default or "proxy" function export.
-
-Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-[00:22:43.765] Server  LOG     ✓ Compiled in 670ms
-[00:22:43.867] Browser ERROR   ./src/proxy.ts
-Proxy is missing expected function export name
-This function is what Next.js runs for every request handled by this proxy (previously called middleware).
-
-Why this happens:
-- You are migrating from `middleware` to `proxy`, but haven't updated the exported function.
-- The file exists but doesn't export a function.
-- The export is not a function (e.g., an object or constant).
-- There's a syntax error preventing the export from being recognized.
-
-To fix it:
-- Ensure this file has either a default or "proxy" function export.
-
-Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-[00:22:44.187] Server  ERROR   ⨯ Error: The Proxy file "/proxy" must export a function named `proxy` or a default function.
-[00:22:44.591] Browser ERROR   uncaughtError: Error: ./src/proxy.ts
-Proxy is missing expected function export name
-This function is what Next.js runs for every request handled by this proxy (previously called middleware).
-
-Why this happens:
-- You are migrating from `middleware` to `proxy`, but haven't updated the exported function.
-- The file exists but doesn't export a function.
-- The export is not a function (e.g., an object or constant).
-- There's a syntax error preventing the export from being recognized.
-
-To fix it:
-- Ensure this file has either a default or "proxy" function export.
-
-Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-
-
-[00:22:44.763] Browser ERROR   ./src/proxy.ts
-Proxy is missing expected function export name
-This function is what Next.js runs for every request handled by this proxy (previously called middleware).
-
-Why this happens:
-- You are migrating from `middleware` to `proxy`, but haven't updated the exported function.
-- The file exists but doesn't export a function.
-- The export is not a function (e.g., an object or constant).
-- There's a syntax error preventing the export from being recognized.
-
-To fix it:
-- Ensure this file has either a default or "proxy" function export.
-
-Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-[00:22:44.763] Browser ERROR   ./src/proxy.ts
-Proxy is missing expected function export name
-This function is what Next.js runs for every request handled by this proxy (previously called middleware).
-
-Why this happens:
-- You are migrating from `middleware` to `proxy`, but haven't updated the exported function.
-- The file exists but doesn't export a function.
-- The export is not a function (e.g., an object or constant).
-- There's a syntax error preventing the export from being recognized.
-
-To fix it:
-- Ensure this file has either a default or "proxy" function export.
-
-Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-[00:22:58.607] Browser ERROR   ./src/proxy.ts
-Proxy is missing expected function export name
-This function is what Next.js runs for every request handled by this proxy (previously called middleware).
-
-Why this happens:
-- You are migrating from `middleware` to `proxy`, but haven't updated the exported function.
-- The file exists but doesn't export a function.
-- The export is not a function (e.g., an object or constant).
-- There's a syntax error preventing the export from being recognized.
-
-To fix it:
-- Ensure this file has either a default or "proxy" function export.
-
-Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-[00:23:08.840] Browser ERROR   ./src/proxy.ts
-Proxy is missing expected function export name
-This function is what Next.js runs for every request handled by this proxy (previously called middleware).
-
-Why this happens:
-- You are migrating from `middleware` to `proxy`, but haven't updated the exported function.
-- The file exists but doesn't export a function.
-- The export is not a function (e.g., an object or constant).
-- There's a syntax error preventing the export from being recognized.
-
-To fix it:
-- Ensure this file has either a default or "proxy" function export.
-
-Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-[00:23:38.312] Server  ERROR   ⨯ Error: The Proxy file "/proxy" must export a function named `proxy` or a default function.
-[00:23:38.600] Server  ERROR   ⨯ Error: The Proxy file "/proxy" must export a function named `proxy` or a default function.
-[00:23:38.838] Browser ERROR   uncaughtError: Error: ./src/proxy.ts
-Proxy is missing expected function export name
-This function is what Next.js runs for every request handled by this proxy (previously called middleware).
-
-Why this happens:
-- You are migrating from `middleware` to `proxy`, but haven't updated the exported function.
-- The file exists but doesn't export a function.
-- The export is not a function (e.g., an object or constant).
-- There's a syntax error preventing the export from being recognized.
-
-To fix it:
-- Ensure this file has either a default or "proxy" function export.
-
-Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-
-
-[00:23:39.071] Browser ERROR   uncaughtError: Error: ./src/proxy.ts
-Proxy is missing expected function export name
-This function is what Next.js runs for every request handled by this proxy (previously called middleware).
-
-Why this happens:
-- You are migrating from `middleware` to `proxy`, but haven't updated the exported function.
-- The file exists but doesn't export a function.
-- The export is not a function (e.g., an object or constant).
-- There's a syntax error preventing the export from being recognized.
-
-To fix it:
-- Ensure this file has either a default or "proxy" function export.
-
-Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-
-
-[00:23:39.298] Browser ERROR   ./src/proxy.ts
-Proxy is missing expected function export name
-This function is what Next.js runs for every request handled by this proxy (previously called middleware).
-
-Why this happens:
-- You are migrating from `middleware` to `proxy`, but haven't updated the exported function.
-- The file exists but doesn't export a function.
-- The export is not a function (e.g., an object or constant).
-- There's a syntax error preventing the export from being recognized.
-
-To fix it:
-- Ensure this file has either a default or "proxy" function export.
-
-Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-[00:23:39.298] Browser ERROR   ./src/proxy.ts
-Proxy is missing expected function export name
-This function is what Next.js runs for every request handled by this proxy (previously called middleware).
-
-Why this happens:
-- You are migrating from `middleware` to `proxy`, but haven't updated the exported function.
-- The file exists but doesn't export a function.
-- The export is not a function (e.g., an object or constant).
-- There's a syntax error preventing the export from being recognized.
-
-To fix it:
-- Ensure this file has either a default or "proxy" function export.
-
-Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-[00:23:39.299] Browser ERROR   ./src/proxy.ts
-Proxy is missing expected function export name
-This function is what Next.js runs for every request handled by this proxy (previously called middleware).
-
-Why this happens:
-- You are migrating from `middleware` to `proxy`, but haven't updated the exported function.
-- The file exists but doesn't export a function.
-- The export is not a function (e.g., an object or constant).
-- There's a syntax error preventing the export from being recognized.
-
-To fix it:
-- Ensure this file has either a default or "proxy" function export.
-
-Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-[00:23:39.300] Browser ERROR   ./src/proxy.ts
-Proxy is missing expected function export name
-This function is what Next.js runs for every request handled by this proxy (previously called middleware).
-
-Why this happens:
-- You are migrating from `middleware` to `proxy`, but haven't updated the exported function.
-- The file exists but doesn't export a function.
-- The export is not a function (e.g., an object or constant).
-- There's a syntax error preventing the export from being recognized.
-
-To fix it:
-- Ensure this file has either a default or "proxy" function export.
-
-Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-[00:23:39.300] Browser ERROR   ./src/proxy.ts
-Proxy is missing expected function export name
-This function is what Next.js runs for every request handled by this proxy (previously called middleware).
-
-Why this happens:
-- You are migrating from `middleware` to `proxy`, but haven't updated the exported function.
-- The file exists but doesn't export a function.
-- The export is not a function (e.g., an object or constant).
-- There's a syntax error preventing the export from being recognized.
-
-To fix it:
-- Ensure this file has either a default or "proxy" function export.
-
-Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-[00:23:39.300] Browser ERROR   ./src/proxy.ts
-Proxy is missing expected function export name
-This function is what Next.js runs for every request handled by this proxy (previously called middleware).
-
-Why this happens:
-- You are migrating from `middleware` to `proxy`, but haven't updated the exported function.
-- The file exists but doesn't export a function.
-- The export is not a function (e.g., an object or constant).
-- There's a syntax error preventing the export from being recognized.
-
-To fix it:
-- Ensure this file has either a default or "proxy" function export.
-
-Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-[00:23:39.300] Browser ERROR   ./src/proxy.ts
-Proxy is missing expected function export name
-This function is what Next.js runs for every request handled by this proxy (previously called middleware).
-
-Why this happens:
-- You are migrating from `middleware` to `proxy`, but haven't updated the exported function.
-- The file exists but doesn't export a function.
-- The export is not a function (e.g., an object or constant).
-- There's a syntax error preventing the export from being recognized.
-
-To fix it:
-- Ensure this file has either a default or "proxy" function export.
-
-Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-[00:23:39.300] Browser ERROR   ./src/proxy.ts
-Proxy is missing expected function export name
-This function is what Next.js runs for every request handled by this proxy (previously called middleware).
-
-Why this happens:
-- You are migrating from `middleware` to `proxy`, but haven't updated the exported function.
-- The file exists but doesn't export a function.
-- The export is not a function (e.g., an object or constant).
-- There's a syntax error preventing the export from being recognized.
-
-To fix it:
-- Ensure this file has either a default or "proxy" function export.
-
-Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-[00:23:39.300] Browser ERROR   ./src/proxy.ts
-Proxy is missing expected function export name
-This function is what Next.js runs for every request handled by this proxy (previously called middleware).
-
-Why this happens:
-- You are migrating from `middleware` to `proxy`, but haven't updated the exported function.
-- The file exists but doesn't export a function.
-- The export is not a function (e.g., an object or constant).
-- There's a syntax error preventing the export from being recognized.
-
-To fix it:
-- Ensure this file has either a default or "proxy" function export.
-
-Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-[00:23:39.300] Browser ERROR   ./src/proxy.ts
-Proxy is missing expected function export name
-This function is what Next.js runs for every request handled by this proxy (previously called middleware).
-
-Why this happens:
-- You are migrating from `middleware` to `proxy`, but haven't updated the exported function.
-- The file exists but doesn't export a function.
-- The export is not a function (e.g., an object or constant).
-- There's a syntax error preventing the export from being recognized.
-
-To fix it:
-- Ensure this file has either a default or "proxy" function export.
-
-Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-[00:23:39.300] Browser ERROR   ./src/proxy.ts
-Proxy is missing expected function export name
-This function is what Next.js runs for every request handled by this proxy (previously called middleware).
-
-Why this happens:
-- You are migrating from `middleware` to `proxy`, but haven't updated the exported function.
-- The file exists but doesn't export a function.
-- The export is not a function (e.g., an object or constant).
-- There's a syntax error preventing the export from being recognized.
-
-To fix it:
-- Ensure this file has either a default or "proxy" function export.
-
-Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-[00:24:05.818] Server  LOG     ✓ Compiled in 172ms
-[00:24:07.018] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:24:07.239] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:24:20.474] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:24:20.744] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:24:35.774] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:24:36.081] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:26:21.200] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+[00:21:14.708] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:22:38.500] Server  WARN    The width(-1) and height(-1) of chart should be greater than 0,
        please check the style of container, or the props width(100%) and height(100%),
        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
        height and width.
-[00:26:21.200] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+[00:22:38.503] Server  WARN    The width(-1) and height(-1) of chart should be greater than 0,
        please check the style of container, or the props width(100%) and height(100%),
        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
        height and width.
-[00:26:43.753] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+[00:22:38.598] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:22:38.909] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
        please check the style of container, or the props width(100%) and height(100%),
        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
        height and width.
-[00:26:43.753] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+[00:22:38.910] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
        please check the style of container, or the props width(100%) and height(100%),
        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
        height and width.
-[00:35:10.267] Server  LOG     ✓ Compiled in 194ms
-[00:40:56.280] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:40:56.913] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:22:38.910] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[00:22:38.910] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[00:23:26.164] Server  LOG     ✓ Compiled in 345ms
+[00:23:27.685] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[00:23:27.685] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[00:23:27.685] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[00:23:27.686] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[00:23:52.223] Server  LOG     ✓ Compiled in 80ms
+[00:24:14.215] Server  LOG     ✓ Compiled in 143ms

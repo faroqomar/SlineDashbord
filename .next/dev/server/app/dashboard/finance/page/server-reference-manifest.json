@@ -1,4 +1,20 @@
 {
-  "node": {},
+  "node": {
+    "701008a45a612ac173cdfda26038e6d137076cabbf": {
+      "workers": {
+        "app/dashboard/finance/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/actions/finance.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getTransactions",
+          "filename": "src/actions/finance.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/finance/page": "rsc"
+      },
+      "exportedName": "getTransactions",
+      "filename": "src/actions/finance.ts"
+    }
+  },
   "edge": {}
 }

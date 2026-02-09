@@ -25,6 +25,15 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist
 // strictly speaking we log in as a user).
 // However, since this is an Admin App, maybe we just want to verify credentials.
 // Standard Supabase Auth flow:
+const ADMIN_PREFIX = "admin.";
+/**
+ * Adds an isolation prefix to the email to separate Admin Dashboard accounts
+ * from the main App users in the same Supabase project.
+ */ function toAdminAuthEmail(email) {
+    // If we wanted to support legacy accounts without prefix, we'd need complex logic.
+    // For now, we enforce isolation for all dashboard access.
+    return `${ADMIN_PREFIX}${email}`;
+}
 async function createAuthClient() {
     const cookieStore = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$headers$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["cookies"])();
     return (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$supabase$2f$ssr$2f$dist$2f$module$2f$createServerClient$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["createServerClient"])(("TURBOPACK compile-time value", "https://isddrknbjsgaantjojhm.supabase.co"), ("TURBOPACK compile-time value", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlzZGRya25ianNnYWFudGpvamhtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI2NzEzNTAsImV4cCI6MjA2ODI0NzM1MH0.nszrlk0ZUmn94ur0mUQPr_ObIRy-wGe8Z-uOCyZuftc"), {
@@ -51,14 +60,17 @@ async function login(formData) {
         };
     }
     const supabase = await createAuthClient();
+    // Use the prefixed email for the actual auth attempt to ensure isolation
     const { error } = await supabase.auth.signInWithPassword({
-        email,
+        email: toAdminAuthEmail(email),
         password
     });
     if (error) {
+        // If login fails, it might be an old account (dev phase).
+        // Optional: could try fallback here if strictly necessary, but better to stick to one pattern.
         return {
-            error: error.message
-        };
+            error: "Invalid credentials."
+        }; // Generic error message
     }
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$components$2f$navigation$2e$react$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["redirect"])('/dashboard');
 }

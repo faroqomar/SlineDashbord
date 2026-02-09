@@ -2,7 +2,7 @@
 description: You are `@DocKeeper`. Your mission is to create a complete, developer-grade documentation suite for the `sline_admin` (Next.js 15) project, mirroring the high standards of the `sline_app` documentation.
 ---
 
- Generate Admin Dashboard Documentation
+Generate Admin Dashboard Documentation
 
 **Goal**: You are `@DocKeeper`. Your mission is to create a complete, developer-grade documentation suite for the `sline_admin` (Next.js 15) project, mirroring the high standards of the `sline_app` documentation.
 
@@ -81,3 +81,39 @@ Ensure the documentation explicitly covers:
 5.  **Direct DB Access**: Forbidding `supabase-js` usage in Client Components.
 
 **Tone**: Authoritative, Technical, Concise. Use emojis for sections. use "Access Denied" alerts for security warnings.
+
+---
+
+## 🔄 Continuous Documentation Protocol
+
+**Rule**: Every new feature implemented MUST have its own dedicated documentation file.
+
+- **Location**: `docs/features/[feature_name].md`
+- **Trigger**: When a feature reaches "v1" or "MVP" status.
+
+### Feature Documentation Template
+
+When creating a feature doc, use this structure:
+
+```markdown
+# [Feature Name]
+
+## Overview
+
+What does this feature do? Who is it for?
+
+## Architecture
+
+- **Components**: List key UI components.
+- **Actions**: List Server Actions used.
+- **Models**: Link to data models.
+
+## How It Works
+
+Step-by-step flow of the feature (e.g., "User clicks button -> Action validates -> DB updates -> UI refreshes").
+
+## Future Work
+
+- [ ] Known limitations
+- [ ] Planned enhancements
+```

@@ -1,86 +1,131 @@
 'use server';
 
 import { createAdminClient } from '@/lib/supabase/admin';
-import { UserDTO, Profile } from '@/types/admin-types';
+import { createClient } from '@/lib/supabase/server';
+import { logAdminAction } from '@/lib/admin-logger';
+import { revalidatePath } from 'next/cache';
 
-export interface UserFilter {
-  query?: string;
-  role?: string;
-}
+// ... existing imports ...
 
-export interface UserListResponse {
-  data: UserDTO[];
-  count: number;
-}
+import { UserProfile, UserListResult } from '@/features/users/models/user.model';
 
-export async function getUsers(page: number = 1, pageSize: number = 10, filters?: UserFilter): Promise<UserListResponse> {
-  const supabase = await createAdminClient();
-  const from = (page - 1) * pageSize;
-  const to = from + pageSize - 1;
+export async function getUsers(
+  page: number = 1,
+  query: string = '',
+  role: string = 'all',
+  pageSize: number = 10
+): Promise<UserListResult> {
+  const supabase = createAdminClient();
+  const offset = (page - 1) * pageSize;
 
-  let query = supabase
+  let dbQuery = supabase
     .from('profiles')
-    .select('*', { count: 'exact' });
+    .select('*', { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .range(offset, offset + pageSize - 1);
 
-  if (filters?.query) {
-    query = query.or(`full_name.ilike.%${filters.query}%,email.ilike.%${filters.query}%`);
+  if (query) {
+    dbQuery = dbQuery.or(`full_name.ilike.%${query}%,email.ilike.%${query}%`);
   }
 
-  if (filters?.role && filters.role !== 'all') {
-    // Assuming 'active_role' or 'roles' column is used. 
-    // Checking typescript definition: profiles has 'active_role' (string) and 'roles' (string[]).
-    // Let's filter by active_role for simple view, or contains in roles.
-    query = query.eq('active_role', filters.role);
+  if (role && role !== 'all') {
+    // Assuming 'active_role' is the column to filter on, or we filter by 'roles' array
+    // For simplicity using active_role matching or array contains
+    // profiles.roles is text[]
+    dbQuery = dbQuery.contains('roles', [role.toLowerCase()]);
   }
 
-  query = query.range(from, to).order('created_at', { ascending: false });
-
-  const { data, error, count } = await query;
+  const { data, count, error } = await dbQuery;
 
   if (error) {
-    console.error('Error fetching users:', error);
-    throw new Error('Failed to fetch users');
+    throw new Error(`Failed to fetch users: ${error.message}`);
   }
 
-  // Map to DTO
-  const userDTOs: UserDTO[] = (data as Profile[]).map(profile => ({
-    id: profile.id,
-    email: profile.email,
-    full_name: profile.full_name,
-    avatar_url: profile.avatar_url,
-    role: profile.active_role,
-    status: 'active', // 'status' might be in auth.users, profiles usually don't have it unless customized. Defaulting to active.
-    created_at: profile.created_at,
-  }));
+  // Cast existing data to UserProfile[]
+  const users = (data || []) as unknown as UserProfile[];
 
   return {
-    data: userDTOs,
-    count: count || 0,
+    users,
+    total: count || 0,
+    totalPages: Math.ceil((count || 0) / pageSize),
   };
 }
 
-export async function getUserFullProfile(id: string) {
-    const supabase = await createAdminClient();
+export async function getUserDeepProfile(userId: string) {
+  const supabase = createAdminClient();
 
-    const [profileResult, walletResult, tasksAsClient, tasksAsFreelancer] = await Promise.all([
-        supabase.from('profiles').select('*').eq('id', id).single(),
-        supabase.from('wallet_balances').select('*').eq('user_id', id).single(),
-        supabase.from('tasks').select('*').eq('client_id', id).order('created_at', { ascending: false }).limit(5),
-        supabase.from('tasks').select('*').eq('freelancer_id', id).order('created_at', { ascending: false }).limit(5),
-    ]);
+  const [profileResult, tasksResult, walletResult] = await Promise.all([
+    // 1. Profile
+    supabase.from('profiles').select('*').eq('id', userId).single(),
 
-    if (profileResult.error) {
-        throw new Error(`Profile not found: ${profileResult.error.message}`);
-    }
+    // 2. Job History (Tasks where user is involved)
+    supabase
+      .from('tasks')
+      .select('*')
+      .or(`client_id.eq.${userId},freelancer_id.eq.${userId}`)
+      .order('created_at', { ascending: false })
+      .limit(10),
 
-    // We can also try to fetch auth user data using supabase.auth.admin.getUserById(id) 
-    // but that requires specific admin permission scope often.
-    // Let's stick to public schema relations for now unless explicitly needed.
+    // 3. Wallet Transactions (to calculate balance)
+    supabase.from('wallet_transactions').select('amount').eq('user_id', userId),
+  ]);
 
-    return {
-        profile: profileResult.data,
-        wallet: walletResult.data || { available_balance: 0, held_balance: 0 },
-        recentClientTasks: tasksAsClient.data || [],
-        recentFreelancerTasks: tasksAsFreelancer.data || [],
-    };
+  if (profileResult.error) {
+    throw new Error(`Failed to fetch profile: ${profileResult.error.message}`);
+  }
+
+  // Calculate balance on the fly
+  const balance = (walletResult.data || []).reduce(
+    (sum, txn) => sum + (Number(txn.amount) || 0),
+    0
+  );
+
+  return {
+    profile: profileResult.data,
+    recentActivity: tasksResult.data || [],
+    walletBalance: balance,
+  };
 }
+
+export async function banUser(userId: string, reason: string) {
+  const supabaseAdmin = createAdminClient();
+  const supabase = await createClient();
+
+  // 1. Check Auth (Security)
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) {
+    throw new Error('Unauthorized');
+  }
+
+  // 1b. Verify Admin Role (Double check)
+  const { data: adminUser } = await supabaseAdmin.from('admin_users').select('role').eq('id', user.id).single();
+  if (!adminUser) {
+      throw new Error('Forbidden: Not an admin');
+  }
+
+  // 2. Update Profile Status
+  const { error: profileError } = await supabaseAdmin
+    .from('profiles')
+    .update({ status: 'banned', metadata: { ban_reason: reason, banned_at: new Date().toISOString() } })
+    .eq('id', userId);
+
+  if (profileError) {
+    throw new Error(`Failed to update profile: ${profileError.message}`);
+  }
+
+  // 3. Revoke Auth Session (Ban in Auth)
+  const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+    ban_duration: "876600h", // ~100 years
+  });
+
+  if (authError) {
+    console.error('Failed to ban user in Auth:', authError);
+  }
+
+  // 4. Audit Log
+  await logAdminAction(user.id, 'ban_user', 'user', userId, { reason });
+
+  revalidatePath('/dashboard/users');
+  return { success: true };
+}
+

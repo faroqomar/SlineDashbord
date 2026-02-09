@@ -1,175 +1,142 @@
-# 📘 Admin Developer Guide (The Bible)
+# 📘 ADMIN_DEVELOPER_GUIDE (The Bible)
 
-**Version**: 1.0.0
-**Framework**: Next.js 15 (App Router)
-
----
+> **Goal**: Build scalable, type-safe, and secure features for the Sline Admin Dashboard.
 
 ## 🏗 Architecture
 
-The Admin Dashboard follows a strict **Server-Centric** architecture to ensure security and performance.
+We follow a strict **Server-Client Separation** architecture using Next.js 15 App Router.
 
-### 1. The "Service -> Action -> View" Pattern
+### The Pattern: `Action -> Model -> View`
 
-We do not use client-side fetching (no `useEffect` or `react-query` for initial data).
+1.  **Server Actions (`src/actions/*`)**: The **ONLY** place that touches the database.
+    - Must define a Zod schema for input.
+    - Must verify Authentication (`getUser`).
+    - Must verify Admin Role (`admin_users` check).
+    - Must return `{ success, error, data }`.
+    - **NEVER** throw errors to the client; catch and return objects.
 
-1.  **Server Actions (`src/actions/*`)**: The only way to read/write data.
-2.  **Server Components (`page.tsx`)**: Fetch initial data using Server Actions.
-3.  **Client Components (`components/*`)**: Receive data as props and call Server Actions for mutations.
+2.  **Domain Models (`src/features/*/models/*.model.ts`)**:
+    - Define the shape of data (Interfaces).
+    - **NO** `any` types allowed.
 
-### 2. File Structure
-
-```
-src/
-├── actions/        # Server Actions (Your API layer)
-├── app/            # Routes (Pages & Layouts)
-├── components/     # UI Components (Client & Server)
-├── lib/            # Utilities (Supabase, Audit, Zod)
-├── types/          # TypeScript Definitions (DTOs)
-└── proxy.ts        # Middleware (Security Wall)
-```
+3.  **Client Components (`src/components/*`)**:
+    - Pure UI.
+    - Call Server Actions directly or via `useTransition`.
+    - **NEVER** import `supabase-js` directly for data fetching.
 
 ---
 
-## ⚡ Server Actions (How to Write Backend Logic)
+## 🛡️ Writing Safe Server Actions
 
-Every Server Action must follow this template. **No exceptions.**
-
-### The "Safe Action" Template
+Every action must follow this template:
 
 ```typescript
-'use server';
+"use server";
 
-import { createAdminClient } from '@/lib/supabase/admin';
-import { logAdminAction } from '@/lib/audit';
-import { z } from 'zod';
-import { revalidatePath } from 'next/cache';
+import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
+import { z } from "zod";
+import { logAdminAction } from "@/lib/admin-logger";
 
 // 1. Define Input Schema
-const UpdateUserSchema = z.object({
-  userId: z.string().uuid(),
-  status: z.enum(['active', 'banned']),
-  reason: z.string().min(5)
+const InputSchema = z.object({
+  id: z.string().uuid(),
+  reason: z.string().min(5),
 });
 
-export async function updateUserStatus(formData: FormData) {
+export async function mySecureAction(formData: FormData) {
   // 2. Validate Input
-  const parsed = UpdateUserSchema.safeParse({
-    userId: formData.get('userId'),
-    status: formData.get('status'),
-    reason: formData.get('reason')
+  const parsed = InputSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: "Invalid input" };
+
+  const supabase = await createClient();
+  const adminDb = createAdminClient();
+
+  // 3. Auth & Role Check
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "Unauthorized" };
+
+  const { data: admin } = await adminDb
+    .from("admin_users")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+  if (!admin) return { error: "Access Denied" };
+
+  // 4. Perform Logic
+  const { error } = await adminDb
+    .from("items")
+    .delete()
+    .eq("id", parsed.data.id);
+  if (error) return { error: error.message };
+
+  // 5. Audit Log (Mandatory)
+  await logAdminAction(user.id, "delete_item", "items", parsed.data.id, {
+    reason: parsed.data.reason,
   });
 
-  if (!parsed.success) {
-    return { success: false, error: parsed.error.message };
-  }
-
-  const { userId, status, reason } = parsed.data;
-
-  // 3. Authenticate & Authorize
-  // (Middleware handles session, but we use Admin Client here)
-  const supabase = await createAdminClient();
-  // TODO: Get current admin ID from session if needed for logs
-
-  // 4. Perform DB Operation
-  const { error } = await supabase
-    .from('profiles')
-    .update({ status })
-    .eq('id', userId);
-
-  if (error) {
-    console.error('Update failed:', error);
-    return { success: false, error: 'Database update failed.' };
-  }
-
-  // 5. Audit Log (MANDATORY for writes)
-  await logAdminAction('ADMIN_ID', 'user_updated', userId, 'user', { status, reason });
-
-  // 6. Revalidate & Return
-  revalidatePath(\`/dashboard/users/\${userId}\`);
   return { success: true };
 }
 ```
 
-> [!IMPORTANT]
-> **NEVER THROW ERRORS**. Always return `{ success: false, error: string }` so the UI can handle it gracefully.
-
 ---
 
-## 🧩 Client Components (The ViewModel)
+## 🎨 Client Components & Hooks
 
-When building complex forms, use the standard interaction pattern.
+Use `useTransition` for mutations to keep the UI responsive.
 
 ```tsx
 "use client";
 
-import { useState } from "react";
-import { updateUserStatus } from "@/actions/user-mutations";
-import { toast } from "sonner";
+import { useTransition } from "react";
+import { mySecureAction } from "@/actions/my-feature";
 
-export function UserStatusForm({ userId }: { userId: string }) {
-  const [loading, setLoading] = useState(false);
+export function ActionButton() {
+  const [isPending, startTransition] = useTransition();
 
-  async function handleSubmit(formData: FormData) {
-    setLoading(true);
-
-    // Call Server Action
-    const result = await updateUserStatus(formData);
-
-    if (!result.success) {
-      toast.error(result.error);
-    } else {
-      toast.success("User updated successfully");
-    }
-
-    setLoading(false);
-  }
+  const handleClick = () => {
+    startTransition(async () => {
+      const result = await mySecureAction(payload);
+      if (result.error) {
+        toast.error(result.error);
+      } else {
+        toast.success("Done!");
+      }
+    });
+  };
 
   return (
-    <form action={handleSubmit}>
-      <input type="hidden" name="userId" value={userId} />
-      {/* ... inputs ... */}
-    </form>
+    <Button disabled={isPending} onClick={handleClick}>
+      Execute
+    </Button>
   );
 }
 ```
 
 ---
 
-## 🚦 State Management Rules
+## 🧠 State Management
 
-1.  **URL State**: For Filters, Pagination, and Search.
-    - _Why?_ Shareable links, browser history support.
-    - _How?_ Use `searchParams` prop in `page.tsx`.
-2.  **React State**: For Form Inputs, Modals, Toggles.
-    - _Why?_ Ephemeral interaction.
-3.  **Server State**: Do NOT use a global store (Redux/Zustand). Rely on `revalidatePath`.
+- **Global State**: Avoid it. Use Server State (fetched via Server Components).
+- **URL State**: Use search params for Filters, Pagination, and Tabs. This makes views shareable.
+- **Local State**: Use `useState` only for ephemeral UI (modals open/close, form inputs).
 
 ---
 
-## 📋 Copy-Paste CRUD Cheat Sheet
+## ⚡ Quick Snippets (Copy-Paste)
 
-### Fetching Data (Read)
+### Standard CRUD Feature Structure
 
-```typescript
-// src/actions/items.ts
-export async function getItems() {
-  const supabase = await createAdminClient();
-  const { data, error } = await supabase.from("items").select("*");
-  if (error) return []; // Or throw if page should crash
-  return data;
-}
+```
+src/features/
+  └── my-feature/
+      ├── models/
+      │   └── item.model.ts
+      ├── components/
+      │   ├── ItemList.tsx
+      │   └── ItemForm.tsx
 ```
 
-### Creating Data (Create)
-
-```typescript
-// src/actions/items.ts
-export async function createItem(data: ItemDTO) {
-  const supabase = await createAdminClient();
-  const { error } = await supabase.from("items").insert(data);
-  if (error) return { success: false, error: error.message };
-  revalidatePath("/dashboard/items");
-  return { success: true };
-}
-```
+`src/app/dashboard/my-feature/page.tsx` (Server Component) -> Fetches data -> Renders `ItemList`.

@@ -1,76 +1,55 @@
-# 🧠 Admin Database Reference (The Brain)
+# 🧠 ADMIN_DATABASE_REF (The Brain)
 
-**Project ID**: `isddrknbjsgaantjojhm`
+> **Goal**: Understand the data models powering the Admin Dashboard.
 
----
+## 🗄️ Core Tables
 
-## 🗄 Core Tables
+### Admin-Specific
 
-These are the primary tables the Admin Dashboard interacts with.
+| Table             | Description                     | Key Columns                                                    |
+| :---------------- | :------------------------------ | :------------------------------------------------------------- |
+| **`admin_users`** | Whitelist of authorized admins. | `id` (FK auth.users), `role` (super_admin, moderator), `email` |
+| **`admin_logs`**  | Audit trail for all actions.    | `actor_id`, `action`, `target_id`, `metadata`                  |
 
-### 1. User Management
+### App Integration (ReadOnly/Mutation)
 
-- **`auth.users`**: Returns Auth ID, Email, Last Sign In. (Requires Service Role to list all).
-- **`public.profiles`**: Public profile data.
-  - `id` (UUID, PK) -> Links to `auth.users`.
-  - `status` (Text) -> 'active', 'banned' (Added for Admin).
-  - `metadata` (JSONB) -> Stores Verification status, Ban history.
-
-### 2. Work & Tasks
-
-- **`public.tasks`**: The core unit of work.
-  - `status`: 'open', 'assigned', 'in_progress', 'review', 'completed', 'canceled', 'closed'.
-  - `budget`: Numeric amount.
-- **`public.disputes`** (Admin Specific):
-  - `id`, `task_id`, `initiator_id`.
-  - `status`: 'open', 'resolved'.
-  - `resolution`: 'refund_client', 'release_freelancer'.
-
-### 3. Finance
-
-- **`public.wallet_transactions`**: The ledger.
-  - **Write-Only** mostly.
-  - `type`: 'deposit', 'withdrawal', 'refund', 'payment_release'.
-- **`public.wallet_balances`**: **VIEW**. Read-only aggregation of transactions.
-  - Do not try to update this directly.
-
-### 4. System
-
-- **`public.activity_log`** (Admin Specific):
-  - Stores the audit trail of all admin actions.
+| Table                     | Admin Access Level | Notes                                                       |
+| :------------------------ | :----------------- | :---------------------------------------------------------- |
+| **`profiles`**            | **Read/Write**     | We read all profiles. Write `status` (ban) and `metadata`.  |
+| **`tasks`**               | **Read Only**      | (Previously `projects` / `jobs`). Used for dispute context. |
+| **`disputes`**            | **Read/Write**     | Core admin workspace. Write `resolution`, `status`.         |
+| **`wallet_transactions`** | **Read/Write**     | Read for finance stats. Write for refunds/payouts.          |
 
 ---
 
-## ⚡ RLS Bypasses
+## 🔐 RLS Policies & Bypasses
 
-The Admin Dashboard uses `SUPABASE_SERVICE_ROLE_KEY` which **bypasses ALL Row Level Security policies**.
-
-| Table      | Normal Policy                | Admin Access                             |
-| :--------- | :--------------------------- | :--------------------------------------- |
-| `profiles` | Users edit own. Public read. | **Full RW** (Can ban/edit anyone).       |
-| `tasks`    | Participants only.           | **Full RW** (Can cancel/force complete). |
-| `wallet_*` | User sees own.               | **Full RW** (Can correct balances).      |
+The Admin Dashboard primarily uses the **Service Role Client**, which **bypasses RLS**.
 
 > [!NOTE]
-> We rely on **Code-Level Security** in `src/actions` rather than Database Policies for the Admin App.
+> We bypass RLS because Admins need to see data across the entire platform, which typical "User-centric" RLS policies (e.g., `auth.uid() = user_id`) would hide.
+
+### Explicit Bypasses
+
+- **Fetching User List**: Bypasses `profiles` RLS to see all users.
+- **Fetching Disputes**: Bypasses `disputes` RLS to see cases between other parties.
+- **Global Stats**: Bypasses all tables to aggregate counts/sums.
 
 ---
 
-## 🛠 Type Generation
+## 🛠️ Type Generation
 
-We use Supabase CLI to generate TypeScript definitions.
+We use Supabase CLI to generate strictly typed interfaces.
 
-**Command to Update Types:**
+**Command**:
 
 ```bash
-npx supabase gen types typescript --project-id "isddrknbjsgaantjojhm" --schema public > src/types/supabase.ts
+npx supabase gen types typescript --project-id "your-project-id" > src/types/supabase.ts
 ```
 
-**Using the Types:**
+**Usage**:
 
 ```typescript
 import { Database } from "@/types/supabase";
-
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
-type Task = Database["public"]["Tables"]["tasks"]["Row"];
 ```

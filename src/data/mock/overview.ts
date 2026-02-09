@@ -28,6 +28,13 @@ export interface ActivityItem {
   time: string;
 }
 
+export interface PendingItem {
+  id: string;
+  type: string;
+  count: number;
+  status: "pending" | "warning" | "open";
+}
+
 export const MOCK_KPI_STATS: KPIStat[] = [
   {
     title: "Total Revenue",
@@ -121,4 +128,11 @@ export const MOCK_RECENT_ACTIVITY: ActivityItem[] = [
     status: "success",
     time: "5 hrs ago",
   },
+];
+
+export const MOCK_PENDING_ITEMS: PendingItem[] = [
+  { id: "1", type: "Verification", count: 23, status: "pending" },
+  { id: "2", type: "Disputes", count: 8, status: "open" },
+  { id: "3", type: "Complaints", count: 15, status: "pending" },
+  { id: "4", type: "Reports", count: 4, status: "warning" },
 ];

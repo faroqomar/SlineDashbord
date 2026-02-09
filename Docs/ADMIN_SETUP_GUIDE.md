@@ -1,76 +1,54 @@
-# 🚀 Admin Setup Guide (The Handle)
+# 🚀 ADMIN_SETUP_GUIDE (The Handle)
 
-Follow this guide to set up the SLine Admin Dashboard locally.
+> **Goal**: From zero to localhost in 5 minutes.
 
----
+## ✅ Prerequisites
 
-## 📋 Prerequisites
-
-- **Node.js**: v18 or higher (v20+ recommended).
-- **npm**: Installed with Node.
-- **Git**: For version control.
-- **Access**: You need the `SUPABASE_SERVICE_ROLE_KEY` from the project owner.
+- **Node.js**: v18+
+- **npm**: v9+
+- **Supabase Project**: You need an active project ID and keys.
 
 ---
 
-## 🛠 Installation
+## 🛠️ Installation
 
-1.  **Clone the Repository** (if you haven't)
+1.  **Clone the repo**:
 
     ```bash
-    git clone <repo-url>
-    cd sline_admin
+    git clone https://github.com/your-org/sline-admin.git
+    cd sline-admin
     ```
 
-2.  **Install Dependencies**
+2.  **Install Dependencies**:
 
     ```bash
     npm install
     ```
 
-3.  **Setup Environment Variables**
+3.  **Environment Variables**:
     Create a `.env.local` file in the root:
+
     ```env
-    NEXT_PUBLIC_SUPABASE_URL=https://isddrknbjsgaantjojhm.supabase.co
-    NEXT_PUBLIC_SUPABASE_ANON_KEY=<your-anon-key>
-    SUPABASE_SERVICE_ROLE_KEY=<SECRET-SERVICE-ROLE-KEY>
+    NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+    NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+    SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-DO-NOT-SHARE
     ```
-    > [!IMPORTANT]
-    > **NEVER COMMIT `.env.local`**. It contains the master key to the database.
 
----
-
-## 🏃‍♂️ Running Locally
-
-1.  **Development Server**
-
+4.  **Run Development Server**:
     ```bash
     npm run dev
     ```
-
-    Access the app at `http://localhost:3000`.
-
-2.  **First Login**
-    If you don't have an account, run the admin creation script:
-    ```bash
-    node --env-file=.env.local scripts/create-admin.js
-    ```
-    Use credentials: `admin@sline.com` / `password123`.
+    Open [http://localhost:3000](http://localhost:3000).
 
 ---
 
-## 🚢 Deployment
+## 🚢 Deployment (Vercel)
 
-We deploy to **Vercel**.
+1.  Push to `main`.
+2.  Import project in Vercel.
+3.  Add Environment Variables in Vercel Project Settings.
+4.  **Build Command**: `npm run build`.
+5.  **Output Directory**: `.next`.
 
-### Checklist
-
-1.  [ ] Push code to `main` branch.
-2.  [ ] Import project in Vercel.
-3.  [ ] Add Environment Variables in Vercel Project Settings.
-    - **Crucial**: Add `SUPABASE_SERVICE_ROLE_KEY`.
-4.  [ ] Deploy.
-
-### Build Safety
-
-The build pipeline runs `npm run security-check` automatically. If you imported the service key in a client component, the build **will fail**. This is a feature, not a bug.
+> [!IMPORTANT]
+> Ensure the `SUPABASE_SERVICE_ROLE_KEY` is added to Vercel Environment Variables. The app will fail to fetch data without it.
