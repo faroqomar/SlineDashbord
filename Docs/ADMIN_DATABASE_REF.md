@@ -6,10 +6,10 @@
 
 ### Admin-Specific
 
-| Table             | Description                     | Key Columns                                                    |
-| :---------------- | :------------------------------ | :------------------------------------------------------------- |
-| **`admin_users`** | Whitelist of authorized admins. | `id` (FK auth.users), `role` (super_admin, moderator), `email` |
-| **`admin_logs`**  | Audit trail for all actions.    | `actor_id`, `action`, `target_id`, `metadata`                  |
+| Table             | Description                     | Key Columns                                                      |
+| :---------------- | :------------------------------ | :--------------------------------------------------------------- |
+| **`admin_users`** | Whitelist of authorized admins. | `id` (FK `auth.users`), `role` (super_admin, moderator), `email` |
+| **`admin_logs`**  | Audit trail for all actions.    | `actor_id`, `action`, `target_id`, `metadata`                    |
 
 ### App Integration (ReadOnly/Mutation)
 
@@ -19,6 +19,41 @@
 | **`tasks`**               | **Read Only**      | (Previously `projects` / `jobs`). Used for dispute context. |
 | **`disputes`**            | **Read/Write**     | Core admin workspace. Write `resolution`, `status`.         |
 | **`wallet_transactions`** | **Read/Write**     | Read for finance stats. Write for refunds/payouts.          |
+
+---
+
+## 🔢 Enums
+
+### `booking_status_enum`
+
+- `pending`: Initial state.
+- `confirmed`: Accepted by freelancer.
+- `in_progress`: Work started.
+- `delivered`: Work submitted.
+- `completed`: Client approved.
+- `canceled`: Cancelled before start.
+- `refunded`: Money returned.
+- `disputed`: (Implicit state via `disputes` table join).
+
+### `message_type_enum`
+
+- `text`: Standard chat.
+- `system`: Automated alerts.
+- `offer`: Price/Time proposal.
+- `dispute_report`: Flag processing.
+
+### `payment_status_enum`
+
+- `unpaid`: Escrow empty.
+- `held`: Funds in Escrow.
+- `released`: Paid to Freelancer.
+- `refunded`: Returned to Client.
+
+### `UserRole` (String Literal)
+
+- `super_admin`: Can manage other admins/system settings.
+- `moderator`: Can handle disputes and users.
+- `support`: Read-only access to user data.
 
 ---
 
@@ -52,4 +87,5 @@ npx supabase gen types typescript --project-id "your-project-id" > src/types/sup
 ```typescript
 import { Database } from "@/types/supabase";
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
+type BookingStatus = Database["public"]["Enums"]["booking_status_enum"];
 ```

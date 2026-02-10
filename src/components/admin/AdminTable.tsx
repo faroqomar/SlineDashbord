@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { 
   Table, 
   TableBody, 
@@ -20,16 +20,35 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Shield, UserX, UserCheck, Mail } from "lucide-react";
-import { MOCK_ADMIN_USERS, AdminUser } from "@/data/mock/admin_users";
+import { MoreHorizontal, Shield, UserX, UserCheck, Mail, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { AdminUserDTO, removeMember } from "@/app/actions/team";
+import { useRouter } from "next/navigation";
 
-export function AdminTable() {
-  const [users, setUsers] = useState<AdminUser[]>(MOCK_ADMIN_USERS);
+interface AdminTableProps {
+  initialUsers: AdminUserDTO[];
+}
 
-  const handleDelete = (id: string) => {
+export function AdminTable({ initialUsers }: AdminTableProps) {
+  const [users, setUsers] = useState<AdminUserDTO[]>(initialUsers);
+  const [isPending, startTransition] = useTransition();
+  const router = useRouter();
+
+  const handleDelete = async (id: string) => {
+    // Optimistic update
+    const previousUsers = [...users];
     setUsers(users.filter(u => u.id !== id));
-    toast.success("User access revoked");
+    
+    startTransition(async () => {
+        try {
+            await removeMember(id);
+            toast.success("User access revoked");
+            router.refresh();
+        } catch (error) {
+            setUsers(previousUsers); // Revert
+            toast.error("Failed to revoke access");
+        }
+    });
   };
 
   const getRoleBadge = (role: string) => {
@@ -40,6 +59,15 @@ export function AdminTable() {
       default: return "bg-secondary text-secondary-foreground";
     }
   };
+
+  const getUserStatusColor = (status: string) => {
+      switch(status) {
+          case 'Active': return 'bg-green-500';
+          case 'Invited': return 'bg-yellow-500';
+          case 'Suspended': return 'bg-red-500';
+          default: return 'bg-gray-500';
+      }
+  }
 
   return (
     <div className="rounded-md border">
@@ -58,11 +86,11 @@ export function AdminTable() {
             <TableRow key={user.id}>
               <TableCell className="flex items-center gap-3">
                 <Avatar className="h-9 w-9">
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                  <AvatarImage src={user.avatar_url} alt={user.full_name} />
+                  <AvatarFallback>{user.full_name?.charAt(0) || user.email.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
-                  <span className="font-medium text-sm">{user.name}</span>
+                  <span className="font-medium text-sm">{user.full_name}</span>
                   <span className="text-xs text-muted-foreground">{user.email}</span>
                 </div>
               </TableCell>
@@ -75,16 +103,13 @@ export function AdminTable() {
               
               <TableCell>
                 <div className="flex items-center gap-2">
-                    <span className={`h-2 w-2 rounded-full ${
-                        user.status === "Active" ? "bg-green-500" : 
-                        user.status === "Invited" ? "bg-yellow-500" : "bg-red-500"
-                    }`} />
+                    <span className={`h-2 w-2 rounded-full ${getUserStatusColor(user.status)}`} />
                     <span className="text-sm text-muted-foreground">{user.status}</span>
                 </div>
               </TableCell>
               
               <TableCell className="text-muted-foreground text-sm">
-                {user.lastActive}
+                {new Date(user.last_active_at).toLocaleDateString()}
               </TableCell>
               
               <TableCell className="text-right">
@@ -107,14 +132,23 @@ export function AdminTable() {
                     <DropdownMenuItem 
                         className="text-destructive focus:text-destructive"
                         onClick={() => handleDelete(user.id)}
+                        disabled={isPending}
                     >
-                        <UserX className="mr-2 h-4 w-4" /> Revoke Access
+                        {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <UserX className="mr-2 h-4 w-4" />}
+                        Revoke Access
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>
             </TableRow>
           ))}
+          {users.length === 0 && (
+              <TableRow>
+                  <TableCell colSpan={5} className="h-24 text-center">
+                      No team members found.
+                  </TableCell>
+              </TableRow>
+          )}
         </TableBody>
       </Table>
     </div>

@@ -2,7 +2,7 @@
 import { cn } from "@/lib/utils";
 import { CheckCircle, Clock, AlertCircle, XCircle, Circle, AlertTriangle } from "lucide-react";
 
-type StatusType = "open" | "pending" | "resolved" | "closed" | "error" | "warning" | "info" | "in_review";
+type StatusType = "open" | "pending" | "resolved" | "closed" | "error" | "warning" | "info" | "in_review" | "in_progress";
 
 interface StatusBadgeProps {
   status: StatusType;
@@ -50,6 +50,11 @@ const statusConfig: Record<
     icon: Clock,
     className: "text-purple-500 bg-purple-500/10 border-purple-500/20",
     defaultLabel: "In Review",
+  },
+  in_progress: {
+    icon: Clock,
+    className: "text-purple-500 bg-purple-500/10 border-purple-500/20",
+    defaultLabel: "In Progress",
   },
   info: {
     icon: Circle,

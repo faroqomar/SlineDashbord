@@ -3,13 +3,18 @@ import { RevenueAreaChart } from "@/components/analytics/RevenueAreaChart";
 import { UserBarChart } from "@/components/analytics/UserBarChart";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { RequiresAttention } from "@/components/dashboard/RequiresAttention";
-import { MOCK_RECENT_ACTIVITY, MOCK_PENDING_ITEMS } from "@/data/mock/overview";
-import { getOverviewStats } from "@/actions/dashboard";
+import { getOverviewStats, getRecentActivity, getPendingItems, getRevenueHistory, getUserGrowthHistory } from "@/app/actions/analytics";
 import { Users, DollarSign, AlertCircle, Activity } from "lucide-react";
 import { KPIStat } from "@/data/mock/overview";
 
 export default async function DashboardPage() {
-  const statsData = await getOverviewStats();
+  const [statsData, recentActivity, pendingItems, revenueHistory, userGrowth] = await Promise.all([
+      getOverviewStats(),
+      getRecentActivity(),
+      getPendingItems(),
+      getRevenueHistory(),
+      getUserGrowthHistory()
+  ]);
 
   const stats: KPIStat[] = [
     {
@@ -59,13 +64,13 @@ export default async function DashboardPage() {
       <StatsGrid stats={stats} />
       
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <RevenueAreaChart />
-        <UserBarChart />
+        <RevenueAreaChart data={revenueHistory} />
+        <UserBarChart data={userGrowth} />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-        <ActivityFeed activity={MOCK_RECENT_ACTIVITY} />
-        <RequiresAttention items={MOCK_PENDING_ITEMS} />
+        <ActivityFeed activity={recentActivity} />
+        <RequiresAttention items={pendingItems} />
       </div>
     </div>
   );

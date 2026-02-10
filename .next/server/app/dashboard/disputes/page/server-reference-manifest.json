@@ -1,0 +1,50 @@
+{
+  "node": {
+    "405af5688f945bb0a89788c27ee6114c8f0ed43edc": {
+      "workers": {
+        "app/dashboard/disputes/page": {
+          "moduleId": 65653,
+          "async": false,
+          "exportedName": "getDisputeDetails",
+          "filename": "src/app/actions/disputes.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/disputes/page": "rsc"
+      },
+      "exportedName": "getDisputeDetails",
+      "filename": "src/app/actions/disputes.ts"
+    },
+    "70e15dac2d1adfcb702e8b19ca95f1039b1e4bcd98": {
+      "workers": {
+        "app/dashboard/disputes/page": {
+          "moduleId": 65653,
+          "async": false,
+          "exportedName": "resolveDispute",
+          "filename": "src/app/actions/disputes.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/disputes/page": "rsc"
+      },
+      "exportedName": "resolveDispute",
+      "filename": "src/app/actions/disputes.ts"
+    },
+    "7841c69db8bef786b58604ff243e4ba6159ab90a90": {
+      "workers": {
+        "app/dashboard/disputes/page": {
+          "moduleId": 65653,
+          "async": false,
+          "exportedName": "getDisputes",
+          "filename": "src/app/actions/disputes.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/disputes/page": "rsc"
+      },
+      "exportedName": "getDisputes",
+      "filename": "src/app/actions/disputes.ts"
+    }
+  },
+  "edge": {}
+}

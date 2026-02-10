@@ -1,0 +1,80 @@
+{
+  "node": {
+    "000d1ed6baa4fbae6c9cb87695e6fa520897234a3c": {
+      "workers": {
+        "app/test-actions/page": {
+          "moduleId": 17893,
+          "async": false,
+          "exportedName": "getOverviewStats",
+          "filename": "src/actions/dashboard.ts"
+        }
+      },
+      "layer": {
+        "app/test-actions/page": "rsc"
+      },
+      "exportedName": "getOverviewStats",
+      "filename": "src/actions/dashboard.ts"
+    },
+    "40c026c969f93080c7e585122f8df7bf1990211aaf": {
+      "workers": {
+        "app/test-actions/page": {
+          "moduleId": 17893,
+          "async": false,
+          "exportedName": "getUserDeepProfile",
+          "filename": "src/actions/users.ts"
+        }
+      },
+      "layer": {
+        "app/test-actions/page": "rsc"
+      },
+      "exportedName": "getUserDeepProfile",
+      "filename": "src/actions/users.ts"
+    },
+    "60a2ec364f30034a23a8932bceea2dda26eadb8860": {
+      "workers": {
+        "app/test-actions/page": {
+          "moduleId": 17893,
+          "async": false,
+          "exportedName": "banUser",
+          "filename": "src/actions/users.ts"
+        }
+      },
+      "layer": {
+        "app/test-actions/page": "rsc"
+      },
+      "exportedName": "banUser",
+      "filename": "src/actions/users.ts"
+    },
+    "780f1b55e9cfa8752aaa3339ef527af0c814a371bd": {
+      "workers": {
+        "app/test-actions/page": {
+          "moduleId": 17893,
+          "async": false,
+          "exportedName": "getUsers",
+          "filename": "src/actions/users.ts"
+        }
+      },
+      "layer": {
+        "app/test-actions/page": "rsc"
+      },
+      "exportedName": "getUsers",
+      "filename": "src/actions/users.ts"
+    },
+    "7c81d64abe9ca9dcb0da8409544415719c6785e0c0": {
+      "workers": {
+        "app/test-actions/page": {
+          "moduleId": 17893,
+          "async": false,
+          "exportedName": "logAdminAction",
+          "filename": "src/lib/admin-logger.ts"
+        }
+      },
+      "layer": {
+        "app/test-actions/page": "rsc"
+      },
+      "exportedName": "logAdminAction",
+      "filename": "src/lib/admin-logger.ts"
+    }
+  },
+  "edge": {}
+}

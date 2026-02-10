@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { MoreHorizontal } from "lucide-react";
-import { getUsers } from "@/actions/users";
+import { getUsers } from "@/app/actions/users";
 import { UserSearch } from "@/components/users/UserSearch";
 import { PaginationControls } from "@/components/users/PaginationControls";
 import { UserActionsMenu } from "@/components/users/UserActionsMenu";

@@ -59,7 +59,7 @@ export function NotificationHistory({ notifications }: NotificationHistoryProps)
       ),
     },
     {
-      key: "stats",
+      key: "stats" as keyof Notification,
       header: "Performance",
       render: (item) => {
         if (item.status !== "sent") return <span className="text-muted-foreground text-xs">—</span>;
@@ -72,7 +72,7 @@ export function NotificationHistory({ notifications }: NotificationHistoryProps)
       },
     },
     {
-      key: "date",
+      key: "date" as keyof Notification,
       header: "Date",
       render: (item) => (
         <span className="text-muted-foreground text-xs">

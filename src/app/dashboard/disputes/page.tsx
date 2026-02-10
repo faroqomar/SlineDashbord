@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AlertCircle, Clock, CheckCircle, MessageSquare, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
-import { getDisputes } from "@/actions/disputes";
+import { getDisputes } from "@/app/actions/disputes";
 
 export default async function DisputesPage() {
   const [openDisputes, investigatingDisputes, resolvedDisputes] = await Promise.all([
@@ -85,16 +85,16 @@ export default async function DisputesPage() {
                               <CardDescription className="text-xs flex items-center gap-2">
                                  <span className="font-mono text-[10px] text-muted-foreground">{dispute.id.slice(0, 8)}...</span>
                                  <span>•</span>
-                                 <span className="font-semibold text-primary">${dispute.task?.price || "0.00"}</span>
+                                 <span className="font-semibold text-primary">${dispute.amount?.toFixed(2) || "0.00"}</span>
                              </CardDescription>
                              </CardHeader>
                              <CardContent className="p-4 pt-0">
                                  <div className="flex items-center justify-between text-xs text-muted-foreground mt-2">
                                      <div className="flex -space-x-2">
-                                         {/* We might need to fetch participants or just show initiator */}
+                                         {/* We might need to fetch participants or just show complainant */}
                                           <Avatar className="h-6 w-6 border-2 border-background">
-                                             <AvatarImage src={dispute.initiator?.avatar_url} />
-                                             <AvatarFallback>{dispute.initiator?.full_name?.charAt(0) || "?"}</AvatarFallback>
+                                             <AvatarImage src={dispute.complainant?.avatar_url} />
+                                             <AvatarFallback>{dispute.complainant?.full_name?.charAt(0) || "?"}</AvatarFallback>
                                          </Avatar>
                                      </div>
                                  </div>

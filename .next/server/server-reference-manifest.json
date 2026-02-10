@@ -1,1 +1,578 @@
-{"node":{},"edge":{},"encryptionKey":"67DA2n9Wkrdnim5sybvDmWJeHA7myMILI7qZOf/JB2E="}
+{
+  "node": {
+    "003008416179c4a09983ff36635f0a30f9a6387a2b": {
+      "workers": {
+        "app/dashboard/page": {
+          "moduleId": 56740,
+          "async": false,
+          "exportedName": "getRevenueHistory",
+          "filename": "src/app/actions/analytics.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/page": "rsc"
+      },
+      "filename": "src/app/actions/analytics.ts",
+      "exportedName": "getRevenueHistory"
+    },
+    "004690b42783a5d65fd87fae6eb613c515f44be25b": {
+      "workers": {
+        "app/dashboard/page": {
+          "moduleId": 56740,
+          "async": false,
+          "exportedName": "getRecentActivity",
+          "filename": "src/app/actions/analytics.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/page": "rsc"
+      },
+      "filename": "src/app/actions/analytics.ts",
+      "exportedName": "getRecentActivity"
+    },
+    "0067564e93ceadcc2eb452a8d5288e92f7c8c1e754": {
+      "workers": {
+        "app/dashboard/page": {
+          "moduleId": 56740,
+          "async": false,
+          "exportedName": "getOverviewStats",
+          "filename": "src/app/actions/analytics.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/page": "rsc"
+      },
+      "filename": "src/app/actions/analytics.ts",
+      "exportedName": "getOverviewStats"
+    },
+    "00ad6ae3f18c972f3d7b1aae0103e8279747f6be6a": {
+      "workers": {
+        "app/dashboard/page": {
+          "moduleId": 56740,
+          "async": false,
+          "exportedName": "getPendingItems",
+          "filename": "src/app/actions/analytics.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/page": "rsc"
+      },
+      "filename": "src/app/actions/analytics.ts",
+      "exportedName": "getPendingItems"
+    },
+    "00bbcd18291d1f0c262bc90a6247e81041fa06bf11": {
+      "workers": {
+        "app/dashboard/page": {
+          "moduleId": 56740,
+          "async": false,
+          "exportedName": "getUserGrowthHistory",
+          "filename": "src/app/actions/analytics.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/page": "rsc"
+      },
+      "filename": "src/app/actions/analytics.ts",
+      "exportedName": "getUserGrowthHistory"
+    },
+    "40ba3f0aa660bc74dee476f3aa539ec0e5dbddba77": {
+      "workers": {
+        "app/dashboard/complaints/page": {
+          "moduleId": 66073,
+          "async": false,
+          "exportedName": "getTicketMessages",
+          "filename": "src/app/actions/support.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/complaints/page": "rsc"
+      },
+      "filename": "src/app/actions/support.ts",
+      "exportedName": "getTicketMessages"
+    },
+    "70bf9ea27173ee0dc3619824b136b4674123a9230a": {
+      "workers": {
+        "app/dashboard/complaints/page": {
+          "moduleId": 66073,
+          "async": false,
+          "exportedName": "replyToTicket",
+          "filename": "src/app/actions/support.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/complaints/page": "rsc"
+      },
+      "filename": "src/app/actions/support.ts",
+      "exportedName": "replyToTicket"
+    },
+    "60294df1cc4830c4bfa334d4439cc2981faf9ddb3a": {
+      "workers": {
+        "app/dashboard/complaints/page": {
+          "moduleId": 66073,
+          "async": false,
+          "exportedName": "updateTicketStatus",
+          "filename": "src/app/actions/support.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/complaints/page": "rsc"
+      },
+      "filename": "src/app/actions/support.ts",
+      "exportedName": "updateTicketStatus"
+    },
+    "40a33d34e1bb9633cf0e54453a101f25a5c6ad920d": {
+      "workers": {
+        "app/dashboard/complaints/page": {
+          "moduleId": 66073,
+          "async": false,
+          "exportedName": "getTickets",
+          "filename": "src/app/actions/support.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/complaints/page": "rsc"
+      },
+      "filename": "src/app/actions/support.ts",
+      "exportedName": "getTickets"
+    },
+    "405af5688f945bb0a89788c27ee6114c8f0ed43edc": {
+      "workers": {
+        "app/dashboard/disputes/[id]/page": {
+          "moduleId": 47575,
+          "async": false,
+          "exportedName": "getDisputeDetails",
+          "filename": "src/app/actions/disputes.ts"
+        },
+        "app/dashboard/disputes/page": {
+          "moduleId": 65653,
+          "async": false,
+          "exportedName": "getDisputeDetails",
+          "filename": "src/app/actions/disputes.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/disputes/[id]/page": "rsc",
+        "app/dashboard/disputes/page": "rsc"
+      },
+      "filename": "src/app/actions/disputes.ts",
+      "exportedName": "getDisputeDetails"
+    },
+    "70e15dac2d1adfcb702e8b19ca95f1039b1e4bcd98": {
+      "workers": {
+        "app/dashboard/disputes/[id]/page": {
+          "moduleId": 47575,
+          "async": false,
+          "exportedName": "resolveDispute",
+          "filename": "src/app/actions/disputes.ts"
+        },
+        "app/dashboard/disputes/page": {
+          "moduleId": 65653,
+          "async": false,
+          "exportedName": "resolveDispute",
+          "filename": "src/app/actions/disputes.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/disputes/[id]/page": "rsc",
+        "app/dashboard/disputes/page": "rsc"
+      },
+      "filename": "src/app/actions/disputes.ts",
+      "exportedName": "resolveDispute"
+    },
+    "7841c69db8bef786b58604ff243e4ba6159ab90a90": {
+      "workers": {
+        "app/dashboard/disputes/[id]/page": {
+          "moduleId": 47575,
+          "async": false,
+          "exportedName": "getDisputes",
+          "filename": "src/app/actions/disputes.ts"
+        },
+        "app/dashboard/disputes/page": {
+          "moduleId": 65653,
+          "async": false,
+          "exportedName": "getDisputes",
+          "filename": "src/app/actions/disputes.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/disputes/[id]/page": "rsc",
+        "app/dashboard/disputes/page": "rsc"
+      },
+      "filename": "src/app/actions/disputes.ts",
+      "exportedName": "getDisputes"
+    },
+    "7840a7728cc786f5fc184f17372ab518a656718004": {
+      "workers": {
+        "app/dashboard/disputes/[id]/page": {
+          "moduleId": 47575,
+          "async": false,
+          "exportedName": "resolveDispute",
+          "filename": "src/actions/disputes.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/disputes/[id]/page": "action-browser"
+      },
+      "filename": "src/actions/disputes.ts",
+      "exportedName": "resolveDispute"
+    },
+    "70a7012a5b00c0d881af67d6109857284b3fcba253": {
+      "workers": {
+        "app/dashboard/finance/page": {
+          "moduleId": 13647,
+          "async": false,
+          "exportedName": "getTransactions",
+          "filename": "src/actions/finance.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/finance/page": "rsc"
+      },
+      "filename": "src/actions/finance.ts",
+      "exportedName": "getTransactions"
+    },
+    "60d0f351d71de44433da86f0468840b81c6b92889b": {
+      "workers": {
+        "app/dashboard/logs/page": {
+          "moduleId": 98639,
+          "async": false,
+          "exportedName": "getLogsByTarget",
+          "filename": "src/app/actions/logs.ts"
+        },
+        "app/dashboard/users/[id]/page": {
+          "moduleId": 78797,
+          "async": false,
+          "exportedName": "getLogsByTarget",
+          "filename": "src/app/actions/logs.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/logs/page": "rsc",
+        "app/dashboard/users/[id]/page": "rsc"
+      },
+      "filename": "src/app/actions/logs.ts",
+      "exportedName": "getLogsByTarget"
+    },
+    "7881f4ebb685c0e0d79c7ba70d382142847a3ea34c": {
+      "workers": {
+        "app/dashboard/logs/page": {
+          "moduleId": 98639,
+          "async": false,
+          "exportedName": "getSystemLogs",
+          "filename": "src/app/actions/logs.ts"
+        },
+        "app/dashboard/users/[id]/page": {
+          "moduleId": 78797,
+          "async": false,
+          "exportedName": "getSystemLogs",
+          "filename": "src/app/actions/logs.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/logs/page": "rsc",
+        "app/dashboard/users/[id]/page": "rsc"
+      },
+      "filename": "src/app/actions/logs.ts",
+      "exportedName": "getSystemLogs"
+    },
+    "00b5276b02a2a13cd35074d75e7080dc119cd8c063": {
+      "workers": {
+        "app/dashboard/system-health/page": {
+          "moduleId": 57534,
+          "async": false,
+          "exportedName": "getSystemHealth",
+          "filename": "src/app/actions/health.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/system-health/page": "rsc"
+      },
+      "filename": "src/app/actions/health.ts",
+      "exportedName": "getSystemHealth"
+    },
+    "4093e230b09ee0e14f0ed87f9494bb7eb9f3d785fe": {
+      "workers": {
+        "app/dashboard/tasks/[id]/page": {
+          "moduleId": 45676,
+          "async": false,
+          "exportedName": "getTaskDetails",
+          "filename": "src/app/actions/tasks.ts"
+        },
+        "app/dashboard/tasks/page": {
+          "moduleId": 43519,
+          "async": false,
+          "exportedName": "getTaskDetails",
+          "filename": "src/app/actions/tasks.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/tasks/[id]/page": "rsc",
+        "app/dashboard/tasks/page": "rsc"
+      },
+      "filename": "src/app/actions/tasks.ts",
+      "exportedName": "getTaskDetails"
+    },
+    "60835ba3510b5f2f4a930e6acd08391136c2854ed5": {
+      "workers": {
+        "app/dashboard/tasks/[id]/page": {
+          "moduleId": 45676,
+          "async": false,
+          "exportedName": "cancelTask",
+          "filename": "src/app/actions/tasks.ts"
+        },
+        "app/dashboard/tasks/page": {
+          "moduleId": 43519,
+          "async": false,
+          "exportedName": "cancelTask",
+          "filename": "src/app/actions/tasks.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/tasks/[id]/page": "action-browser",
+        "app/dashboard/tasks/page": "rsc"
+      },
+      "filename": "src/app/actions/tasks.ts",
+      "exportedName": "cancelTask"
+    },
+    "78c75681a7c352ef0dab31a72b3171a45b7b7dcc2f": {
+      "workers": {
+        "app/dashboard/tasks/[id]/page": {
+          "moduleId": 45676,
+          "async": false,
+          "exportedName": "getTasks",
+          "filename": "src/app/actions/tasks.ts"
+        },
+        "app/dashboard/tasks/page": {
+          "moduleId": 43519,
+          "async": false,
+          "exportedName": "getTasks",
+          "filename": "src/app/actions/tasks.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/tasks/[id]/page": "rsc",
+        "app/dashboard/tasks/page": "rsc"
+      },
+      "filename": "src/app/actions/tasks.ts",
+      "exportedName": "getTasks"
+    },
+    "406d44218b5d71e925bb0606c95bfb97e35890ac1e": {
+      "workers": {
+        "app/dashboard/team/page": {
+          "moduleId": 16759,
+          "async": false,
+          "exportedName": "removeMember",
+          "filename": "src/app/actions/team.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/team/page": "rsc"
+      },
+      "filename": "src/app/actions/team.ts",
+      "exportedName": "removeMember"
+    },
+    "70ef35c8c7f47d443e7a3c91945edb8e7b2fe00ed1": {
+      "workers": {
+        "app/dashboard/team/page": {
+          "moduleId": 16759,
+          "async": false,
+          "exportedName": "inviteMember",
+          "filename": "src/app/actions/team.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/team/page": "rsc"
+      },
+      "filename": "src/app/actions/team.ts",
+      "exportedName": "inviteMember"
+    },
+    "0081be5e8da05ca436863281909551265c592ac76d": {
+      "workers": {
+        "app/dashboard/team/page": {
+          "moduleId": 16759,
+          "async": false,
+          "exportedName": "getTeamMembers",
+          "filename": "src/app/actions/team.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/team/page": "rsc"
+      },
+      "filename": "src/app/actions/team.ts",
+      "exportedName": "getTeamMembers"
+    },
+    "60f0408dc5a8345d9717a3ab49ae351d0843f3e80b": {
+      "workers": {
+        "app/dashboard/team/page": {
+          "moduleId": 16759,
+          "async": false,
+          "exportedName": "updateRole",
+          "filename": "src/app/actions/team.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/team/page": "rsc"
+      },
+      "filename": "src/app/actions/team.ts",
+      "exportedName": "updateRole"
+    },
+    "4041e0b660e60e4c0e52dbec9ae150c767b65f3d00": {
+      "workers": {
+        "app/dashboard/users/[id]/page": {
+          "moduleId": 78797,
+          "async": false,
+          "exportedName": "getUserDetails",
+          "filename": "src/app/actions/users.ts"
+        },
+        "app/dashboard/users/page": {
+          "moduleId": 70177,
+          "async": false,
+          "exportedName": "getUserDetails",
+          "filename": "src/app/actions/users.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/users/[id]/page": "rsc",
+        "app/dashboard/users/page": "rsc"
+      },
+      "filename": "src/app/actions/users.ts",
+      "exportedName": "getUserDetails"
+    },
+    "708d948ee37c7b01e0e1b9439f6663b46cec37f3f6": {
+      "workers": {
+        "app/dashboard/users/[id]/page": {
+          "moduleId": 78797,
+          "async": false,
+          "exportedName": "getUsers",
+          "filename": "src/app/actions/users.ts"
+        },
+        "app/dashboard/users/page": {
+          "moduleId": 70177,
+          "async": false,
+          "exportedName": "getUsers",
+          "filename": "src/app/actions/users.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/users/[id]/page": "rsc",
+        "app/dashboard/users/page": "rsc"
+      },
+      "filename": "src/app/actions/users.ts",
+      "exportedName": "getUsers"
+    },
+    "70ef47b30fedc49a9c199c5616ffbe45a71d5941a0": {
+      "workers": {
+        "app/dashboard/users/[id]/page": {
+          "moduleId": 78797,
+          "async": false,
+          "exportedName": "suspendUser",
+          "filename": "src/app/actions/users.ts"
+        },
+        "app/dashboard/users/page": {
+          "moduleId": 70177,
+          "async": false,
+          "exportedName": "suspendUser",
+          "filename": "src/app/actions/users.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/users/[id]/page": "action-browser",
+        "app/dashboard/users/page": "action-browser"
+      },
+      "filename": "src/app/actions/users.ts",
+      "exportedName": "suspendUser"
+    },
+    "40769abe13765049aa756730d52d72d0ad8639e9d6": {
+      "workers": {
+        "app/login/page": {
+          "moduleId": 3070,
+          "async": false,
+          "exportedName": "login",
+          "filename": "src/actions/auth.ts"
+        }
+      },
+      "layer": {
+        "app/login/page": "action-browser"
+      },
+      "filename": "src/actions/auth.ts",
+      "exportedName": "login"
+    },
+    "000d1ed6baa4fbae6c9cb87695e6fa520897234a3c": {
+      "workers": {
+        "app/test-actions/page": {
+          "moduleId": 17893,
+          "async": false,
+          "exportedName": "getOverviewStats",
+          "filename": "src/actions/dashboard.ts"
+        }
+      },
+      "layer": {
+        "app/test-actions/page": "rsc"
+      },
+      "filename": "src/actions/dashboard.ts",
+      "exportedName": "getOverviewStats"
+    },
+    "40c026c969f93080c7e585122f8df7bf1990211aaf": {
+      "workers": {
+        "app/test-actions/page": {
+          "moduleId": 17893,
+          "async": false,
+          "exportedName": "getUserDeepProfile",
+          "filename": "src/actions/users.ts"
+        }
+      },
+      "layer": {
+        "app/test-actions/page": "rsc"
+      },
+      "filename": "src/actions/users.ts",
+      "exportedName": "getUserDeepProfile"
+    },
+    "60a2ec364f30034a23a8932bceea2dda26eadb8860": {
+      "workers": {
+        "app/test-actions/page": {
+          "moduleId": 17893,
+          "async": false,
+          "exportedName": "banUser",
+          "filename": "src/actions/users.ts"
+        }
+      },
+      "layer": {
+        "app/test-actions/page": "rsc"
+      },
+      "filename": "src/actions/users.ts",
+      "exportedName": "banUser"
+    },
+    "780f1b55e9cfa8752aaa3339ef527af0c814a371bd": {
+      "workers": {
+        "app/test-actions/page": {
+          "moduleId": 17893,
+          "async": false,
+          "exportedName": "getUsers",
+          "filename": "src/actions/users.ts"
+        }
+      },
+      "layer": {
+        "app/test-actions/page": "rsc"
+      },
+      "filename": "src/actions/users.ts",
+      "exportedName": "getUsers"
+    },
+    "7c81d64abe9ca9dcb0da8409544415719c6785e0c0": {
+      "workers": {
+        "app/test-actions/page": {
+          "moduleId": 17893,
+          "async": false,
+          "exportedName": "logAdminAction",
+          "filename": "src/lib/admin-logger.ts"
+        }
+      },
+      "layer": {
+        "app/test-actions/page": "rsc"
+      },
+      "filename": "src/lib/admin-logger.ts",
+      "exportedName": "logAdminAction"
+    }
+  },
+  "edge": {},
+  "encryptionKey": "67DA2n9Wkrdnim5sybvDmWJeHA7myMILI7qZOf/JB2E="
+}

@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ActivityItem } from "@/data/mock/overview";
+import { ActivityItem } from "@/app/actions/analytics";
 
 interface ActivityFeedProps {
   activity: ActivityItem[];

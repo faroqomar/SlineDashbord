@@ -1,0 +1,65 @@
+{
+  "node": {
+    "40ba3f0aa660bc74dee476f3aa539ec0e5dbddba77": {
+      "workers": {
+        "app/dashboard/complaints/page": {
+          "moduleId": 66073,
+          "async": false,
+          "exportedName": "getTicketMessages",
+          "filename": "src/app/actions/support.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/complaints/page": "rsc"
+      },
+      "exportedName": "getTicketMessages",
+      "filename": "src/app/actions/support.ts"
+    },
+    "70bf9ea27173ee0dc3619824b136b4674123a9230a": {
+      "workers": {
+        "app/dashboard/complaints/page": {
+          "moduleId": 66073,
+          "async": false,
+          "exportedName": "replyToTicket",
+          "filename": "src/app/actions/support.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/complaints/page": "rsc"
+      },
+      "exportedName": "replyToTicket",
+      "filename": "src/app/actions/support.ts"
+    },
+    "60294df1cc4830c4bfa334d4439cc2981faf9ddb3a": {
+      "workers": {
+        "app/dashboard/complaints/page": {
+          "moduleId": 66073,
+          "async": false,
+          "exportedName": "updateTicketStatus",
+          "filename": "src/app/actions/support.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/complaints/page": "rsc"
+      },
+      "exportedName": "updateTicketStatus",
+      "filename": "src/app/actions/support.ts"
+    },
+    "40a33d34e1bb9633cf0e54453a101f25a5c6ad920d": {
+      "workers": {
+        "app/dashboard/complaints/page": {
+          "moduleId": 66073,
+          "async": false,
+          "exportedName": "getTickets",
+          "filename": "src/app/actions/support.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/complaints/page": "rsc"
+      },
+      "exportedName": "getTickets",
+      "filename": "src/app/actions/support.ts"
+    }
+  },
+  "edge": {}
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { Ticket } from "@/data/mock/complaints";
+import { TicketDTO, TicketMessageDTO } from "@/types/support";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,15 +8,25 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent } from "@/components/ui/card";
 import { Paperclip, Send, User } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { SetStateAction, useState } from "react";
+import { SetStateAction, useState, useRef, useEffect } from "react";
+import { formatDistanceToNow } from "date-fns";
 
 interface TicketChatProps {
-  ticket: Ticket;
+  ticket: TicketDTO;
+  messages: TicketMessageDTO[];
   onSendMessage: (content: string) => void;
+  isSending?: boolean;
 }
 
-export function TicketChat({ ticket, onSendMessage }: TicketChatProps) {
+export function TicketChat({ ticket, messages, onSendMessage, isSending }: TicketChatProps) {
   const [replyContent, setReplyContent] = useState("");
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+        scrollRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
 
   const handleSend = () => {
     if (!replyContent.trim()) return;
@@ -33,11 +43,11 @@ export function TicketChat({ ticket, onSendMessage }: TicketChatProps) {
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <Avatar className="w-10 h-10">
-                  <AvatarImage src={ticket.user.avatar} />
-                  <AvatarFallback>{ticket.user.name.charAt(0)}</AvatarFallback>
+                  <AvatarImage src={ticket.user.avatar_url || undefined} />
+                  <AvatarFallback>{ticket.user.full_name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <div className="font-medium text-sm">{ticket.user.name}</div>
+                  <div className="font-medium text-sm">{ticket.user.full_name}</div>
                   <div className="text-xs text-muted-foreground">{ticket.user.email}</div>
                 </div>
                 <Button variant="outline" size="sm" className="ml-auto h-8 text-xs">
@@ -49,28 +59,28 @@ export function TicketChat({ ticket, onSendMessage }: TicketChatProps) {
           </Card>
 
           {/* Messages */}
-          {ticket.messages.map((message) => (
+          {messages.map((message) => (
             <div
               key={message.id}
               className={cn(
                 "flex gap-3",
-                message.sender === "admin" && "flex-row-reverse"
+                message.is_internal && "flex-row-reverse"
               )}
             >
               <Avatar className="w-8 h-8 shrink-0">
-                <AvatarImage src={message.senderAvatar} />
-                <AvatarFallback>{message.senderName.charAt(0)}</AvatarFallback>
+                <AvatarImage src={message.sender.avatar_url || undefined} />
+                <AvatarFallback>{message.sender.full_name.charAt(0)}</AvatarFallback>
               </Avatar>
               <div
                 className={cn(
                   "flex-1 max-w-md",
-                  message.sender === "admin" && "text-right"
+                  message.is_internal && "text-right"
                 )}
               >
                 <div
                   className={cn(
                     "rounded-2xl px-4 py-3 text-sm shadow-sm",
-                    message.sender === "admin"
+                    message.is_internal
                       ? "bg-primary text-primary-foreground rounded-tr-none"
                       : "bg-white dark:bg-muted border rounded-tl-none"
                   )}
@@ -78,15 +88,17 @@ export function TicketChat({ ticket, onSendMessage }: TicketChatProps) {
                   <p className="whitespace-pre-wrap">{message.content}</p>
                 </div>
                 <div className="flex items-center gap-2 mt-1 text-[10px] text-muted-foreground px-1">
-                  <span>{message.senderName}</span>
+                  <span>{message.sender.full_name}</span>
                   <span>•</span>
-                  <span>{message.timestamp}</span>
+                  <span>{formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}</span>
                 </div>
               </div>
             </div>
           ))}
           
-          {ticket.messages.length === 0 && (
+          <div ref={scrollRef} />
+
+          {messages.length === 0 && (
              <div className="text-center text-muted-foreground py-10 opacity-50 text-sm">
                No messages in this conversation yet.
              </div>
@@ -103,12 +115,13 @@ export function TicketChat({ ticket, onSendMessage }: TicketChatProps) {
                     value={replyContent}
                     onChange={(e: { target: { value: SetStateAction<string>; }; }) => setReplyContent(e.target.value)}
                     className="min-h-[100px] resize-none pr-12 bg-muted/30 focus:bg-background transition-colors"
+                    disabled={isSending}
                 />
                 <Button 
                     size="icon" 
                     className="absolute bottom-3 right-3 h-8 w-8"
                     onClick={handleSend}
-                    disabled={!replyContent.trim()}
+                    disabled={!replyContent.trim() || isSending}
                 >
                     <Send className="w-4 h-4" />
                 </Button>
@@ -118,9 +131,6 @@ export function TicketChat({ ticket, onSendMessage }: TicketChatProps) {
                     <Paperclip className="w-4 h-4 mr-2" />
                     Attach File
                 </Button>
-                <div className="flex gap-2">
-                     {/* Actions like format, templates etc can go here */}
-                </div>
             </div>
         </div>
       </div>

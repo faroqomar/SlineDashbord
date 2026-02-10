@@ -1,58 +1,72 @@
-# 💅 ADMIN_UI_KIT (The Face)
+# 🎨 ADMIN_UI_KIT (The Face)
 
-> **Goal**: Consistent, beautiful, and functional UI using Shadcn & Tailwind.
+> **Goal**: A consistent, professional, and accessible interface.
 
-## 🎨 Theme System
+## 🎨 Theme
 
-We use a customized Tailwind theme defined in `helpers/themes.ts`.
+### Colors
 
-- **Primary**: Deep Indigo/Blue (Professional, Trust).
-- **Destructive**: Red (Bans, Deletions).
-- **Muted**: Grays (Secondary text, borders).
-- **Dark Mode**: Fully supported via `next-themes`.
+We use Tailwind CSS variables defined in `global.css`.
+
+- **Primary**: Brand color (Teal/Emerald). Used for main actions.
+- **Destructive**: Red. Used for bans, deletions, and errors.
+- **Muted**: Gray. Used for secondary text and backgrounds.
+- **Background**: White (Light) / Dark Gray (Dark).
+
+### Fonts
+
+- **Sans**: `Inter` (Google Fonts).
+- **Mono**: `JetBrains Mono` (for code/IDs).
 
 ---
 
-## 🧩 Key Components
+## 🧩 Components (Shadcn/UI)
 
-We use **Shadcn/UI** components located in `src/components/ui`.
+We use a curated set of components from [ui.shadcn.com](https://ui.shadcn.com).
 
-| Component              | Usage                                                             |
-| :--------------------- | :---------------------------------------------------------------- |
-| **`DataTable`**        | The workhorse. Supports sorting, pagination, and bulk actions.    |
-| **`Dialog` / `Sheet`** | Use for complex interactions (Edit Forms, Details View).          |
-| **`Card`**             | Use for dashboard widgets and summary metrics.                    |
-| **`Badge`**            | Use for status indicators (Active, Banned, Pending).              |
-| **`Button`**           | Standard actions. Use `variant="destructive"` for dangerous acts. |
+### Core Inputs
+
+- **`Button`**: Primary, Secondary, Ghost, Destructive variants.
+- **`Input`**: Text fields.
+- **`Select`**: Dropdowns.
+- **`Switch`**: Toggles.
+- **`Checkbox`**: Multi-select.
+- **`Textarea`**: Long text.
+- **`Form`**: Wrappers for React Hook Form + Zod.
+
+### Data Display
+
+- **`Table`**: The backbone of the dashboard.
+- **`Badge`**: Status indicators (e.g., "Active", "Banned").
+- **`Card`**: Containers for content sections.
+- **`Avatar`**: User profile images.
+
+### Feedback & Overlays
+
+- **`Dialog`**: Modals for complex actions.
+- **`Sheet`**: Side panels for filters/details.
+- **`AlertDialog`**: Confirmations for destructive actions.
+- **`Popover`**: Small overlays.
+- **`Sonner`**: Toast notifications.
 
 ---
 
 ## 📐 Layouts
 
-### 1. `DashboardLayout`
+### `DashboardLayout`
 
-- **Sidebar**: Collapsible navigation.
+- **Sidebar**: Navigation links.
 - **Header**: Breadcrumbs, User Menu, Theme Toggle.
-- **Main Area**: Padding and max-width containers.
-
-### 2. `PageHeader`
-
-Standard header for every page.
-
-```tsx
-<div className="flex items-center justify-between space-y-2">
-  <h2 className="text-3xl font-bold tracking-tight">Users</h2>
-  <div className="flex items-center space-x-2">
-    <Button>Download CSV</Button>
-  </div>
-</div>
-```
+- **Main**: Content area with `max-w-7xl` centered.
 
 ---
 
-## 🖼️ Icons
+## 🔮 Icons
 
 We use **Lucide React**.
 
-- Import: `import { User, Settings, ShieldAlert } from 'lucide-react';`
-- Style: Keep them consistent in size (`h-4 w-4` for buttons, `h-6 w-6` for nav).
+```tsx
+import { User, Shield, AlertTriangle } from "lucide-react";
+
+<User className="h-4 w-4" />;
+```

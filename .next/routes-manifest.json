@@ -22,6 +22,22 @@
   },
   "dynamicRoutes": [
     {
+      "page": "/dashboard/disputes/[id]",
+      "regex": "^/dashboard/disputes/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/dashboard/disputes/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/dashboard/tasks/[id]",
+      "regex": "^/dashboard/tasks/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/dashboard/tasks/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
       "page": "/dashboard/users/[id]",
       "regex": "^/dashboard/users/([^/]+?)(?:/)?$",
       "routeKeys": {
@@ -56,6 +72,12 @@
       "namedRegex": "^/dashboard(?:/)?$"
     },
     {
+      "page": "/dashboard/complaints",
+      "regex": "^/dashboard/complaints(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/complaints(?:/)?$"
+    },
+    {
       "page": "/dashboard/disputes",
       "regex": "^/dashboard/disputes(?:/)?$",
       "routeKeys": {},
@@ -74,10 +96,34 @@
       "namedRegex": "^/dashboard/logs(?:/)?$"
     },
     {
+      "page": "/dashboard/notifications",
+      "regex": "^/dashboard/notifications(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/notifications(?:/)?$"
+    },
+    {
       "page": "/dashboard/settings",
       "regex": "^/dashboard/settings(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/dashboard/settings(?:/)?$"
+    },
+    {
+      "page": "/dashboard/system-health",
+      "regex": "^/dashboard/system\\-health(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/system\\-health(?:/)?$"
+    },
+    {
+      "page": "/dashboard/tasks",
+      "regex": "^/dashboard/tasks(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/tasks(?:/)?$"
+    },
+    {
+      "page": "/dashboard/team",
+      "regex": "^/dashboard/team(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/team(?:/)?$"
     },
     {
       "page": "/dashboard/users",
@@ -96,6 +142,24 @@
       "regex": "^/favicon\\.ico(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/favicon\\.ico(?:/)?$"
+    },
+    {
+      "page": "/login",
+      "regex": "^/login(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/login(?:/)?$"
+    },
+    {
+      "page": "/test-actions",
+      "regex": "^/test\\-actions(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/test\\-actions(?:/)?$"
+    },
+    {
+      "page": "/unauthorized",
+      "regex": "^/unauthorized(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/unauthorized(?:/)?$"
     }
   ],
   "dataRoutes": [],

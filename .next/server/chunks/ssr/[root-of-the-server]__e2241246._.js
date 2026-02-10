@@ -1,0 +1,3 @@
+module.exports=[76898,a=>{a.v({className:"inter_b2991b2-module__9mH_6q__className",variable:"inter_b2991b2-module__9mH_6q__variable"})},27572,a=>{"use strict";var b=a.i(7997),c=a.i(76898);let d={className:c.default.className,style:{fontFamily:"'Inter', 'Inter Fallback'",fontStyle:"normal"}};function e({children:a}){return(0,b.jsx)("html",{lang:"en",children:(0,b.jsx)("body",{className:`${d.variable} font-sans antialiased`,children:a})})}null!=c.default.variable&&(d.variable=c.default.variable),a.s(["default",()=>e,"metadata",0,{title:"Sline Admin",description:"Sline Admin Dashboard"}],27572)}];
+
+//# sourceMappingURL=%5Broot-of-the-server%5D__e2241246._.js.map

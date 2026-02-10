@@ -1,54 +1,58 @@
 # 🚀 ADMIN_SETUP_GUIDE (The Handle)
 
-> **Goal**: From zero to localhost in 5 minutes.
+> **Goal**: Get from zero to localhost:3000 in 5 minutes.
 
-## ✅ Prerequisites
+## 🛠️ Prerequisites
 
-- **Node.js**: v18+
-- **npm**: v9+
-- **Supabase Project**: You need an active project ID and keys.
+- **Node.js**: v18+ (LTS recommended).
+- **npm**: v9+.
+- **Supabase CLI**: For type generation.
 
----
+## 📥 Installation
 
-## 🛠️ Installation
+```bash
+git clone <repo-url>
+cd sline_admin
+npm install
+```
 
-1.  **Clone the repo**:
+## 🌍 Environment Variables
 
-    ```bash
-    git clone https://github.com/your-org/sline-admin.git
-    cd sline-admin
-    ```
+Create a `.env.local` file in the root directory.
 
-2.  **Install Dependencies**:
+```bash
+# Public
+NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key"
 
-    ```bash
-    npm install
-    ```
+# Private (Server Only - NEVER commit or expose to client)
+SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
+```
 
-3.  **Environment Variables**:
-    Create a `.env.local` file in the root:
+## ▶️ Running Locally
 
-    ```env
-    NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-    NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-    SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-DO-NOT-SHARE
-    ```
+```bash
+npm run dev
+```
 
-4.  **Run Development Server**:
-    ```bash
-    npm run dev
-    ```
-    Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000).
 
 ---
 
 ## 🚢 Deployment (Vercel)
 
-1.  Push to `main`.
-2.  Import project in Vercel.
-3.  Add Environment Variables in Vercel Project Settings.
-4.  **Build Command**: `npm run build`.
-5.  **Output Directory**: `.next`.
+1.  **Project Settings**: Framework Preset -> Next.js.
+2.  **Environment Variables**: Add all 3 variables from `.env.local`.
+3.  **Build Command**: `next build` (Standard).
+4.  **Install Command**: `npm install` (Standard).
 
 > [!IMPORTANT]
-> Ensure the `SUPABASE_SERVICE_ROLE_KEY` is added to Vercel Environment Variables. The app will fail to fetch data without it.
+> Ensure the **Production** environment variables point to the **Production** Supabase project.
+
+---
+
+## 🔄 Validating Setup
+
+1.  Visit `/login`.
+2.  Login with an Admin account (must exist in `admin_users` table).
+3.  Verify you are redirected to `/dashboard`.

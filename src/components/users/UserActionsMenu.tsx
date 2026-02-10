@@ -21,7 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { banUser } from "@/actions/users";
+import { suspendUser } from "@/app/actions/users";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,7 +43,7 @@ export function UserActionsMenu({ userId }: UserActionsMenuProps) {
 
     setIsBanning(true);
     try {
-      await banUser(userId, banReason);
+      await suspendUser(userId, banReason);
       toast.success("User has been banned.");
       setShowBanDialog(false);
       setBanReason("");

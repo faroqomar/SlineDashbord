@@ -9,21 +9,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  ArrowUp,
-  ArrowDown,
-  MoreHorizontal,
-  ArrowUpDown,
-} from "lucide-react";
-import { DataTablePagination } from "./DataTablePagination";
+import { DataTablePagination } from "./datatable/DataTablePagination";
+import { DataTableHeader } from "./datatable/DataTableHeader";
+import { DataTableBody } from "./datatable/DataTableBody";
+import { DataTableToolbar } from "./datatable/DataTableToolbar";
 import { cn } from "@/lib/utils";
 
 export interface Column<T> {
@@ -101,7 +90,6 @@ export function DataTable<T extends { id: string | number }>({
         if (typeof aVal === "number" && typeof bVal === "number") {
             return (aVal - bVal) * direction;
         }
-         // Fallback for other types or mismatched types
          return 0;
       })
     : data;
@@ -159,117 +147,31 @@ export function DataTable<T extends { id: string | number }>({
 
   return (
     <div className="space-y-4">
-      {selectedRows.size > 0 && (
-        <div className="flex items-center gap-4 p-3 bg-muted/50 rounded-lg animate-in fade-in slide-in-from-top-2">
-          <span className="text-sm font-medium">
-            {selectedRows.size} selected
-          </span>
-          <div className="flex gap-2">
-            <Button size="sm" variant="outline" className="h-8">
-              Bulk Edit
-            </Button>
-            <Button size="sm" variant="destructive" className="h-8">
-              Delete Selected
-            </Button>
-          </div>
-        </div>
-      )}
+      <DataTableToolbar selectedCount={selectedRows.size} />
 
       <div className="border border-border rounded-lg overflow-hidden bg-card">
         <Table>
-          <TableHeader>
-            <TableRow className="bg-muted/50 hover:bg-muted/50">
-              {selectable && (
-                <TableHead className="w-12">
-                  <Checkbox
-                    checked={selectedRows.size === data.length && data.length > 0}
-                    onCheckedChange={toggleSelectAll}
-                  />
-                </TableHead>
-              )}
-              {columns.map((col) => (
-                <TableHead key={col.key} className={col.className}>
-                  {col.sortable ? (
-                    <button
-                      onClick={() => handleSort(col.key)}
-                      className="flex items-center gap-1 hover:text-foreground transition-colors font-medium text-xs uppercase tracking-wider"
-                    >
-                      {col.header}
-                      {sortKey === col.key ? (
-                        sortDirection === "asc" ? (
-                          <ArrowUp className="w-3 h-3" />
-                        ) : (
-                          <ArrowDown className="w-3 h-3" />
-                        )
-                      ) : (
-                        <ArrowUpDown className="w-3 h-3 opacity-50" />
-                      )}
-                    </button>
-                  ) : (
-                    <span className="font-medium text-xs uppercase tracking-wider">{col.header}</span>
-                  )}
-                </TableHead>
-              ))}
-              {actions && <TableHead className="w-12" />}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paginatedData.map((item) => (
-              <TableRow
-                key={item.id}
-                className={cn(
-                  "transition-colors",
-                  selectedRows.has(item.id) && "bg-muted/50",
-                  onRowClick && "cursor-pointer hover:bg-muted/50"
-                )}
-                onClick={() => onRowClick?.(item)}
-              >
-                {selectable && (
-                  <TableCell onClick={(e) => e.stopPropagation()}>
-                    <Checkbox
-                      checked={selectedRows.has(item.id)}
-                      onCheckedChange={() => toggleSelect(item.id)}
-                    />
-                  </TableCell>
-                )}
-                {columns.map((col) => (
-                  <TableCell
-                    key={col.key}
-                    className={cn(dense && "py-2", col.className)}
-                  >
-                    {col.render
-                      ? col.render(item)
-                      : (item[col.key] as ReactNode)}
-                  </TableCell>
-                ))}
-                {actions && (
-                  <TableCell onClick={(e) => e.stopPropagation()}>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreHorizontal className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        {actions(item).map((action, i) => (
-                          <DropdownMenuItem
-                            key={i}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              action.onClick();
-                            }}
-                            className={cn(action.destructive && "text-destructive focus:text-destructive")}
-                          >
-                            {action.label}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                )}
-              </TableRow>
-            ))}
-          </TableBody>
+          <DataTableHeader 
+            columns={columns}
+            selectable={selectable}
+            actions={!!actions}
+            selectedCount={selectedRows.size}
+            totalCount={data.length}
+            sortKey={sortKey}
+            sortDirection={sortDirection}
+            onSelectAll={toggleSelectAll}
+            onSort={handleSort}
+          />
+          <DataTableBody
+             data={paginatedData}
+             columns={columns}
+             selectable={selectable}
+             actions={actions}
+             selectedRows={selectedRows}
+             dense={dense}
+             onRowClick={onRowClick}
+             onSelect={toggleSelect}
+          />
         </Table>
       </div>
 

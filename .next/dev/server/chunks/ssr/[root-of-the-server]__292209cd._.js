@@ -65,7 +65,7 @@ __turbopack_context__.s([
     ()=>LogsPage
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/rsc/react-jsx-dev-runtime.js [app-rsc] (ecmascript)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$actions$2f$logs$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/actions/logs.ts [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$actions$2f$logs$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/app/actions/logs.ts [app-rsc] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$logs$2f$LogsTerminal$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/logs/LogsTerminal.tsx [app-rsc] (ecmascript)");
 ;
 ;
@@ -74,12 +74,12 @@ async function LogsPage({ searchParams }) {
     const params = await searchParams;
     const page = typeof params.page === 'string' ? parseInt(params.page) : 1;
     const type = typeof params.type === 'string' ? params.type : 'all';
-    const { logs, total } = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$actions$2f$logs$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getSystemLogs"])(page, type, 50);
+    const { logs, count } = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$actions$2f$logs$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getSystemLogs"])(page, type, 50);
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
         className: "space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500",
         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$logs$2f$LogsTerminal$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["LogsTerminal"], {
             logs: logs,
-            total: total
+            total: count
         }, void 0, false, {
             fileName: "[project]/src/app/dashboard/logs/page.tsx",
             lineNumber: 13,

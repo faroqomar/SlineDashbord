@@ -381,7 +381,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$b
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$avatar$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/ui/avatar.tsx [app-rsc] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$scroll$2d$area$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/ui/scroll-area.tsx [app-rsc] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$react$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/client/app-dir/link.react-server.js [app-rsc] (ecmascript)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$actions$2f$disputes$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/actions/disputes.ts [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$actions$2f$disputes$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/app/actions/disputes.ts [app-rsc] (ecmascript)");
 ;
 ;
 ;
@@ -392,9 +392,9 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$actions$2f$disputes$2
 ;
 async function DisputesPage() {
     const [openDisputes, investigatingDisputes, resolvedDisputes] = await Promise.all([
-        (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$actions$2f$disputes$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getDisputes"])(1, 'open', 50),
-        (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$actions$2f$disputes$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getDisputes"])(1, 'investigating', 50),
-        (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$actions$2f$disputes$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getDisputes"])(1, 'resolved', 50)
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$actions$2f$disputes$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getDisputes"])(1, 'open', 50),
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$actions$2f$disputes$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getDisputes"])(1, 'investigating', 50),
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$actions$2f$disputes$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getDisputes"])(1, 'resolved', 50)
     ]);
     const columns = [
         {
@@ -597,7 +597,7 @@ async function DisputesPage() {
                                                                             className: "font-semibold text-primary",
                                                                             children: [
                                                                                 "$",
-                                                                                dispute.task?.price || "0.00"
+                                                                                dispute.amount?.toFixed(2) || "0.00"
                                                                             ]
                                                                         }, void 0, true, {
                                                                             fileName: "[project]/src/app/dashboard/disputes/page.tsx",
@@ -626,14 +626,14 @@ async function DisputesPage() {
                                                                         className: "h-6 w-6 border-2 border-background",
                                                                         children: [
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$avatar$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["AvatarImage"], {
-                                                                                src: dispute.initiator?.avatar_url
+                                                                                src: dispute.complainant?.avatar_url
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/app/dashboard/disputes/page.tsx",
                                                                                 lineNumber: 96,
                                                                                 columnNumber: 46
                                                                             }, this),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$avatar$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["AvatarFallback"], {
-                                                                                children: dispute.initiator?.full_name?.charAt(0) || "?"
+                                                                                children: dispute.complainant?.full_name?.charAt(0) || "?"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/app/dashboard/disputes/page.tsx",
                                                                                 lineNumber: 97,

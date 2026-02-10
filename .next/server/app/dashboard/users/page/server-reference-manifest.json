@@ -1,0 +1,50 @@
+{
+  "node": {
+    "4041e0b660e60e4c0e52dbec9ae150c767b65f3d00": {
+      "workers": {
+        "app/dashboard/users/page": {
+          "moduleId": 70177,
+          "async": false,
+          "exportedName": "getUserDetails",
+          "filename": "src/app/actions/users.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/users/page": "rsc"
+      },
+      "exportedName": "getUserDetails",
+      "filename": "src/app/actions/users.ts"
+    },
+    "708d948ee37c7b01e0e1b9439f6663b46cec37f3f6": {
+      "workers": {
+        "app/dashboard/users/page": {
+          "moduleId": 70177,
+          "async": false,
+          "exportedName": "getUsers",
+          "filename": "src/app/actions/users.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/users/page": "rsc"
+      },
+      "exportedName": "getUsers",
+      "filename": "src/app/actions/users.ts"
+    },
+    "70ef47b30fedc49a9c199c5616ffbe45a71d5941a0": {
+      "workers": {
+        "app/dashboard/users/page": {
+          "moduleId": 70177,
+          "async": false,
+          "exportedName": "suspendUser",
+          "filename": "src/app/actions/users.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/users/page": "action-browser"
+      },
+      "exportedName": "suspendUser",
+      "filename": "src/app/actions/users.ts"
+    }
+  },
+  "edge": {}
+}

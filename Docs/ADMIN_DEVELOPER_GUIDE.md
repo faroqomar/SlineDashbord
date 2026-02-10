@@ -9,11 +9,12 @@ We follow a strict **Server-Client Separation** architecture using Next.js 15 Ap
 ### The Pattern: `Action -> Model -> View`
 
 1.  **Server Actions (`src/actions/*`)**: The **ONLY** place that touches the database.
-    - Must define a Zod schema for input.
-    - Must verify Authentication (`getUser`).
-    - Must verify Admin Role (`admin_users` check).
-    - Must return `{ success, error, data }`.
-    - **NEVER** throw errors to the client; catch and return objects.
+    - **Validation**: Must define a Zod schema for input.
+    - **Authentication**: Must verify Authentication (`getUser`).
+    - **Authorization**: Must verify Admin Role (`admin_users` check).
+    - **Output**: Must return `{ success, error, data }`.
+    - **NO THROW**: **NEVER** throw errors to the client; catch and return objects.
+    - **Audit**: Must log mutations to `admin_logs`.
 
 2.  **Domain Models (`src/features/*/models/*.model.ts`)**:
     - Define the shape of data (Interfaces).
@@ -23,6 +24,9 @@ We follow a strict **Server-Client Separation** architecture using Next.js 15 Ap
     - Pure UI.
     - Call Server Actions directly or via `useTransition`.
     - **NEVER** import `supabase-js` directly for data fetching.
+
+4.  **ViewModels (`*.vm.ts`)**:
+    - Encapsulate complex client-state logic (optional, for complex views).
 
 ---
 
@@ -45,9 +49,9 @@ const InputSchema = z.object({
 });
 
 export async function mySecureAction(formData: FormData) {
-  // 2. Validate Input
+  // 2. Zod Validation (First Line)
   const parsed = InputSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) return { error: "Invalid input" };
+  if (!parsed.success) return { success: false, error: "Invalid input" };
 
   const supabase = await createClient();
   const adminDb = createAdminClient();
@@ -56,28 +60,35 @@ export async function mySecureAction(formData: FormData) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: "Unauthorized" };
+  if (!user) return { success: false, error: "Unauthorized" };
 
   const { data: admin } = await adminDb
     .from("admin_users")
     .select("role")
     .eq("id", user.id)
     .single();
-  if (!admin) return { error: "Access Denied" };
+  if (!admin) return { success: false, error: "Access Denied" };
 
-  // 4. Perform Logic
-  const { error } = await adminDb
-    .from("items")
-    .delete()
-    .eq("id", parsed.data.id);
-  if (error) return { error: error.message };
+  try {
+    // 4. Perform Logic
+    const { error } = await adminDb
+      .from("items")
+      .delete()
+      .eq("id", parsed.data.id);
 
-  // 5. Audit Log (Mandatory)
-  await logAdminAction(user.id, "delete_item", "items", parsed.data.id, {
-    reason: parsed.data.reason,
-  });
+    if (error) throw new Error(error.message);
 
-  return { success: true };
+    // 5. Audit Log (Mandatory)
+    await logAdminAction(user.id, "delete_item", "items", parsed.data.id, {
+      reason: parsed.data.reason,
+    });
+
+    return { success: true };
+  } catch (err) {
+    // 6. No Throw Rule
+    console.error("Action failed:", err);
+    return { success: false, error: "Operation failed" };
+  }
 }
 ```
 
@@ -92,6 +103,7 @@ Use `useTransition` for mutations to keep the UI responsive.
 
 import { useTransition } from "react";
 import { mySecureAction } from "@/actions/my-feature";
+import { toast } from "sonner";
 
 export function ActionButton() {
   const [isPending, startTransition] = useTransition();
@@ -99,7 +111,7 @@ export function ActionButton() {
   const handleClick = () => {
     startTransition(async () => {
       const result = await mySecureAction(payload);
-      if (result.error) {
+      if (!result.success) {
         toast.error(result.error);
       } else {
         toast.success("Done!");

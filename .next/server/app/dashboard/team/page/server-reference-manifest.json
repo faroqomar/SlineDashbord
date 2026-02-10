@@ -1,0 +1,65 @@
+{
+  "node": {
+    "406d44218b5d71e925bb0606c95bfb97e35890ac1e": {
+      "workers": {
+        "app/dashboard/team/page": {
+          "moduleId": 16759,
+          "async": false,
+          "exportedName": "removeMember",
+          "filename": "src/app/actions/team.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/team/page": "rsc"
+      },
+      "exportedName": "removeMember",
+      "filename": "src/app/actions/team.ts"
+    },
+    "70ef35c8c7f47d443e7a3c91945edb8e7b2fe00ed1": {
+      "workers": {
+        "app/dashboard/team/page": {
+          "moduleId": 16759,
+          "async": false,
+          "exportedName": "inviteMember",
+          "filename": "src/app/actions/team.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/team/page": "rsc"
+      },
+      "exportedName": "inviteMember",
+      "filename": "src/app/actions/team.ts"
+    },
+    "0081be5e8da05ca436863281909551265c592ac76d": {
+      "workers": {
+        "app/dashboard/team/page": {
+          "moduleId": 16759,
+          "async": false,
+          "exportedName": "getTeamMembers",
+          "filename": "src/app/actions/team.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/team/page": "rsc"
+      },
+      "exportedName": "getTeamMembers",
+      "filename": "src/app/actions/team.ts"
+    },
+    "60f0408dc5a8345d9717a3ab49ae351d0843f3e80b": {
+      "workers": {
+        "app/dashboard/team/page": {
+          "moduleId": 16759,
+          "async": false,
+          "exportedName": "updateRole",
+          "filename": "src/app/actions/team.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/team/page": "rsc"
+      },
+      "exportedName": "updateRole",
+      "filename": "src/app/actions/team.ts"
+    }
+  },
+  "edge": {}
+}

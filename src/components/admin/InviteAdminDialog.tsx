@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -21,27 +21,37 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Mail, Plus } from "lucide-react";
+import { Mail, Plus, Loader2 } from "lucide-react";
+import { inviteMember } from "@/app/actions/team";
+import { useRouter } from "next/navigation";
 
 export function InviteAdminDialog() {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
+  const [fullName, setFullName] = useState("");
   const [role, setRole] = useState("Moderator");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   const handleInvite = () => {
-    if (!email) return;
-    setIsLoading(true);
+    if (!email || !fullName) return;
     
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      setOpen(false);
-      toast.success(`Invite sent to ${email}`, {
-        description: `Role assigned: ${role}`
-      });
-      setEmail("");
-    }, 1000);
+    startTransition(async () => {
+        try {
+            await inviteMember(email, role, fullName);
+            setOpen(false);
+            toast.success(`Invite sent to ${email}`, {
+                description: `Role assigned: ${role}`
+            });
+            setEmail("");
+            setFullName("");
+            router.refresh();
+        } catch (error) {
+            toast.error("Failed to send invite", {
+                description: error instanceof Error ? error.message : "Unknown error"
+            });
+        }
+    });
   };
 
   return (
@@ -55,10 +65,19 @@ export function InviteAdminDialog() {
         <DialogHeader>
           <DialogTitle>Invite Team Member</DialogTitle>
           <DialogDescription>
-            Send an invitation link to add a new administrator.
+            Add a new administrator to the team.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
+          <div className="grid gap-2">
+            <Label htmlFor="fullname">Full Name</Label>
+            <Input
+              id="fullname"
+              placeholder="John Doe"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+            />
+          </div>
           <div className="grid gap-2">
             <Label htmlFor="email">Email address</Label>
             <Input
@@ -89,8 +108,8 @@ export function InviteAdminDialog() {
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={handleInvite} disabled={!email || isLoading}>
-            {isLoading ? "Sending..." : "Send Invite"}
+          <Button onClick={handleInvite} disabled={!email || !fullName || isPending}>
+            {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Send Invite"}
           </Button>
         </DialogFooter>
       </DialogContent>

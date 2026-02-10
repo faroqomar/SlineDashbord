@@ -1,6 +1,6 @@
 "use client";
 
-import { Ticket } from "@/data/mock/complaints";
+import { TicketDTO } from "@/types/support";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
@@ -8,9 +8,9 @@ import { formatDistanceToNow } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface TicketListProps {
-  tickets: Ticket[];
-  selectedTicket: Ticket | null;
-  onSelect: (ticket: Ticket) => void;
+  tickets: TicketDTO[];
+  selectedTicket: TicketDTO | null;
+  onSelect: (ticket: TicketDTO) => void;
 }
 
 export function TicketList({ tickets, selectedTicket, onSelect }: TicketListProps) {
@@ -39,15 +39,15 @@ export function TicketList({ tickets, selectedTicket, onSelect }: TicketListProp
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-2">
                 <Avatar className="h-6 w-6">
-                  <AvatarImage src={ticket.user.avatar} />
-                  <AvatarFallback>{ticket.user.name.charAt(0)}</AvatarFallback>
+                  <AvatarImage src={ticket.user.avatar_url || undefined} />
+                  <AvatarFallback>{ticket.user.full_name.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <span className="text-xs font-medium text-muted-foreground">
-                  {ticket.user.name}
+                  {ticket.user.full_name}
                 </span>
               </div>
               <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-                {formatDistanceToNow(new Date(ticket.createdAt), { addSuffix: true })}
+                {ticket.created_at && formatDistanceToNow(new Date(ticket.created_at), { addSuffix: true })}
               </span>
             </div>
             

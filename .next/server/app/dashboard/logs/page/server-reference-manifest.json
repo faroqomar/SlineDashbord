@@ -1,0 +1,35 @@
+{
+  "node": {
+    "60d0f351d71de44433da86f0468840b81c6b92889b": {
+      "workers": {
+        "app/dashboard/logs/page": {
+          "moduleId": 98639,
+          "async": false,
+          "exportedName": "getLogsByTarget",
+          "filename": "src/app/actions/logs.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/logs/page": "rsc"
+      },
+      "exportedName": "getLogsByTarget",
+      "filename": "src/app/actions/logs.ts"
+    },
+    "7881f4ebb685c0e0d79c7ba70d382142847a3ea34c": {
+      "workers": {
+        "app/dashboard/logs/page": {
+          "moduleId": 98639,
+          "async": false,
+          "exportedName": "getSystemLogs",
+          "filename": "src/app/actions/logs.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/logs/page": "rsc"
+      },
+      "exportedName": "getSystemLogs",
+      "filename": "src/app/actions/logs.ts"
+    }
+  },
+  "edge": {}
+}

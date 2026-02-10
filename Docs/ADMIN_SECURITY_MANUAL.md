@@ -1,6 +1,8 @@
 # 🛡️ ADMIN_SECURITY_MANUAL (The Shield)
 
 > **Goal**: Zero data leaks, absolute accountability, and strict isolation.
+>
+> **Compliance**: All security implementations MUST follow this manual without exception.
 
 ## 🔑 The Service Role Strategy
 
@@ -20,7 +22,7 @@ We use the **Supabase Service Role Key** (`SUPABASE_SERVICE_ROLE_KEY`) to bypass
 
 ## 🚧 RBAC & Middleware
 
-### Middleware (`src/middleware.ts`)
+### 1. Middleware (`src/middleware.ts`)
 
 The first line of defense.
 
@@ -31,6 +33,10 @@ The first line of defense.
 
 > [!IMPORTANT]
 > The middleware handles **Routing Security**. Server Actions handle **Data Security**. You must have BOTH.
+
+### 2. `verifyAdminRole()`
+
+Helper function used in Server Actions to enforce identical logic.
 
 ---
 
@@ -61,7 +67,7 @@ Dashboard Admins and App Users are completely separate entities.
   - App users login via App (checks `profiles`).
   - Accounts created via `/signup` (Admin) are **namespaced** (e.g., `admin.user@email.com` internally) to prevent collisions if the same email exists in the App.
 
-s---
+---
 
 ## 🧨 Destructive Actions
 

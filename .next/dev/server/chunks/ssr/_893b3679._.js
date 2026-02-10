@@ -46,8 +46,10 @@ async function getTransactions(page = 1, type = 'all', pageSize = 10) {
     if (error) {
         throw new Error(`Failed to fetch transactions: ${error.message}`);
     }
+    // Cast existing data to Transaction[] (assuming DB matches model)
+    const transactions = data || [];
     return {
-        transactions: data || [],
+        transactions,
         total: count || 0,
         totalPages: Math.ceil((count || 0) / pageSize)
     };

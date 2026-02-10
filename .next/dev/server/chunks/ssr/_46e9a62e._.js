@@ -126,8 +126,10 @@ async function getDisputes(page = 1, status = 'open', pageSize = 10) {
     if (error) {
         throw new Error(`Failed to fetch disputes: ${error.message}`);
     }
+    // Cast existing data to Dispute[]
+    const disputes = data || [];
     return {
-        disputes: data || [],
+        disputes,
         total: count || 0,
         totalPages: Math.ceil((count || 0) / pageSize)
     };

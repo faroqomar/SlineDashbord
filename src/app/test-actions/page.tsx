@@ -3,7 +3,7 @@ import { getUsers } from '@/actions/users';
 
 export default async function TestActionsPage() {
   const stats = await getOverviewStats();
-  const users = await getUsers(1, 10);
+  const users = await getUsers(1);
 
   return (
     <div className="p-8 space-y-8">
