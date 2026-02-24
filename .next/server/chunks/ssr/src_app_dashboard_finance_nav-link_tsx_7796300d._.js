@@ -1,0 +1,3 @@
+module.exports=[59395,a=>{"use strict";var b=a.i(87924),c=a.i(38246),d=a.i(50944),e=a.i(68114);function f({href:a,children:f}){let g=(0,d.usePathname)(),h=g===a||g.startsWith(`${a}/`);return(0,b.jsx)(c.default,{href:a,className:(0,e.cn)("px-4 py-2 text-sm font-medium rounded-md transition-colors",h?"bg-primary/10 text-primary":"text-muted-foreground hover:bg-muted hover:text-foreground"),children:f})}a.s(["NavLink",()=>f])}];
+
+//# sourceMappingURL=src_app_dashboard_finance_nav-link_tsx_7796300d._.js.map

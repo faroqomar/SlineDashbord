@@ -1,6 +1,6 @@
 {
   "node": {
-    "4093e230b09ee0e14f0ed87f9494bb7eb9f3d785fe": {
+    "40b50e5ef0388e8e153b26c5318b5b87558552150d": {
       "workers": {
         "app/dashboard/tasks/[id]/page": {
           "moduleId": 45676,
@@ -15,7 +15,7 @@
       "exportedName": "getTaskDetails",
       "filename": "src/app/actions/tasks.ts"
     },
-    "60835ba3510b5f2f4a930e6acd08391136c2854ed5": {
+    "60894e0d18f581c5e2bba320c5b5fce80ee02b90ab": {
       "workers": {
         "app/dashboard/tasks/[id]/page": {
           "moduleId": 45676,
@@ -30,7 +30,7 @@
       "exportedName": "cancelTask",
       "filename": "src/app/actions/tasks.ts"
     },
-    "78c75681a7c352ef0dab31a72b3171a45b7b7dcc2f": {
+    "785f1d47abaede25b37803d4a22c35e969d099ef5a": {
       "workers": {
         "app/dashboard/tasks/[id]/page": {
           "moduleId": 45676,

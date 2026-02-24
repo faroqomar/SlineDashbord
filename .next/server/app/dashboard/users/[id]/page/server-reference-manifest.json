@@ -1,6 +1,6 @@
 {
   "node": {
-    "4041e0b660e60e4c0e52dbec9ae150c767b65f3d00": {
+    "407e45c8ffc17e56405819352b0742b95aa033184c": {
       "workers": {
         "app/dashboard/users/[id]/page": {
           "moduleId": 78797,
@@ -15,22 +15,7 @@
       "exportedName": "getUserDetails",
       "filename": "src/app/actions/users.ts"
     },
-    "708d948ee37c7b01e0e1b9439f6663b46cec37f3f6": {
-      "workers": {
-        "app/dashboard/users/[id]/page": {
-          "moduleId": 78797,
-          "async": false,
-          "exportedName": "getUsers",
-          "filename": "src/app/actions/users.ts"
-        }
-      },
-      "layer": {
-        "app/dashboard/users/[id]/page": "rsc"
-      },
-      "exportedName": "getUsers",
-      "filename": "src/app/actions/users.ts"
-    },
-    "70ef47b30fedc49a9c199c5616ffbe45a71d5941a0": {
+    "707676772b5444210ed7120ffe96bea10c20ea6c42": {
       "workers": {
         "app/dashboard/users/[id]/page": {
           "moduleId": 78797,
@@ -45,7 +30,22 @@
       "exportedName": "suspendUser",
       "filename": "src/app/actions/users.ts"
     },
-    "60d0f351d71de44433da86f0468840b81c6b92889b": {
+    "70dff6e9a23cf030a55031a53a61efa873f74ad1f8": {
+      "workers": {
+        "app/dashboard/users/[id]/page": {
+          "moduleId": 78797,
+          "async": false,
+          "exportedName": "getUsers",
+          "filename": "src/app/actions/users.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/users/[id]/page": "rsc"
+      },
+      "exportedName": "getUsers",
+      "filename": "src/app/actions/users.ts"
+    },
+    "609a100deb5b0a19a1c4f356235a7ac41d99a7f6ed": {
       "workers": {
         "app/dashboard/users/[id]/page": {
           "moduleId": 78797,
@@ -60,7 +60,7 @@
       "exportedName": "getLogsByTarget",
       "filename": "src/app/actions/logs.ts"
     },
-    "7881f4ebb685c0e0d79c7ba70d382142847a3ea34c": {
+    "78421d9e0819f13c8cd80a6b23524f135bcca45b22": {
       "workers": {
         "app/dashboard/users/[id]/page": {
           "moduleId": 78797,

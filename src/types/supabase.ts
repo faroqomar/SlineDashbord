@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      accounts: {
+        Row: {
+          account_code: string
+          account_type: Database["public"]["Enums"]["ledger_account_type_enum"]
+          created_at: string
+          currency: string
+          id: string
+          owner_id: string | null
+        }
+        Insert: {
+          account_code: string
+          account_type: Database["public"]["Enums"]["ledger_account_type_enum"]
+          created_at?: string
+          currency?: string
+          id?: string
+          owner_id?: string | null
+        }
+        Update: {
+          account_code?: string
+          account_type?: Database["public"]["Enums"]["ledger_account_type_enum"]
+          created_at?: string
+          currency?: string
+          id?: string
+          owner_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounts_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       activity_log: {
         Row: {
           actor_id: string
@@ -79,6 +114,144 @@ export type Database = {
           },
         ]
       }
+      admin_logs: {
+        Row: {
+          action: string
+          actor_id: string
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          target_id: string | null
+          target_resource: string
+        }
+        Insert: {
+          action: string
+          actor_id: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          target_id?: string | null
+          target_resource: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          target_id?: string | null
+          target_resource?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "wallet_balances"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      admin_users: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          last_active_at: string | null
+          permissions: Json | null
+          role: string
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id: string
+          last_active_at?: string | null
+          permissions?: Json | null
+          role: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          last_active_at?: string | null
+          permissions?: Json | null
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_users_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audit_logs: {
+        Row: {
+          action: string
+          actor_user_id: string | null
+          created_at: string
+          event_type: string | null
+          id: string
+          journal_entry_id: string | null
+          meta: Json
+          related_entity_id: string | null
+          related_entity_type: string | null
+        }
+        Insert: {
+          action: string
+          actor_user_id?: string | null
+          created_at?: string
+          event_type?: string | null
+          id?: string
+          journal_entry_id?: string | null
+          meta?: Json
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+        }
+        Update: {
+          action?: string
+          actor_user_id?: string | null
+          created_at?: string
+          event_type?: string | null
+          id?: string
+          journal_entry_id?: string | null
+          meta?: Json
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_logs_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "vw_admin_journal_ledger"
+            referencedColumns: ["journal_id"]
+          },
+          {
+            foreignKeyName: "audit_logs_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "vw_wallet_activity_user"
+            referencedColumns: ["journal_entry_id"]
+          },
+        ]
+      }
       availability_slots: {
         Row: {
           created_at: string
@@ -119,6 +292,7 @@ export type Database = {
           client_id: string
           completed_at: string | null
           created_at: string
+          delivered_at: string | null
           id: string
           note: string | null
           package_id: string | null
@@ -128,6 +302,11 @@ export type Database = {
           price: number | null
           provider_id: string
           requirements: Json | null
+          review_expires_at: string | null
+          revision_note: string | null
+          revision_requested_at: string | null
+          revisions_total: number | null
+          revisions_used: number | null
           slot_id: string | null
           status: Database["public"]["Enums"]["booking_status_enum"]
           task_id: string | null
@@ -136,6 +315,7 @@ export type Database = {
           client_id: string
           completed_at?: string | null
           created_at?: string
+          delivered_at?: string | null
           id?: string
           note?: string | null
           package_id?: string | null
@@ -145,6 +325,11 @@ export type Database = {
           price?: number | null
           provider_id: string
           requirements?: Json | null
+          review_expires_at?: string | null
+          revision_note?: string | null
+          revision_requested_at?: string | null
+          revisions_total?: number | null
+          revisions_used?: number | null
           slot_id?: string | null
           status?: Database["public"]["Enums"]["booking_status_enum"]
           task_id?: string | null
@@ -153,6 +338,7 @@ export type Database = {
           client_id?: string
           completed_at?: string | null
           created_at?: string
+          delivered_at?: string | null
           id?: string
           note?: string | null
           package_id?: string | null
@@ -162,6 +348,11 @@ export type Database = {
           price?: number | null
           provider_id?: string
           requirements?: Json | null
+          review_expires_at?: string | null
+          revision_note?: string | null
+          revision_requested_at?: string | null
+          revisions_total?: number | null
+          revisions_used?: number | null
           slot_id?: string | null
           status?: Database["public"]["Enums"]["booking_status_enum"]
           task_id?: string | null
@@ -224,6 +415,63 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      change_requests: {
+        Row: {
+          applied_contract_version: number | null
+          created_at: string
+          days_diff: number | null
+          id: string
+          price_diff: number | null
+          related_entity_id: string
+          related_entity_type: string
+          requester_id: string
+          resolved_at: string | null
+          scope_diff: string | null
+          status: string
+        }
+        Insert: {
+          applied_contract_version?: number | null
+          created_at?: string
+          days_diff?: number | null
+          id?: string
+          price_diff?: number | null
+          related_entity_id: string
+          related_entity_type: string
+          requester_id: string
+          resolved_at?: string | null
+          scope_diff?: string | null
+          status?: string
+        }
+        Update: {
+          applied_contract_version?: number | null
+          created_at?: string
+          days_diff?: number | null
+          id?: string
+          price_diff?: number | null
+          related_entity_id?: string
+          related_entity_type?: string
+          requester_id?: string
+          resolved_at?: string | null
+          scope_diff?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "change_requests_requester_id_fkey"
+            columns: ["requester_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "change_requests_requester_id_fkey"
+            columns: ["requester_id"]
+            isOneToOne: false
+            referencedRelation: "wallet_balances"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       conversation_presence: {
         Row: {
@@ -354,6 +602,234 @@ export type Database = {
           },
         ]
       }
+      dispute_evidence: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          dispute_id: string | null
+          file_type: string | null
+          file_url: string
+          id: string
+          uploader_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          dispute_id?: string | null
+          file_type?: string | null
+          file_url: string
+          id?: string
+          uploader_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          dispute_id?: string | null
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          uploader_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispute_evidence_dispute_id_fkey"
+            columns: ["dispute_id"]
+            isOneToOne: false
+            referencedRelation: "disputes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispute_evidence_uploader_id_fkey"
+            columns: ["uploader_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispute_evidence_uploader_id_fkey"
+            columns: ["uploader_id"]
+            isOneToOne: false
+            referencedRelation: "wallet_balances"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      dispute_messages: {
+        Row: {
+          content: string
+          created_at: string | null
+          dispute_id: string | null
+          id: string
+          is_admin: boolean | null
+          sender_id: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          dispute_id?: string | null
+          id?: string
+          is_admin?: boolean | null
+          sender_id?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          dispute_id?: string | null
+          id?: string
+          is_admin?: boolean | null
+          sender_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dispute_messages_dispute_id_fkey"
+            columns: ["dispute_id"]
+            isOneToOne: false
+            referencedRelation: "disputes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispute_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dispute_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "wallet_balances"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      disputes: {
+        Row: {
+          complainant_id: string
+          created_at: string | null
+          defendant_id: string | null
+          id: string
+          reason: string
+          resolution: string | null
+          resolved_at: string | null
+          status: string | null
+          task_id: string
+        }
+        Insert: {
+          complainant_id: string
+          created_at?: string | null
+          defendant_id?: string | null
+          id?: string
+          reason: string
+          resolution?: string | null
+          resolved_at?: string | null
+          status?: string | null
+          task_id: string
+        }
+        Update: {
+          complainant_id?: string
+          created_at?: string | null
+          defendant_id?: string | null
+          id?: string
+          reason?: string
+          resolution?: string | null
+          resolved_at?: string | null
+          status?: string | null
+          task_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disputes_defendant_id_fkey"
+            columns: ["defendant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disputes_defendant_id_fkey"
+            columns: ["defendant_id"]
+            isOneToOne: false
+            referencedRelation: "wallet_balances"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "disputes_initiator_id_fkey"
+            columns: ["complainant_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disputes_initiator_id_fkey"
+            columns: ["complainant_id"]
+            isOneToOne: false
+            referencedRelation: "wallet_balances"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "disputes_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disputes_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks_mvp"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      extension_requests: {
+        Row: {
+          created_at: string
+          id: string
+          new_deadline: string
+          reason: string | null
+          related_entity_id: string
+          related_entity_type: string
+          requester_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          new_deadline: string
+          reason?: string | null
+          related_entity_id: string
+          related_entity_type: string
+          requester_id: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          new_deadline?: string
+          reason?: string | null
+          related_entity_id?: string
+          related_entity_type?: string
+          requester_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "extension_requests_requester_id_fkey"
+            columns: ["requester_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "extension_requests_requester_id_fkey"
+            columns: ["requester_id"]
+            isOneToOne: false
+            referencedRelation: "wallet_balances"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       favorites: {
         Row: {
           client_id: string
@@ -401,6 +877,110 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "wallet_balances"
             referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      journal_entries: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          currency: string
+          event_type: Database["public"]["Enums"]["payment_event_type_enum"]
+          id: string
+          idempotency_key: string
+          meta: Json
+          related_entity_id: string | null
+          related_entity_type:
+            | Database["public"]["Enums"]["related_entity_type_enum"]
+            | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          event_type: Database["public"]["Enums"]["payment_event_type_enum"]
+          id?: string
+          idempotency_key: string
+          meta?: Json
+          related_entity_id?: string | null
+          related_entity_type?:
+            | Database["public"]["Enums"]["related_entity_type_enum"]
+            | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          event_type?: Database["public"]["Enums"]["payment_event_type_enum"]
+          id?: string
+          idempotency_key?: string
+          meta?: Json
+          related_entity_id?: string | null
+          related_entity_type?:
+            | Database["public"]["Enums"]["related_entity_type_enum"]
+            | null
+          status?: string
+        }
+        Relationships: []
+      }
+      ledger_lines: {
+        Row: {
+          account_id: string
+          amount: number
+          created_at: string
+          currency: string
+          direction: Database["public"]["Enums"]["ledger_direction_enum"]
+          id: string
+          journal_entry_id: string
+        }
+        Insert: {
+          account_id: string
+          amount: number
+          created_at?: string
+          currency?: string
+          direction: Database["public"]["Enums"]["ledger_direction_enum"]
+          id?: string
+          journal_entry_id: string
+        }
+        Update: {
+          account_id?: string
+          amount?: number
+          created_at?: string
+          currency?: string
+          direction?: Database["public"]["Enums"]["ledger_direction_enum"]
+          id?: string
+          journal_entry_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ledger_lines_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ledger_lines_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ledger_lines_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "vw_admin_journal_ledger"
+            referencedColumns: ["journal_id"]
+          },
+          {
+            foreignKeyName: "ledger_lines_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "vw_wallet_activity_user"
+            referencedColumns: ["journal_entry_id"]
           },
         ]
       }
@@ -598,32 +1178,44 @@ export type Database = {
         Row: {
           active_role: string | null
           avatar_url: string | null
+          bio: string | null
           created_at: string | null
           email: string | null
           full_name: string | null
           id: string
+          is_wallet_frozen: boolean | null
+          metadata: Json | null
           roles: string[] | null
           skills: string[] | null
+          status: string | null
         }
         Insert: {
           active_role?: string | null
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string | null
           email?: string | null
           full_name?: string | null
           id: string
+          is_wallet_frozen?: boolean | null
+          metadata?: Json | null
           roles?: string[] | null
           skills?: string[] | null
+          status?: string | null
         }
         Update: {
           active_role?: string | null
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string | null
           email?: string | null
           full_name?: string | null
           id?: string
+          is_wallet_frozen?: boolean | null
+          metadata?: Json | null
           roles?: string[] | null
           skills?: string[] | null
+          status?: string | null
         }
         Relationships: [
           {
@@ -736,10 +1328,64 @@ export type Database = {
           },
         ]
       }
+      support_tickets: {
+        Row: {
+          assignee_id: string | null
+          category: string
+          created_at: string | null
+          id: string
+          priority: string
+          status: string
+          subject: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          assignee_id?: string | null
+          category: string
+          created_at?: string | null
+          id?: string
+          priority?: string
+          status?: string
+          subject: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          assignee_id?: string | null
+          category?: string
+          created_at?: string | null
+          id?: string
+          priority?: string
+          status?: string
+          subject?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_tickets_assignee_id_fkey"
+            columns: ["assignee_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_tickets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_requests: {
         Row: {
           amount: number | null
+          awarded_at: string | null
+          awarded_by: string | null
           bidder_id: string | null
+          client_id: string | null
           created_at: string
           days: number
           deleted_at: string | null
@@ -749,6 +1395,10 @@ export type Database = {
           initiated_by: string | null
           message: string | null
           note: string | null
+          payment_deadline: string | null
+          payment_status:
+            | Database["public"]["Enums"]["payment_status_enum"]
+            | null
           price: number
           status: string
           task_id: string
@@ -756,7 +1406,10 @@ export type Database = {
         }
         Insert: {
           amount?: number | null
+          awarded_at?: string | null
+          awarded_by?: string | null
           bidder_id?: string | null
+          client_id?: string | null
           created_at?: string
           days: number
           deleted_at?: string | null
@@ -766,6 +1419,10 @@ export type Database = {
           initiated_by?: string | null
           message?: string | null
           note?: string | null
+          payment_deadline?: string | null
+          payment_status?:
+            | Database["public"]["Enums"]["payment_status_enum"]
+            | null
           price: number
           status?: string
           task_id: string
@@ -773,7 +1430,10 @@ export type Database = {
         }
         Update: {
           amount?: number | null
+          awarded_at?: string | null
+          awarded_by?: string | null
           bidder_id?: string | null
+          client_id?: string | null
           created_at?: string
           days?: number
           deleted_at?: string | null
@@ -783,12 +1443,23 @@ export type Database = {
           initiated_by?: string | null
           message?: string | null
           note?: string | null
+          payment_deadline?: string | null
+          payment_status?:
+            | Database["public"]["Enums"]["payment_status_enum"]
+            | null
           price?: number
           status?: string
           task_id?: string
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "task_requests_awarded_by_fkey"
+            columns: ["awarded_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "task_requests_bidder_id_fkey"
             columns: ["bidder_id"]
@@ -799,6 +1470,20 @@ export type Database = {
           {
             foreignKeyName: "task_requests_bidder_id_fkey"
             columns: ["bidder_id"]
+            isOneToOne: false
+            referencedRelation: "wallet_balances"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "task_requests_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_requests_client_id_fkey"
+            columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "wallet_balances"
             referencedColumns: ["user_id"]
@@ -850,6 +1535,7 @@ export type Database = {
           client_id: string | null
           created_at: string
           deadline: string | null
+          delivered_at: string | null
           description: string
           freelancer_id: string | null
           hour_rate_bigint: number | null
@@ -857,6 +1543,11 @@ export type Database = {
           image_paths: string[] | null
           owner_id: string | null
           packages: Json | null
+          review_expires_at: string | null
+          revision_note: string | null
+          revision_requested_at: string | null
+          revisions_total: number | null
+          revisions_used: number | null
           session_price_bigint: number | null
           skills: string[] | null
           status: string
@@ -874,6 +1565,7 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           deadline?: string | null
+          delivered_at?: string | null
           description: string
           freelancer_id?: string | null
           hour_rate_bigint?: number | null
@@ -881,6 +1573,11 @@ export type Database = {
           image_paths?: string[] | null
           owner_id?: string | null
           packages?: Json | null
+          review_expires_at?: string | null
+          revision_note?: string | null
+          revision_requested_at?: string | null
+          revisions_total?: number | null
+          revisions_used?: number | null
           session_price_bigint?: number | null
           skills?: string[] | null
           status?: string
@@ -898,6 +1595,7 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           deadline?: string | null
+          delivered_at?: string | null
           description?: string
           freelancer_id?: string | null
           hour_rate_bigint?: number | null
@@ -905,6 +1603,11 @@ export type Database = {
           image_paths?: string[] | null
           owner_id?: string | null
           packages?: Json | null
+          review_expires_at?: string | null
+          revision_note?: string | null
+          revision_requested_at?: string | null
+          revisions_total?: number | null
+          revisions_used?: number | null
           session_price_bigint?: number | null
           skills?: string[] | null
           status?: string
@@ -972,6 +1675,48 @@ export type Database = {
           },
         ]
       }
+      ticket_messages: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_internal: boolean | null
+          message: string
+          sender_id: string
+          ticket_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_internal?: boolean | null
+          message: string
+          sender_id: string
+          ticket_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_internal?: boolean | null
+          message?: string
+          sender_id?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ticket_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wallet_transactions: {
         Row: {
           amount: number
@@ -1022,6 +1767,71 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
         ]
+      }
+      withdrawal_requests: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          id?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "withdrawal_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      work_contracts: {
+        Row: {
+          contract_hash: string
+          created_at: string
+          id: string
+          related_entity_id: string
+          related_entity_type: string
+          snapshot: Json
+          version: number
+        }
+        Insert: {
+          contract_hash: string
+          created_at?: string
+          id?: string
+          related_entity_id: string
+          related_entity_type: string
+          snapshot: Json
+          version: number
+        }
+        Update: {
+          contract_hash?: string
+          created_at?: string
+          id?: string
+          related_entity_id?: string
+          related_entity_type?: string
+          snapshot?: Json
+          version?: number
+        }
+        Relationships: []
       }
       work_logs: {
         Row: {
@@ -1231,6 +2041,210 @@ export type Database = {
         }
         Relationships: []
       }
+      vw_admin_journal_ledger: {
+        Row: {
+          created_at: string | null
+          entity_id: string | null
+          entity_type:
+            | Database["public"]["Enums"]["related_entity_type_enum"]
+            | null
+          event_type:
+            | Database["public"]["Enums"]["payment_event_type_enum"]
+            | null
+          fee_amount: number | null
+          gross_amount: number | null
+          initiator_user_id: string | null
+          journal_id: string | null
+          meta_full: Json | null
+          meta_masked: Json | null
+          net_amount: number | null
+          payee_user_id: string | null
+          payer_user_id: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type?:
+            | Database["public"]["Enums"]["related_entity_type_enum"]
+            | null
+          event_type?:
+            | Database["public"]["Enums"]["payment_event_type_enum"]
+            | null
+          fee_amount?: never
+          gross_amount?: never
+          initiator_user_id?: never
+          journal_id?: string | null
+          meta_full?: Json | null
+          meta_masked?: never
+          net_amount?: never
+          payee_user_id?: never
+          payer_user_id?: never
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type?:
+            | Database["public"]["Enums"]["related_entity_type_enum"]
+            | null
+          event_type?:
+            | Database["public"]["Enums"]["payment_event_type_enum"]
+            | null
+          fee_amount?: never
+          gross_amount?: never
+          initiator_user_id?: never
+          journal_id?: string | null
+          meta_full?: Json | null
+          meta_masked?: never
+          net_amount?: never
+          payee_user_id?: never
+          payer_user_id?: never
+          status?: string | null
+        }
+        Relationships: []
+      }
+      vw_financial_metrics_period: {
+        Row: {
+          currency: string | null
+          gmv: number | null
+          period: string | null
+          period_end: string | null
+          period_start: string | null
+          refunds: number | null
+          revenue: number | null
+          transaction_count: number | null
+        }
+        Relationships: []
+      }
+      vw_financial_metrics_realtime: {
+        Row: {
+          calculated_at: string | null
+          currency: string | null
+          escrow_account_balance_iqd: number | null
+          escrow_held_iqd: number | null
+          gmv_iqd: number | null
+          lifetime_refunds_iqd: number | null
+          platform_cash_iqd: number | null
+          revenue_account_balance_iqd: number | null
+          revenue_iqd: number | null
+        }
+        Relationships: []
+      }
+      vw_unified_payable_items: {
+        Row: {
+          amount: number | null
+          client_id: string | null
+          created_at: string | null
+          currency: string | null
+          entity_id: string | null
+          entity_type: string | null
+          payment_status: string | null
+          provider_id: string | null
+          status: string | null
+        }
+        Insert: {
+          amount?: number | null
+          client_id?: string | null
+          created_at?: string | null
+          currency?: never
+          entity_id?: string | null
+          entity_type?: never
+          payment_status?: never
+          provider_id?: string | null
+          status?: never
+        }
+        Update: {
+          amount?: number | null
+          client_id?: string | null
+          created_at?: string | null
+          currency?: never
+          entity_id?: string | null
+          entity_type?: never
+          payment_status?: never
+          provider_id?: string | null
+          status?: never
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_bookings_client"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_bookings_provider"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      vw_unified_work_items: {
+        Row: {
+          client_id: string | null
+          deadline: string | null
+          delivered_at: string | null
+          dispute_requires_user_action: boolean | null
+          freelancer_id: string | null
+          id: string | null
+          last_activity_at: string | null
+          needs_review: boolean | null
+          price: number | null
+          resolution_type: string | null
+          review_expires_at: string | null
+          revisions_total: number | null
+          revisions_used: number | null
+          sort_rank: number | null
+          source_status: string | null
+          source_type: string | null
+          title: string | null
+          unified_status: string | null
+          work_item_id: string | null
+        }
+        Relationships: []
+      }
+      vw_wallet_activity_user: {
+        Row: {
+          amount_gross: number | null
+          amount_net: number | null
+          counterparty_user_id: string | null
+          created_at: string | null
+          currency: string | null
+          event_type:
+            | Database["public"]["Enums"]["payment_event_type_enum"]
+            | null
+          fee_amount: number | null
+          journal_entry_id: string | null
+          related_entity_id: string | null
+          related_entity_type:
+            | Database["public"]["Enums"]["related_entity_type_enum"]
+            | null
+          status: string | null
+        }
+        Relationships: []
+      }
+      vw_wallet_balances_user: {
+        Row: {
+          available_balance: number | null
+          currency: string | null
+          held_balance: number | null
+          pending_withdrawal_balance: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounts_owner_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wallet_balances: {
         Row: {
           available_balance: number | null
@@ -1254,7 +2268,10 @@ export type Database = {
             Args: { p_request_id: string }
             Returns: {
               amount: number | null
+              awarded_at: string | null
+              awarded_by: string | null
               bidder_id: string | null
+              client_id: string | null
               created_at: string
               days: number
               deleted_at: string | null
@@ -1264,6 +2281,10 @@ export type Database = {
               initiated_by: string | null
               message: string | null
               note: string | null
+              payment_deadline: string | null
+              payment_status:
+                | Database["public"]["Enums"]["payment_status_enum"]
+                | null
               price: number
               status: string
               task_id: string
@@ -1277,6 +2298,44 @@ export type Database = {
             }
           }
         | { Args: { p_request_id: string; p_task_id: string }; Returns: string }
+      admin_process_wallet_freeze: {
+        Args: {
+          p_admin_id: string
+          p_freeze: boolean
+          p_reason: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
+      admin_process_withdrawal: {
+        Args: {
+          p_admin_id: string
+          p_decision: string
+          p_reason: string
+          p_request_id: string
+        }
+        Returns: undefined
+      }
+      admin_resolve_dispute: {
+        Args: { p_decision: string; p_dispute_id: string }
+        Returns: undefined
+      }
+      award_task_offer: {
+        Args: { p_client_id?: string; p_request_id: string }
+        Returns: Json
+      }
+      cleanup_expired_awards: { Args: never; Returns: undefined }
+      fn_financial_metrics_period: {
+        Args: { p_period_end: string; p_period_start: string }
+        Returns: {
+          currency: string
+          gmv: number
+          refund_rate: number
+          refunds: number
+          revenue: number
+          take_rate: number
+        }[]
+      }
       fn_log_acceptance_message: {
         Args: {
           p_conversation_id: string
@@ -1285,6 +2344,38 @@ export type Database = {
           p_task_id: string
         }
         Returns: string
+      }
+      get_client_awarded_unpaid_offers: {
+        Args: { p_client_id?: string }
+        Returns: {
+          awarded_at: string
+          days: number
+          freelancer_avatar: string
+          freelancer_id: string
+          freelancer_name: string
+          note: string
+          payment_deadline: string
+          price: number
+          request_id: string
+          task_id: string
+          task_title: string
+        }[]
+      }
+      get_freelancer_awarded_unpaid_offers: {
+        Args: { p_freelancer_id?: string }
+        Returns: {
+          awarded_at: string
+          client_avatar: string
+          client_id: string
+          client_name: string
+          days: number
+          note: string
+          payment_deadline: string
+          price: number
+          request_id: string
+          task_id: string
+          task_title: string
+        }[]
       }
       is_client: { Args: { uid: string }; Returns: boolean }
       is_conversation_participant: {
@@ -1304,9 +2395,21 @@ export type Database = {
         Args: { p_conversation_id: string }
         Returns: undefined
       }
+      pay_awarded_offer: {
+        Args: { p_client_id?: string; p_request_id: string }
+        Returns: Json
+      }
       process_expired_requests: { Args: never; Returns: Json }
-      process_payment_event: {
-        Args: { p_entity_id: string; p_event: string; p_type: string }
+      process_payment_event_ledger: {
+        Args: {
+          p_amount_gross?: number
+          p_currency?: string
+          p_event_type: string
+          p_idempotency_key: string
+          p_meta?: Json
+          p_related_entity_id: string
+          p_related_entity_type: string
+        }
         Returns: Json
       }
       reject_task_request:
@@ -1314,7 +2417,10 @@ export type Database = {
             Args: { p_request_id: string }
             Returns: {
               amount: number | null
+              awarded_at: string | null
+              awarded_by: string | null
               bidder_id: string | null
+              client_id: string | null
               created_at: string
               days: number
               deleted_at: string | null
@@ -1324,6 +2430,10 @@ export type Database = {
               initiated_by: string | null
               message: string | null
               note: string | null
+              payment_deadline: string | null
+              payment_status:
+                | Database["public"]["Enums"]["payment_status_enum"]
+                | null
               price: number
               status: string
               task_id: string
@@ -1347,6 +2457,26 @@ export type Database = {
         }
         Returns: undefined
       }
+      rpc_accept_change_request: {
+        Args: { request_id: string }
+        Returns: undefined
+      }
+      rpc_approve_delivery: {
+        Args: { entity_id: string; entity_type: string }
+        Returns: undefined
+      }
+      rpc_finalize_auto_approval: {
+        Args: { entity_id: string; entity_type: string }
+        Returns: string
+      }
+      rpc_request_revision: {
+        Args: { entity_id: string; entity_type: string; p_note: string }
+        Returns: undefined
+      }
+      rpc_submit_delivery: {
+        Args: { entity_id: string; entity_type: string; note: string }
+        Returns: undefined
+      }
       search_profiles: {
         Args: {
           limit_val?: number
@@ -1357,12 +2487,16 @@ export type Database = {
         Returns: {
           active_role: string | null
           avatar_url: string | null
+          bio: string | null
           created_at: string | null
           email: string | null
           full_name: string | null
           id: string
+          is_wallet_frozen: boolean | null
+          metadata: Json | null
           roles: string[] | null
           skills: string[] | null
+          status: string | null
         }[]
         SetofOptions: {
           from: "*"
@@ -1382,6 +2516,7 @@ export type Database = {
           client_id: string | null
           created_at: string
           deadline: string | null
+          delivered_at: string | null
           description: string
           freelancer_id: string | null
           hour_rate_bigint: number | null
@@ -1389,6 +2524,11 @@ export type Database = {
           image_paths: string[] | null
           owner_id: string | null
           packages: Json | null
+          review_expires_at: string | null
+          revision_note: string | null
+          revision_requested_at: string | null
+          revisions_total: number | null
+          revisions_used: number | null
           session_price_bigint: number | null
           skills: string[] | null
           status: string
@@ -1443,6 +2583,14 @@ export type Database = {
         | "delivered"
         | "refunded"
         | "expired_unanswered"
+      journal_status_enum: "posted" | "voided"
+      ledger_account_type_enum:
+        | "asset"
+        | "liability"
+        | "revenue"
+        | "expense"
+        | "equity"
+      ledger_direction_enum: "DEBIT" | "CREDIT"
       message_type_enum:
         | "text"
         | "system"
@@ -1453,8 +2601,31 @@ export type Database = {
         | "delivery_submitted"
         | "end_early_request"
         | "dispute_report"
+      payment_event_type_enum:
+        | "escrow_hold"
+        | "release_with_fee"
+        | "refund"
+        | "withdrawal_request"
+        | "deposit"
+        | "withdrawal_complete"
+        | "withdrawal_failed"
+        | "admin_credit"
+        | "admin_adjustment"
+        | "reversal"
+        | "gateway_escrow"
       payment_status_enum: "unpaid" | "held" | "released" | "refunded"
+      related_entity_type_enum:
+        | "booking"
+        | "task_request"
+        | "withdrawal_request"
+        | "admin_adjustment"
       task_type_enum: "tender" | "booking"
+      withdrawal_status_enum:
+        | "requested"
+        | "processing"
+        | "completed"
+        | "failed"
+        | "canceled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1594,6 +2765,15 @@ export const Constants = {
         "refunded",
         "expired_unanswered",
       ],
+      journal_status_enum: ["posted", "voided"],
+      ledger_account_type_enum: [
+        "asset",
+        "liability",
+        "revenue",
+        "expense",
+        "equity",
+      ],
+      ledger_direction_enum: ["DEBIT", "CREDIT"],
       message_type_enum: [
         "text",
         "system",
@@ -1605,8 +2785,34 @@ export const Constants = {
         "end_early_request",
         "dispute_report",
       ],
+      payment_event_type_enum: [
+        "escrow_hold",
+        "release_with_fee",
+        "refund",
+        "withdrawal_request",
+        "deposit",
+        "withdrawal_complete",
+        "withdrawal_failed",
+        "admin_credit",
+        "admin_adjustment",
+        "reversal",
+        "gateway_escrow",
+      ],
       payment_status_enum: ["unpaid", "held", "released", "refunded"],
+      related_entity_type_enum: [
+        "booking",
+        "task_request",
+        "withdrawal_request",
+        "admin_adjustment",
+      ],
       task_type_enum: ["tender", "booking"],
+      withdrawal_status_enum: [
+        "requested",
+        "processing",
+        "completed",
+        "failed",
+        "canceled",
+      ],
     },
   },
 } as const

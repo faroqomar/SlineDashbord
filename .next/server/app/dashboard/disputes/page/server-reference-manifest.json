@@ -1,6 +1,6 @@
 {
   "node": {
-    "405af5688f945bb0a89788c27ee6114c8f0ed43edc": {
+    "4038d811abf5b954071404e68d20a4f7646a6959de": {
       "workers": {
         "app/dashboard/disputes/page": {
           "moduleId": 65653,
@@ -15,7 +15,7 @@
       "exportedName": "getDisputeDetails",
       "filename": "src/app/actions/disputes.ts"
     },
-    "70e15dac2d1adfcb702e8b19ca95f1039b1e4bcd98": {
+    "70ee33dfc3b658954bdc2aad5f8f25f6271a4f5805": {
       "workers": {
         "app/dashboard/disputes/page": {
           "moduleId": 65653,
@@ -30,7 +30,7 @@
       "exportedName": "resolveDispute",
       "filename": "src/app/actions/disputes.ts"
     },
-    "7841c69db8bef786b58604ff243e4ba6159ab90a90": {
+    "787f9d279052702c68a8817da77987ab0f16dc7763": {
       "workers": {
         "app/dashboard/disputes/page": {
           "moduleId": 65653,

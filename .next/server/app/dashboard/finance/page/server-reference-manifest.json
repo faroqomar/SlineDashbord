@@ -1,20 +1,4 @@
 {
-  "node": {
-    "70a7012a5b00c0d881af67d6109857284b3fcba253": {
-      "workers": {
-        "app/dashboard/finance/page": {
-          "moduleId": 13647,
-          "async": false,
-          "exportedName": "getTransactions",
-          "filename": "src/actions/finance.ts"
-        }
-      },
-      "layer": {
-        "app/dashboard/finance/page": "rsc"
-      },
-      "exportedName": "getTransactions",
-      "filename": "src/actions/finance.ts"
-    }
-  },
+  "node": {},
   "edge": {}
 }

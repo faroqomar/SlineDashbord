@@ -13,10 +13,10 @@ We use the **Supabase Service Role Key** (`SUPABASE_SERVICE_ROLE_KEY`) to bypass
 
 ### How we protect it:
 
-1.  **Server-Only Execution**: It is imported only in `src/actions/*` files marked with `'use server'`.
-2.  **Double Auth Check**: Before **ANY** Service Role query, we verify:
+1.  **Server-Only Execution**: It is imported only in files marked with `'use server'`. The `server-only` package enforces this at build time.
+2.  **Double Auth Check**: Before **ANY** Service Role query, `requireAdminRole()` verifies:
     - Is the user authenticated? (`supabase.auth.getUser()`)
-    - Is the user an ADMIN? (Check `admin_users` table).
+    - Is the user in `admin_users` with the required role?
 
 ---
 
@@ -44,15 +44,29 @@ Helper function used in Server Actions to enforce identical logic.
 
 **Rule**: If it changes data, it must be logged.
 
-All mutations call `logAdminAction()`.
+All mutations call `logAuditEvent()` from `services/security_guards.ts`.
 
-- **Table**: `admin_logs`
+- **Table**: `audit_logs`
 - **Schema**:
-  - `actor_id`: UUID of the admin.
-  - `action`: e.g., `ban_user`, `refund_dispute`.
-  - `target_resource`: e.g., `user`, `dispute`.
-  - `target_id`: UUID of the affected item.
-  - `metadata`: JSON blob with details (reason, previous value).
+  - `action`: e.g., `admin.finance.withdrawal_approve`, `admin.users.soft_delete`.
+  - `actor_user_id`: UUID of the admin performing the action.
+  - `event_type`: Optional category (e.g., `finance`, `moderation`).
+  - `journal_entry_id`: Optional FK to journal entry.
+  - `related_entity_type`: e.g., `withdrawal_request`, `profile`.
+  - `related_entity_id`: UUID of the affected item.
+  - `meta`: JSON blob with details (reason, filters, row count).
+
+---
+
+## 🚦 Rate Limiting
+
+Sensitive mutations use `enforceRateLimit()` to prevent abuse:
+
+```typescript
+enforceRateLimit("approve_withdrawal", userId, 5, 60000); // 5 per 60s
+```
+
+This is an in-memory sliding-window rate limiter applied per-action, per-user.
 
 ---
 
@@ -71,11 +85,12 @@ Dashboard Admins and App Users are completely separate entities.
 
 ## 🧨 Destructive Actions
 
-For high-risk actions (Bans, Refunds, Deletions):
+For high-risk actions (Bans, Refunds, Deletions, Wallet Freezes):
 
-1.  **UI**: Must use a Modal/Dialog ("Are you sure?").
-2.  **Reason**: Must require a typed "Reason" string from the admin.
-3.  **Logs**: The "Reason" must be saved in the Audit Log metadata.
+1.  **UI**: Must use a Modal/Dialog or `confirm()` ("Are you sure?").
+2.  **Reason**: Must require a typed "Reason" string from the admin (validated by Zod: `z.string().min(1).max(500)`).
+3.  **Logs**: The "Reason" must be saved in the Audit Log `meta` field.
+4.  **Returns**: Must return `ServiceResult<T>` — never throw.
 
 > [!WARNING]
-> Never implement a "Delete" button without a confirmation dialog and a reason input.
+> Never implement a destructive button without: (1) confirmation, (2) reason input, (3) audit log, (4) rate limit.

@@ -4,29 +4,36 @@
 
 ## 🏗 Architecture
 
-We follow a strict **Server-Client Separation** architecture using Next.js 15 App Router.
+We follow a strict **Server-Client Separation** architecture using Next.js 16 App Router.
 
-### The Pattern: `Action -> Model -> View`
+### The Pattern: `Schema -> Action -> ServiceResult -> ViewModel -> View`
 
-1.  **Server Actions (`src/actions/*`)**: The **ONLY** place that touches the database.
-    - **Validation**: Must define a Zod schema for input.
-    - **Authentication**: Must verify Authentication (`getUser`).
-    - **Authorization**: Must verify Admin Role (`admin_users` check).
-    - **Output**: Must return `{ success, error, data }`.
-    - **NO THROW**: **NEVER** throw errors to the client; catch and return objects.
-    - **Audit**: Must log mutations to `admin_logs`.
+1.  **Zod Schemas (`*.schema.ts`)**: Define input validation for every action.
+    - Centralized in `models/` directory per feature.
+    - Must be the **first line** of every server action.
 
-2.  **Domain Models (`src/features/*/models/*.model.ts`)**:
-    - Define the shape of data (Interfaces).
-    - **NO** `any` types allowed.
+2.  **Server Actions (`features/*/actions/*`)**: The **ONLY** place that touches the database.
+    - **Validation**: Zod `.safeParse()` on all inputs.
+    - **Auth + RBAC**: `requireAdminRole(ROLE_CONSTANTS)` — typed role arrays.
+    - **Output**: Must return `ServiceResult<T>` via `ok()` / `fail()` helpers.
+    - **NO THROW**: Use `catch (e: unknown)` + `toErrorMessage()` — **NEVER** throw.
+    - **Audit**: Must call `logAuditEvent()` on all mutations.
+    - **Rate Limiting**: Sensitive mutations must call `enforceRateLimit()`.
 
-3.  **Client Components (`src/components/*`)**:
-    - Pure UI.
-    - Call Server Actions directly or via `useTransition`.
-    - **NEVER** import `supabase-js` directly for data fetching.
+3.  **Domain Models (`features/*/models/*.model.ts`)**:
+    - Define types, interfaces, role constants, and shared UI utilities.
+    - **NO** `any` types allowed. Use `unknown` + type guards.
 
 4.  **ViewModels (`*.vm.ts`)**:
-    - Encapsulate complex client-state logic (optional, for complex views).
+    - Encapsulate client-state logic (selection, loading, pagination, action handlers).
+    - Call Server Actions and unwrap `ServiceResult` → `toast.error()` / `toast.success()`.
+    - UI components access state **only** through the ViewModel interface.
+
+5.  **Client Components (`features/*/components/*`)**:
+    - Pure renders. Zero business logic.
+    - Receive data via props from Server Components.
+    - Delegate all interactions to ViewModel hooks.
+    - **NEVER** import `supabase-js` directly.
 
 ---
 
@@ -37,57 +44,50 @@ Every action must follow this template:
 ```typescript
 "use server";
 
-import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
-import { z } from "zod";
-import { logAdminAction } from "@/lib/admin-logger";
+import { createAdminClient as supabaseAdmin } from "@/lib/supabase/admin";
+import { requireAdminRole, logAuditEvent } from "../services/security_guards";
+import { ok, fail, ServiceResult } from "../models/result";
+import { MyInputSchema } from "../models/my-feature.schema";
+import { WRITE_ROLES } from "../models/my-feature.model";
 
-// 1. Define Input Schema
-const InputSchema = z.object({
-  id: z.string().uuid(),
-  reason: z.string().min(5),
-});
+// Error helper (shared per feature)
+function toErrorMessage(e: unknown): string {
+  return e instanceof Error ? e.message : "Unknown error";
+}
 
-export async function mySecureAction(formData: FormData) {
-  // 2. Zod Validation (First Line)
-  const parsed = InputSchema.safeParse(Object.fromEntries(formData));
-  if (!parsed.success) return { success: false, error: "Invalid input" };
-
-  const supabase = await createClient();
-  const adminDb = createAdminClient();
-
-  // 3. Auth & Role Check
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return { success: false, error: "Unauthorized" };
-
-  const { data: admin } = await adminDb
-    .from("admin_users")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-  if (!admin) return { success: false, error: "Access Denied" };
-
+export async function mySecureAction(
+  id: string,
+  reason: string,
+): Promise<ServiceResult<{ id: string }>> {
   try {
-    // 4. Perform Logic
-    const { error } = await adminDb
+    // 1. Zod Validation (First Line)
+    const parsed = MyInputSchema.safeParse({ id, reason });
+    if (!parsed.success) return fail(parsed.error.issues[0].message);
+
+    // 2. Auth + RBAC (typed role constants)
+    const { userId } = await requireAdminRole(WRITE_ROLES);
+
+    // 3. Perform Logic
+    const adminClient = supabaseAdmin();
+    const { error } = await adminClient
       .from("items")
       .delete()
       .eq("id", parsed.data.id);
+    if (error) return fail(`Delete failed: ${error.message}`);
 
-    if (error) throw new Error(error.message);
-
-    // 5. Audit Log (Mandatory)
-    await logAdminAction(user.id, "delete_item", "items", parsed.data.id, {
-      reason: parsed.data.reason,
+    // 4. Audit Log (Mandatory for mutations)
+    await logAuditEvent({
+      action: "admin.items.delete",
+      actor_user_id: userId,
+      related_entity_type: "item",
+      related_entity_id: parsed.data.id,
+      meta: { reason: parsed.data.reason },
     });
 
-    return { success: true };
-  } catch (err) {
-    // 6. No Throw Rule
-    console.error("Action failed:", err);
-    return { success: false, error: "Operation failed" };
+    // 5. Return typed ServiceResult
+    return ok({ id: parsed.data.id });
+  } catch (e: unknown) {
+    return fail(toErrorMessage(e));
   }
 }
 ```
@@ -134,6 +134,33 @@ export function ActionButton() {
 - **Global State**: Avoid it. Use Server State (fetched via Server Components).
 - **URL State**: Use search params for Filters, Pagination, and Tabs. This makes views shareable.
 - **Local State**: Use `useState` only for ephemeral UI (modals open/close, form inputs).
+
+---
+
+## ⚠️ Next.js 15+ Async APIs
+
+In Next.js 15+, `searchParams` and `params` are **Promises** and must be `await`ed:
+
+```typescript
+// ✅ Correct (Next.js 15+)
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | undefined }>;
+}) {
+  const resolvedParams = await searchParams;
+  const cursor = resolvedParams.cursor_id;
+}
+
+// ❌ Wrong (deprecated sync access)
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | undefined };
+}) {
+  const cursor = searchParams.cursor_id; // Will break!
+}
+```
 
 ---
 

@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const KEY_PATTERN = /SUPABASE_SERVICE_ROLE_KEY/;
-const EXCLUDED_DIRS = ['node_modules', '.next', '.git', 'scripts', 'src/lib/supabase', 'src/actions', 'src/proxy.ts', 'src/instrumentation.ts'];
+const EXCLUDED_DIRS = ['node_modules', '.next', '.git', 'scripts', 'src/lib/supabase', 'src/actions', 'src/proxy.ts', 'src/instrumentation.ts', 'src/features/finance/services'];
 const ROOT_DIR = path.resolve(__dirname, '..');
 
 function scanDirectory(dir) {

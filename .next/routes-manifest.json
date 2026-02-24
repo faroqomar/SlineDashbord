@@ -14,7 +14,30 @@
       "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
     }
   ],
-  "headers": [],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "X-DNS-Prefetch-Control",
+          "value": "on"
+        }
+      ],
+      "regex": "^(?:/(.*))(?:/)?$"
+    }
+  ],
   "rewrites": {
     "beforeFiles": [],
     "afterFiles": [],
@@ -88,6 +111,36 @@
       "regex": "^/dashboard/finance(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/dashboard/finance(?:/)?$"
+    },
+    {
+      "page": "/dashboard/finance/audit",
+      "regex": "^/dashboard/finance/audit(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/finance/audit(?:/)?$"
+    },
+    {
+      "page": "/dashboard/finance/overview",
+      "regex": "^/dashboard/finance/overview(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/finance/overview(?:/)?$"
+    },
+    {
+      "page": "/dashboard/finance/transactions",
+      "regex": "^/dashboard/finance/transactions(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/finance/transactions(?:/)?$"
+    },
+    {
+      "page": "/dashboard/finance/users",
+      "regex": "^/dashboard/finance/users(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/finance/users(?:/)?$"
+    },
+    {
+      "page": "/dashboard/finance/withdrawals",
+      "regex": "^/dashboard/finance/withdrawals(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/dashboard/finance/withdrawals(?:/)?$"
     },
     {
       "page": "/dashboard/logs",

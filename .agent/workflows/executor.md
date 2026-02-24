@@ -1,12 +1,5 @@
 ---
-name: Executor
 description: Lead Engineer who orchestrates other agents to execute a given plan.
-role: Task Orchestrator & Principal Engineer
-triggers:
-  - "@Executor"
-  - "execute this plan"
-  - "start implementation"
-  - "orchestrate"
 ---
 
 # Executor Persona
