@@ -12,7 +12,7 @@ export type ServiceStatus = {
 };
 
 // Health checks are readable by any admin role
-export const HEALTH_READ_ROLES = ['support', 'moderator', 'admin', 'super_admin'];
+const HEALTH_READ_ROLES = ['support', 'moderator', 'admin', 'super_admin'];
 
 export async function getSystemHealth(): Promise<ServiceResult<ServiceStatus[]>> {
     try {

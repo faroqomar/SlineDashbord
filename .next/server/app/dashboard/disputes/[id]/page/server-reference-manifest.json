@@ -3,7 +3,7 @@
     "7862feec36bc7acb2c63f71c4d25d4123f524fce41": {
       "workers": {
         "app/dashboard/disputes/[id]/page": {
-          "moduleId": 47575,
+          "moduleId": 7576,
           "async": false,
           "exportedName": "resolveDispute",
           "filename": "src/actions/disputes.ts"
@@ -15,50 +15,50 @@
       "exportedName": "resolveDispute",
       "filename": "src/actions/disputes.ts"
     },
-    "4038d811abf5b954071404e68d20a4f7646a6959de": {
+    "402135f3d7e630ae6a1a4dd5e3c74765a613eb8a1b": {
       "workers": {
         "app/dashboard/disputes/[id]/page": {
-          "moduleId": 47575,
+          "moduleId": 7576,
           "async": false,
           "exportedName": "getDisputeDetails",
-          "filename": "src/app/actions/disputes.ts"
+          "filename": "src/features/disputes/services/dispute_actions.ts"
         }
       },
       "layer": {
         "app/dashboard/disputes/[id]/page": "rsc"
       },
       "exportedName": "getDisputeDetails",
-      "filename": "src/app/actions/disputes.ts"
+      "filename": "src/features/disputes/services/dispute_actions.ts"
     },
-    "70ee33dfc3b658954bdc2aad5f8f25f6271a4f5805": {
+    "70565f907ac21d4f049d0b83282285648a21b802e5": {
       "workers": {
         "app/dashboard/disputes/[id]/page": {
-          "moduleId": 47575,
+          "moduleId": 7576,
           "async": false,
           "exportedName": "resolveDispute",
-          "filename": "src/app/actions/disputes.ts"
+          "filename": "src/features/disputes/services/dispute_actions.ts"
         }
       },
       "layer": {
         "app/dashboard/disputes/[id]/page": "rsc"
       },
       "exportedName": "resolveDispute",
-      "filename": "src/app/actions/disputes.ts"
+      "filename": "src/features/disputes/services/dispute_actions.ts"
     },
-    "787f9d279052702c68a8817da77987ab0f16dc7763": {
+    "78426240b1d8773b188f40ac563a57ffdcbd581e4e": {
       "workers": {
         "app/dashboard/disputes/[id]/page": {
-          "moduleId": 47575,
+          "moduleId": 7576,
           "async": false,
           "exportedName": "getDisputes",
-          "filename": "src/app/actions/disputes.ts"
+          "filename": "src/features/disputes/services/dispute_actions.ts"
         }
       },
       "layer": {
         "app/dashboard/disputes/[id]/page": "rsc"
       },
       "exportedName": "getDisputes",
-      "filename": "src/app/actions/disputes.ts"
+      "filename": "src/features/disputes/services/dispute_actions.ts"
     }
   },
   "edge": {}

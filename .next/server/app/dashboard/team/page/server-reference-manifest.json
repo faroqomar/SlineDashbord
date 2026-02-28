@@ -1,64 +1,64 @@
 {
   "node": {
-    "40c7439eaa1b608198da583fa615b6c768661e9455": {
+    "40779e5fac203c07c1b26a39b69593d6acce9f455f": {
       "workers": {
         "app/dashboard/team/page": {
-          "moduleId": 16759,
+          "moduleId": 30814,
           "async": false,
           "exportedName": "removeMember",
-          "filename": "src/app/actions/team.ts"
+          "filename": "src/features/team/services/team_actions.ts"
         }
       },
       "layer": {
         "app/dashboard/team/page": "rsc"
       },
       "exportedName": "removeMember",
-      "filename": "src/app/actions/team.ts"
+      "filename": "src/features/team/services/team_actions.ts"
     },
-    "70ea58f19c802d9b20c2b59300b5ca45e544e0aa5f": {
+    "7025a1f96063c0a755946db86d0dc3b1879cf438e7": {
       "workers": {
         "app/dashboard/team/page": {
-          "moduleId": 16759,
+          "moduleId": 30814,
           "async": false,
           "exportedName": "inviteMember",
-          "filename": "src/app/actions/team.ts"
+          "filename": "src/features/team/services/team_actions.ts"
         }
       },
       "layer": {
         "app/dashboard/team/page": "rsc"
       },
       "exportedName": "inviteMember",
-      "filename": "src/app/actions/team.ts"
+      "filename": "src/features/team/services/team_actions.ts"
     },
-    "009d80b16c084a98881889a5b178ad2c58e3bae09d": {
+    "00421b6c81a73d0e54850f405273d26185c9f15147": {
       "workers": {
         "app/dashboard/team/page": {
-          "moduleId": 16759,
+          "moduleId": 30814,
           "async": false,
           "exportedName": "getTeamMembers",
-          "filename": "src/app/actions/team.ts"
+          "filename": "src/features/team/services/team_actions.ts"
         }
       },
       "layer": {
         "app/dashboard/team/page": "rsc"
       },
       "exportedName": "getTeamMembers",
-      "filename": "src/app/actions/team.ts"
+      "filename": "src/features/team/services/team_actions.ts"
     },
-    "603584044213fb8544c14c0aaa305b386363531838": {
+    "60e27d853b1c9fb6eeecc0e3347623ef868e59d991": {
       "workers": {
         "app/dashboard/team/page": {
-          "moduleId": 16759,
+          "moduleId": 30814,
           "async": false,
           "exportedName": "updateRole",
-          "filename": "src/app/actions/team.ts"
+          "filename": "src/features/team/services/team_actions.ts"
         }
       },
       "layer": {
         "app/dashboard/team/page": "rsc"
       },
       "exportedName": "updateRole",
-      "filename": "src/app/actions/team.ts"
+      "filename": "src/features/team/services/team_actions.ts"
     }
   },
   "edge": {}

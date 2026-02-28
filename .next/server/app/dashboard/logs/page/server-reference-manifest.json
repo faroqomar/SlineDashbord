@@ -1,34 +1,34 @@
 {
   "node": {
-    "609a100deb5b0a19a1c4f356235a7ac41d99a7f6ed": {
+    "60678d3313f9c3ad7c7b413a6ce8981a30e66bf2a2": {
       "workers": {
         "app/dashboard/logs/page": {
-          "moduleId": 98639,
+          "moduleId": 8110,
           "async": false,
           "exportedName": "getLogsByTarget",
-          "filename": "src/app/actions/logs.ts"
+          "filename": "src/features/logs/services/log_actions.ts"
         }
       },
       "layer": {
         "app/dashboard/logs/page": "rsc"
       },
       "exportedName": "getLogsByTarget",
-      "filename": "src/app/actions/logs.ts"
+      "filename": "src/features/logs/services/log_actions.ts"
     },
-    "78421d9e0819f13c8cd80a6b23524f135bcca45b22": {
+    "7836ec8dfcdeff251580cc315aa57f3cf4af47cf7e": {
       "workers": {
         "app/dashboard/logs/page": {
-          "moduleId": 98639,
+          "moduleId": 8110,
           "async": false,
           "exportedName": "getSystemLogs",
-          "filename": "src/app/actions/logs.ts"
+          "filename": "src/features/logs/services/log_actions.ts"
         }
       },
       "layer": {
         "app/dashboard/logs/page": "rsc"
       },
       "exportedName": "getSystemLogs",
-      "filename": "src/app/actions/logs.ts"
+      "filename": "src/features/logs/services/log_actions.ts"
     }
   },
   "edge": {}

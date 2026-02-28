@@ -1,96 +1,60 @@
-# 🛡️ ADMIN_SECURITY_MANUAL (The Shield)
-
-> **Goal**: Zero data leaks, absolute accountability, and strict isolation.
->
-> **Compliance**: All security implementations MUST follow this manual without exception.
-
-## 🔑 The Service Role Strategy
-
-We use the **Supabase Service Role Key** (`SUPABASE_SERVICE_ROLE_KEY`) to bypass Row Level Security (RLS) for Admin actions.
+# 🛡️ SLine Admin Security Manual
 
 > [!CAUTION]
-> **NEVER** expose this key to the client (browser). It resides ONLY in `.env.local` and is accessed via `src/lib/supabase/admin.ts`.
+> This document outlines the absolute security protocols for the SLine Admin Dashboard. **These rules are unbreakable under any circumstances.** Code violating these rules will be rejected.
 
-### How we protect it:
+## The Service Role (God Mode)
 
-1.  **Server-Only Execution**: It is imported only in files marked with `'use server'`. The `server-only` package enforces this at build time.
-2.  **Double Auth Check**: Before **ANY** Service Role query, `requireAdminRole()` verifies:
-    - Is the user authenticated? (`supabase.auth.getUser()`)
-    - Is the user in `admin_users` with the required role?
+The Admin Dashboard connects to Supabase using the `SUPABASE_SERVICE_ROLE_KEY`.
 
----
+**Why we use it:**
+The Admin dashboard needs absolute read/write access to all tables (`profiles`, `jobs`, `finances`) across the entire SLine ecosystem to provide administrative oversight, support, and moderation.
 
-## 🚧 RBAC & Middleware
+**How we protect it:**
 
-### 1. Middleware (`src/middleware.ts`)
+1.  **Server-Side ONLY**: The Service Role Key is ONLY available to Next.js Server Actions running in a secure Node environment.
+2.  **Environment Check**: Attempting to use `NEXT_PUBLIC_SUPABASE_ANON_KEY` for database queries inside server actions is an anti-pattern. Always import `createAdminClient()`.
+3.  **No Client-Side Supabase-JS**: Client components are completely barred from using `supabase-js` to read/write data. They MUST call Server Actions.
 
-The first line of defense.
+## Role-Based Access Control (RBAC)
 
-1.  Intercepts ALL requests to `/dashboard`.
-2.  Checks strictly against the **`admin_users` table**.
-3.  If user is not in `admin_users` -> Redirect to `/unauthorized`.
-4.  If user is in `admin_users` -> Allow access.
-
-> [!IMPORTANT]
-> The middleware handles **Routing Security**. Server Actions handle **Data Security**. You must have BOTH.
-
-### 2. `verifyAdminRole()`
-
-Helper function used in Server Actions to enforce identical logic.
-
----
-
-## 📜 Audit Logging (Mandatory)
-
-**Rule**: If it changes data, it must be logged.
-
-All mutations call `logAuditEvent()` from `services/security_guards.ts`.
-
-- **Table**: `audit_logs`
-- **Schema**:
-  - `action`: e.g., `admin.finance.withdrawal_approve`, `admin.users.soft_delete`.
-  - `actor_user_id`: UUID of the admin performing the action.
-  - `event_type`: Optional category (e.g., `finance`, `moderation`).
-  - `journal_entry_id`: Optional FK to journal entry.
-  - `related_entity_type`: e.g., `withdrawal_request`, `profile`.
-  - `related_entity_id`: UUID of the affected item.
-  - `meta`: JSON blob with details (reason, filters, row count).
-
----
-
-## 🚦 Rate Limiting
-
-Sensitive mutations use `enforceRateLimit()` to prevent abuse:
+Every single server action MUST be prepended with a call to `requireAdminRole()`.
 
 ```typescript
-enforceRateLimit("approve_withdrawal", userId, 5, 60000); // 5 per 60s
+// features/core/security/security_guards.ts
+export async function requireAdminRole(allowedRoles: string[]) {
+  // 1. Verifies the user's JWT from cookies
+  // 2. Checks the `admin_users` table for their explicit role
+  // 3. Rejects if role is not in `allowedRoles`
+}
 ```
 
-This is an in-memory sliding-window rate limiter applied per-action, per-user.
+**Implementation Rule:**
+Do not hardcode roles inside actions. Define role constants in the feature's `.schema.ts` file (e.g. `export const FINANCE_WRITE_ROLES = ['admin', 'super_admin'];`).
 
----
+## Audit Logs (The Paper Trail)
 
-## 🏝️ Data Isolation Protocol
+> [!IMPORTANT]
+> **The Golden Rule of Mutations**: You NEVER write, update, or delete from the database without inserting into `admin_logs` immediately afterward.
 
-Dashboard Admins and App Users are completely separate entities.
+The `logAuditEvent` helper dictates the exact shape required:
 
-- **App Users**: Stored in `auth.users` + `public.profiles`.
-- **Admins**: Stored in `auth.users` + `public.admin_users`.
-- **Isolation**:
-  - Admins login via `/login` (checks `admin_users`).
-  - App users login via App (checks `profiles`).
-  - Accounts created via `/signup` (Admin) are **namespaced** (e.g., `admin.user@email.com` internally) to prevent collisions if the same email exists in the App.
+- `actor_id`: The ID of the admin performing the action.
+- `action`: The namespaced action taken (e.g. `ticket.replied`, `user.suspended`).
+- `target_id`: The ID of the entity affected.
+- `target_type`: The table/domain affected.
+- `metadata`: A JSONB snapshot of relevant before/after context.
 
----
+## Data Isolation
 
-## 🧨 Destructive Actions
+The Admin Dashboard does not own user data; it curates it.
 
-For high-risk actions (Bans, Refunds, Deletions, Wallet Freezes):
+- **Rule 1**: Do NOT corrupt `sline_app` user data. Modifications to user profiles must go through strict API boundaries.
+- **Rule 2**: Read generously, but modify cautiously. Validate data extensively to ensure admin mutations do not break mobile-app client logic.
 
-1.  **UI**: Must use a Modal/Dialog or `confirm()` ("Are you sure?").
-2.  **Reason**: Must require a typed "Reason" string from the admin (validated by Zod: `z.string().min(1).max(500)`).
-3.  **Logs**: The "Reason" must be saved in the Audit Log `meta` field.
-4.  **Returns**: Must return `ServiceResult<T>` — never throw.
+## Destructive Actions
 
-> [!WARNING]
-> Never implement a destructive button without: (1) confirmation, (2) reason input, (3) audit log, (4) rate limit.
+For bans, suspensions, deep deletions, or manual refunds:
+
+- **Reason Required**: A "Reason" or "Justification" string must be passed through the UI to the Server Action. It must be mandated by the Zod Schema.
+- **Audit**: The reason must be stored in the `metadata` object of the `admin_logs` entry.

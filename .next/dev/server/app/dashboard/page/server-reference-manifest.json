@@ -1,79 +1,79 @@
 {
   "node": {
-    "0009b81a701281ebfdb4875399a4808089208f94f8": {
+    "00025f761a9d3e9e8f78d09a0e80e256a8ba600ed2": {
       "workers": {
         "app/dashboard/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/actions/analytics.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/analytics/services/analytics_actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
           "exportedName": "getRevenueHistory",
-          "filename": "src/app/actions/analytics.ts"
+          "filename": "src/features/analytics/services/analytics_actions.ts"
         }
       },
       "layer": {
         "app/dashboard/page": "rsc"
       },
       "exportedName": "getRevenueHistory",
-      "filename": "src/app/actions/analytics.ts"
+      "filename": "src/features/analytics/services/analytics_actions.ts"
     },
-    "001c25b53615bd586f5f08bb0f78b497da2b7a5e9e": {
+    "003f20c7229bd2d35dbcb0160492ba5a1ce236d877": {
       "workers": {
         "app/dashboard/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/actions/analytics.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/analytics/services/analytics_actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
           "exportedName": "getRecentActivity",
-          "filename": "src/app/actions/analytics.ts"
+          "filename": "src/features/analytics/services/analytics_actions.ts"
         }
       },
       "layer": {
         "app/dashboard/page": "rsc"
       },
       "exportedName": "getRecentActivity",
-      "filename": "src/app/actions/analytics.ts"
+      "filename": "src/features/analytics/services/analytics_actions.ts"
     },
-    "0053638247d697c0f031822d6af8aa2d4723107fd7": {
+    "00914bed8bc5690c0959b0fca66c570ef5ef652a35": {
       "workers": {
         "app/dashboard/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/actions/analytics.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "getUserGrowthHistory",
-          "filename": "src/app/actions/analytics.ts"
-        }
-      },
-      "layer": {
-        "app/dashboard/page": "rsc"
-      },
-      "exportedName": "getUserGrowthHistory",
-      "filename": "src/app/actions/analytics.ts"
-    },
-    "0091530a4afd1bff67a51b2cf057a19164dc19ddb0": {
-      "workers": {
-        "app/dashboard/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/actions/analytics.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "getOverviewStats",
-          "filename": "src/app/actions/analytics.ts"
-        }
-      },
-      "layer": {
-        "app/dashboard/page": "rsc"
-      },
-      "exportedName": "getOverviewStats",
-      "filename": "src/app/actions/analytics.ts"
-    },
-    "00ed1c166e62425c61b02ddea5b38303a43215225b": {
-      "workers": {
-        "app/dashboard/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/actions/analytics.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/analytics/services/analytics_actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
           "exportedName": "getPendingItems",
-          "filename": "src/app/actions/analytics.ts"
+          "filename": "src/features/analytics/services/analytics_actions.ts"
         }
       },
       "layer": {
         "app/dashboard/page": "rsc"
       },
       "exportedName": "getPendingItems",
-      "filename": "src/app/actions/analytics.ts"
+      "filename": "src/features/analytics/services/analytics_actions.ts"
+    },
+    "0093303300d455bddb4aaef75f21bdb6b198db0436": {
+      "workers": {
+        "app/dashboard/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/analytics/services/analytics_actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getOverviewStats",
+          "filename": "src/features/analytics/services/analytics_actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/page": "rsc"
+      },
+      "exportedName": "getOverviewStats",
+      "filename": "src/features/analytics/services/analytics_actions.ts"
+    },
+    "00c0e959861ea519df9daaf3d52f375987da1ad0f9": {
+      "workers": {
+        "app/dashboard/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/analytics/services/analytics_actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getUserGrowthHistory",
+          "filename": "src/features/analytics/services/analytics_actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/page": "rsc"
+      },
+      "exportedName": "getUserGrowthHistory",
+      "filename": "src/features/analytics/services/analytics_actions.ts"
     }
   },
   "edge": {}

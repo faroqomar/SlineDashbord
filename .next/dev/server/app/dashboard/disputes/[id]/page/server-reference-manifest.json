@@ -1,54 +1,54 @@
 {
   "node": {
-    "40872f71ab5495ae8aba6fa380167bc91b4534afd8": {
+    "408afefe9bd2946359d15bf7d2c7a4a1b576629126": {
       "workers": {
         "app/dashboard/disputes/[id]/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/disputes/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/actions/disputes.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/actions/disputes.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "moduleId": "[project]/.next-internal/server/app/dashboard/disputes/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/disputes/services/dispute_actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/actions/disputes.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
           "exportedName": "getDisputeDetails",
-          "filename": "src/app/actions/disputes.ts"
+          "filename": "src/features/disputes/services/dispute_actions.ts"
         }
       },
       "layer": {
         "app/dashboard/disputes/[id]/page": "rsc"
       },
       "exportedName": "getDisputeDetails",
-      "filename": "src/app/actions/disputes.ts"
+      "filename": "src/features/disputes/services/dispute_actions.ts"
     },
-    "70f156fd820b2ba9893c5c2ee7b6e88311c7f7d880": {
+    "705f282954dbf56acc9a9edb1d9374318548a6b42a": {
       "workers": {
         "app/dashboard/disputes/[id]/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/disputes/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/actions/disputes.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/actions/disputes.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "moduleId": "[project]/.next-internal/server/app/dashboard/disputes/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/disputes/services/dispute_actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/actions/disputes.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
           "exportedName": "resolveDispute",
-          "filename": "src/app/actions/disputes.ts"
+          "filename": "src/features/disputes/services/dispute_actions.ts"
         }
       },
       "layer": {
         "app/dashboard/disputes/[id]/page": "rsc"
       },
       "exportedName": "resolveDispute",
-      "filename": "src/app/actions/disputes.ts"
+      "filename": "src/features/disputes/services/dispute_actions.ts"
     },
-    "78172c65ce93af7a42f8a2ebeecf8a242bf088af7b": {
+    "7814d92471b2c68e998094e2a8c45cd92f12d3c02f": {
       "workers": {
         "app/dashboard/disputes/[id]/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/disputes/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/actions/disputes.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/actions/disputes.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "moduleId": "[project]/.next-internal/server/app/dashboard/disputes/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/disputes/services/dispute_actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/actions/disputes.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
           "exportedName": "getDisputes",
-          "filename": "src/app/actions/disputes.ts"
+          "filename": "src/features/disputes/services/dispute_actions.ts"
         }
       },
       "layer": {
         "app/dashboard/disputes/[id]/page": "rsc"
       },
       "exportedName": "getDisputes",
-      "filename": "src/app/actions/disputes.ts"
+      "filename": "src/features/disputes/services/dispute_actions.ts"
     },
     "788d2d033625f9659cdcf4b06d4a918d8b1f23339c": {
       "workers": {
         "app/dashboard/disputes/[id]/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/disputes/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/actions/disputes.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/actions/disputes.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "moduleId": "[project]/.next-internal/server/app/dashboard/disputes/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/disputes/services/dispute_actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/actions/disputes.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
           "exportedName": "resolveDispute",
           "filename": "src/actions/disputes.ts"

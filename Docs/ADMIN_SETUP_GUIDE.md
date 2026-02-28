@@ -1,58 +1,53 @@
-# 🚀 ADMIN_SETUP_GUIDE (The Handle)
+# 🛠️ SLine Admin Setup Guide
 
-> **Goal**: Get from zero to localhost:3000 in 5 minutes.
+> [!NOTE]
+> Getting started checklist and environment initialization for new developers joining the Admin Dashboard project.
 
-## 🛠️ Prerequisites
+## Prerequisites
 
-- **Node.js**: v18+ (LTS recommended).
-- **npm**: v9+.
-- **Supabase CLI**: For type generation.
+1.  **Node.js**: v18.17 or newer.
+2.  **npm**: v9 or newer.
+3.  **Supabase CLI**: Required for generating types and managing local instances. (`brew install supabase/tap/supabase`)
 
-## 📥 Installation
+## Installation
+
+Clone the repository and install the Node modules.
 
 ```bash
-git clone <repo-url>
-cd sline_admin
+git clone https://github.com/faroqomar/SlineDashbord.git
+cd SlineDashbord
 npm install
 ```
 
-## 🌍 Environment Variables
+## Environment Variables
 
 Create a `.env.local` file in the root directory.
 
 ```bash
-# Public
-NEXT_PUBLIC_SUPABASE_URL="https://your-project.supabase.co"
-NEXT_PUBLIC_SUPABASE_ANON_KEY="your-anon-key"
+# Public Variables
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-project-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 
-# Private (Server Only - NEVER commit or expose to client)
-SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
+# Secret Variables (NEVER LEAK THESE)
+SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
 ```
 
-## ▶️ Running Locally
+## Running Locally
+
+Boot up the Next.js Turbopack development server.
 
 ```bash
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+The application will be available at `http://localhost:3000`.
 
----
+## Deployment (Vercel)
 
-## 🚢 Deployment (Vercel)
+The SLine Admin Dashboard is deployed via Vercel.
 
-1.  **Project Settings**: Framework Preset -> Next.js.
-2.  **Environment Variables**: Add all 3 variables from `.env.local`.
-3.  **Build Command**: `next build` (Standard).
-4.  **Install Command**: `npm install` (Standard).
+**Pre-Flight Checklist:**
 
-> [!IMPORTANT]
-> Ensure the **Production** environment variables point to the **Production** Supabase project.
-
----
-
-## 🔄 Validating Setup
-
-1.  Visit `/login`.
-2.  Login with an Admin account (must exist in `admin_users` table).
-3.  Verify you are redirected to `/dashboard`.
+1.  **Environment Variables**: Ensure `SUPABASE_SERVICE_ROLE_KEY` is set securely in the Vercel Production Environment Settings.
+2.  **Build Check**: Run `npm run build` locally to verify 100% type compliance and Server Action safety.
+3.  **Security Audit**: Run `npx tsc --noEmit` and check for any `any` typings creeping into the Service boundary.

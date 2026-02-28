@@ -1251,7 +1251,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/ui/button.tsx [app-rsc] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$react$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/client/app-dir/link.react-server.js [app-rsc] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$arrow$2d$left$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$export__default__as__ArrowLeft$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/arrow-left.js [app-rsc] (ecmascript) <export default as ArrowLeft>");
-var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$actions$2f$disputes$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/app/actions/disputes.ts [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$disputes$2f$services$2f$dispute_actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/features/disputes/services/dispute_actions.ts [app-rsc] (ecmascript)");
 ;
 ;
 ;
@@ -1263,7 +1263,8 @@ async function DisputePage({ params }) {
     const { id } = await params;
     let disputeData;
     try {
-        disputeData = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$actions$2f$disputes$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getDisputeDetails"])(id);
+        const res = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$disputes$2f$services$2f$dispute_actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getDisputeDetails"])(id);
+        disputeData = res.success ? res.data : null;
     } catch (error) {
         console.error(error);
     }
@@ -1347,37 +1348,37 @@ async function DisputePage({ params }) {
                                 className: "mr-2 h-4 w-4"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/dashboard/disputes/[id]/page.tsx",
-                                lineNumber: 97,
+                                lineNumber: 98,
                                 columnNumber: 17
                             }, this),
                             " Back to Disputes"
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/dashboard/disputes/[id]/page.tsx",
-                        lineNumber: 96,
+                        lineNumber: 97,
                         columnNumber: 13
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/src/app/dashboard/disputes/[id]/page.tsx",
-                    lineNumber: 95,
+                    lineNumber: 96,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/src/app/dashboard/disputes/[id]/page.tsx",
-                lineNumber: 94,
+                lineNumber: 95,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$disputes$2f$CaseFileLayout$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["CaseFileLayout"], {
                 dispute: mappedDispute
             }, void 0, false, {
                 fileName: "[project]/src/app/dashboard/disputes/[id]/page.tsx",
-                lineNumber: 101,
+                lineNumber: 102,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/dashboard/disputes/[id]/page.tsx",
-        lineNumber: 93,
+        lineNumber: 94,
         columnNumber: 5
     }, this);
 }

@@ -381,7 +381,7 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$b
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$avatar$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/ui/avatar.tsx [app-rsc] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$scroll$2d$area$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/components/ui/scroll-area.tsx [app-rsc] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$react$2d$server$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/client/app-dir/link.react-server.js [app-rsc] (ecmascript)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$actions$2f$disputes$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/app/actions/disputes.ts [app-rsc] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$disputes$2f$services$2f$dispute_actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/features/disputes/services/dispute_actions.ts [app-rsc] (ecmascript)");
 ;
 ;
 ;
@@ -391,16 +391,19 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$actions$2f$dis
 ;
 ;
 async function DisputesPage() {
-    const [openDisputes, investigatingDisputes, resolvedDisputes] = await Promise.all([
-        (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$actions$2f$disputes$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getDisputes"])(1, 'open', 50),
-        (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$actions$2f$disputes$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getDisputes"])(1, 'investigating', 50),
-        (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$app$2f$actions$2f$disputes$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getDisputes"])(1, 'resolved', 50)
+    const [openRes, investigatingRes, resolvedRes] = await Promise.all([
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$disputes$2f$services$2f$dispute_actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getDisputes"])(1, 'open', 50),
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$disputes$2f$services$2f$dispute_actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getDisputes"])(1, 'investigating', 50),
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$disputes$2f$services$2f$dispute_actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getDisputes"])(1, 'resolved', 50)
     ]);
+    const openData = openRes.success ? openRes.data.disputes : [];
+    const investigatingData = investigatingRes.success ? investigatingRes.data.disputes : [];
+    const resolvedData = resolvedRes.success ? resolvedRes.data.disputes : [];
     const columns = [
         {
             title: "Open",
             status: "open",
-            data: openDisputes.disputes,
+            data: openData,
             color: "text-red-500",
             bgColor: "bg-red-500/10",
             borderColor: "border-red-500/20"
@@ -408,7 +411,7 @@ async function DisputesPage() {
         {
             title: "Investigating",
             status: "investigating",
-            data: investigatingDisputes.disputes,
+            data: investigatingData,
             color: "text-orange-500",
             bgColor: "bg-orange-500/10",
             borderColor: "border-orange-500/20"
@@ -416,7 +419,7 @@ async function DisputesPage() {
         {
             title: "Resolved",
             status: "resolved",
-            data: resolvedDisputes.disputes,
+            data: resolvedData,
             color: "text-green-500",
             bgColor: "bg-green-500/10",
             borderColor: "border-green-500/20"
@@ -457,7 +460,7 @@ async function DisputesPage() {
                         children: "Dispute Center"
                     }, void 0, false, {
                         fileName: "[project]/src/app/dashboard/disputes/page.tsx",
-                        lineNumber: 50,
+                        lineNumber: 54,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -468,26 +471,26 @@ async function DisputesPage() {
                                 children: "List View"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/dashboard/disputes/page.tsx",
-                                lineNumber: 52,
+                                lineNumber: 56,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["Button"], {
                                 children: "Kanban View"
                             }, void 0, false, {
                                 fileName: "[project]/src/app/dashboard/disputes/page.tsx",
-                                lineNumber: 53,
+                                lineNumber: 57,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/src/app/dashboard/disputes/page.tsx",
-                        lineNumber: 51,
+                        lineNumber: 55,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/src/app/dashboard/disputes/page.tsx",
-                lineNumber: 49,
+                lineNumber: 53,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -503,7 +506,7 @@ async function DisputesPage() {
                                         children: col.title
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/dashboard/disputes/page.tsx",
-                                        lineNumber: 61,
+                                        lineNumber: 65,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$badge$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["Badge"], {
@@ -512,13 +515,13 @@ async function DisputesPage() {
                                         children: col.data.length
                                     }, void 0, false, {
                                         fileName: "[project]/src/app/dashboard/disputes/page.tsx",
-                                        lineNumber: 62,
+                                        lineNumber: 66,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/src/app/dashboard/disputes/page.tsx",
-                                lineNumber: 60,
+                                lineNumber: 64,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$scroll$2d$area$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["ScrollArea"], {
@@ -547,7 +550,7 @@ async function DisputesPage() {
                                                                             children: dispute.status
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/app/dashboard/disputes/page.tsx",
-                                                                            lineNumber: 77,
+                                                                            lineNumber: 81,
                                                                             columnNumber: 34
                                                                         }, this),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -555,13 +558,13 @@ async function DisputesPage() {
                                                                             children: new Date(dispute.created_at).toLocaleDateString()
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/app/dashboard/disputes/page.tsx",
-                                                                            lineNumber: 80,
+                                                                            lineNumber: 84,
                                                                             columnNumber: 34
                                                                         }, this)
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/app/dashboard/disputes/page.tsx",
-                                                                    lineNumber: 76,
+                                                                    lineNumber: 80,
                                                                     columnNumber: 30
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["CardTitle"], {
@@ -569,7 +572,7 @@ async function DisputesPage() {
                                                                     children: dispute.task?.title || "Dispute Case"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/app/dashboard/disputes/page.tsx",
-                                                                    lineNumber: 82,
+                                                                    lineNumber: 86,
                                                                     columnNumber: 30
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["CardDescription"], {
@@ -583,14 +586,14 @@ async function DisputesPage() {
                                                                             ]
                                                                         }, void 0, true, {
                                                                             fileName: "[project]/src/app/dashboard/disputes/page.tsx",
-                                                                            lineNumber: 86,
+                                                                            lineNumber: 90,
                                                                             columnNumber: 34
                                                                         }, this),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                                             children: "•"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/src/app/dashboard/disputes/page.tsx",
-                                                                            lineNumber: 87,
+                                                                            lineNumber: 91,
                                                                             columnNumber: 34
                                                                         }, this),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -601,19 +604,19 @@ async function DisputesPage() {
                                                                             ]
                                                                         }, void 0, true, {
                                                                             fileName: "[project]/src/app/dashboard/disputes/page.tsx",
-                                                                            lineNumber: 88,
+                                                                            lineNumber: 92,
                                                                             columnNumber: 34
                                                                         }, this)
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/src/app/dashboard/disputes/page.tsx",
-                                                                    lineNumber: 85,
+                                                                    lineNumber: 89,
                                                                     columnNumber: 31
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/src/app/dashboard/disputes/page.tsx",
-                                                            lineNumber: 75,
+                                                            lineNumber: 79,
                                                             columnNumber: 30
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -629,46 +632,46 @@ async function DisputesPage() {
                                                                                 src: dispute.complainant?.avatar_url
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/app/dashboard/disputes/page.tsx",
-                                                                                lineNumber: 96,
+                                                                                lineNumber: 100,
                                                                                 columnNumber: 46
                                                                             }, this),
                                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$components$2f$ui$2f$avatar$2e$tsx__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["AvatarFallback"], {
                                                                                 children: dispute.complainant?.full_name?.charAt(0) || "?"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/src/app/dashboard/disputes/page.tsx",
-                                                                                lineNumber: 97,
+                                                                                lineNumber: 101,
                                                                                 columnNumber: 46
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
                                                                         fileName: "[project]/src/app/dashboard/disputes/page.tsx",
-                                                                        lineNumber: 95,
+                                                                        lineNumber: 99,
                                                                         columnNumber: 43
                                                                     }, this)
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/src/app/dashboard/disputes/page.tsx",
-                                                                    lineNumber: 93,
+                                                                    lineNumber: 97,
                                                                     columnNumber: 38
                                                                 }, this)
                                                             }, void 0, false, {
                                                                 fileName: "[project]/src/app/dashboard/disputes/page.tsx",
-                                                                lineNumber: 92,
+                                                                lineNumber: 96,
                                                                 columnNumber: 34
                                                             }, this)
                                                         }, void 0, false, {
                                                             fileName: "[project]/src/app/dashboard/disputes/page.tsx",
-                                                            lineNumber: 91,
+                                                            lineNumber: 95,
                                                             columnNumber: 30
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/src/app/dashboard/disputes/page.tsx",
-                                                    lineNumber: 71,
+                                                    lineNumber: 75,
                                                     columnNumber: 26
                                                 }, this)
                                             }, dispute.id, false, {
                                                 fileName: "[project]/src/app/dashboard/disputes/page.tsx",
-                                                lineNumber: 70,
+                                                lineNumber: 74,
                                                 columnNumber: 21
                                             }, this)),
                                         col.data.length === 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$rsc$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -680,35 +683,35 @@ async function DisputesPage() {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/src/app/dashboard/disputes/page.tsx",
-                                            lineNumber: 106,
+                                            lineNumber: 110,
                                             columnNumber: 21
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/src/app/dashboard/disputes/page.tsx",
-                                    lineNumber: 68,
+                                    lineNumber: 72,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/src/app/dashboard/disputes/page.tsx",
-                                lineNumber: 67,
+                                lineNumber: 71,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, col.status, true, {
                         fileName: "[project]/src/app/dashboard/disputes/page.tsx",
-                        lineNumber: 59,
+                        lineNumber: 63,
                         columnNumber: 11
                     }, this))
             }, void 0, false, {
                 fileName: "[project]/src/app/dashboard/disputes/page.tsx",
-                lineNumber: 57,
+                lineNumber: 61,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/src/app/dashboard/disputes/page.tsx",
-        lineNumber: 48,
+        lineNumber: 52,
         columnNumber: 5
     }, this);
 }

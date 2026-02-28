@@ -1,79 +1,79 @@
 {
   "node": {
-    "407e45c8ffc17e56405819352b0742b95aa033184c": {
+    "405707fba81e47575b8ef984b23bdf8e0a8e7b33a8": {
       "workers": {
         "app/dashboard/users/[id]/page": {
-          "moduleId": 78797,
+          "moduleId": 33256,
           "async": false,
           "exportedName": "getUserDetails",
-          "filename": "src/app/actions/users.ts"
+          "filename": "src/features/users/services/user_actions.ts"
         }
       },
       "layer": {
         "app/dashboard/users/[id]/page": "rsc"
       },
       "exportedName": "getUserDetails",
-      "filename": "src/app/actions/users.ts"
+      "filename": "src/features/users/services/user_actions.ts"
     },
-    "707676772b5444210ed7120ffe96bea10c20ea6c42": {
+    "70ae80271c91e434f80604dbca82583be1abdc5449": {
       "workers": {
         "app/dashboard/users/[id]/page": {
-          "moduleId": 78797,
+          "moduleId": 33256,
           "async": false,
           "exportedName": "suspendUser",
-          "filename": "src/app/actions/users.ts"
+          "filename": "src/features/users/services/user_actions.ts"
         }
       },
       "layer": {
         "app/dashboard/users/[id]/page": "action-browser"
       },
       "exportedName": "suspendUser",
-      "filename": "src/app/actions/users.ts"
+      "filename": "src/features/users/services/user_actions.ts"
     },
-    "70dff6e9a23cf030a55031a53a61efa873f74ad1f8": {
+    "70ea89b926538b02e3ba20eea9cf0bffa3acb5afd2": {
       "workers": {
         "app/dashboard/users/[id]/page": {
-          "moduleId": 78797,
+          "moduleId": 33256,
           "async": false,
           "exportedName": "getUsers",
-          "filename": "src/app/actions/users.ts"
+          "filename": "src/features/users/services/user_actions.ts"
         }
       },
       "layer": {
         "app/dashboard/users/[id]/page": "rsc"
       },
       "exportedName": "getUsers",
-      "filename": "src/app/actions/users.ts"
+      "filename": "src/features/users/services/user_actions.ts"
     },
-    "609a100deb5b0a19a1c4f356235a7ac41d99a7f6ed": {
+    "60678d3313f9c3ad7c7b413a6ce8981a30e66bf2a2": {
       "workers": {
         "app/dashboard/users/[id]/page": {
-          "moduleId": 78797,
+          "moduleId": 33256,
           "async": false,
           "exportedName": "getLogsByTarget",
-          "filename": "src/app/actions/logs.ts"
+          "filename": "src/features/logs/services/log_actions.ts"
         }
       },
       "layer": {
         "app/dashboard/users/[id]/page": "rsc"
       },
       "exportedName": "getLogsByTarget",
-      "filename": "src/app/actions/logs.ts"
+      "filename": "src/features/logs/services/log_actions.ts"
     },
-    "78421d9e0819f13c8cd80a6b23524f135bcca45b22": {
+    "7836ec8dfcdeff251580cc315aa57f3cf4af47cf7e": {
       "workers": {
         "app/dashboard/users/[id]/page": {
-          "moduleId": 78797,
+          "moduleId": 33256,
           "async": false,
           "exportedName": "getSystemLogs",
-          "filename": "src/app/actions/logs.ts"
+          "filename": "src/features/logs/services/log_actions.ts"
         }
       },
       "layer": {
         "app/dashboard/users/[id]/page": "rsc"
       },
       "exportedName": "getSystemLogs",
-      "filename": "src/app/actions/logs.ts"
+      "filename": "src/features/logs/services/log_actions.ts"
     }
   },
   "edge": {}

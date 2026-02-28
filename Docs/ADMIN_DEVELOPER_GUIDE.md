@@ -1,181 +1,165 @@
-# 📘 ADMIN_DEVELOPER_GUIDE (The Bible)
+# 📘 SLine Admin Developer Guide
 
-> **Goal**: Build scalable, type-safe, and secure features for the Sline Admin Dashboard.
+> [!NOTE]
+> This guide outlines the core architecture and development patterns for building features in the SLine Admin Dashboard.
 
-## 🏗 Architecture
+## Architecture: MVVM + Service Layer
 
-We follow a strict **Server-Client Separation** architecture using Next.js 16 App Router.
+The Admin Dashboard strictly adheres to a Model-View-ViewModel (MVVM) architecture, adapted for Next.js 15 App Router and React Server Components. Features are encapsulated within `src/features/[feature_name]/`.
 
-### The Pattern: `Schema -> Action -> ServiceResult -> ViewModel -> View`
+- **View (UI Components)**: Pure React components responsible only for rendering UI and handling user interactions. They strictly consume data and methods provided by the ViewModel.
+- **ViewModel (Custom Hooks)**: React hooks (`use[Feature].vm.ts`) that manage local component state, loading states, and orchestrate calls to the Service layer. **No security checks or direct database calls happen here.**
+- **Service (Server Actions)**: Backend logic executing on the server (`use server`). This layer enforces security (RBAC), validates input (Zod), performs database operations, and writes Audit Logs.
+- **Model (Schemas & Types)**: Zod schemas and TypeScript interfaces defining the shape of data flowing through the system.
 
-1.  **Zod Schemas (`*.schema.ts`)**: Define input validation for every action.
-    - Centralized in `models/` directory per feature.
-    - Must be the **first line** of every server action.
+## Server Actions (The Backend)
 
-2.  **Server Actions (`features/*/actions/*`)**: The **ONLY** place that touches the database.
-    - **Validation**: Zod `.safeParse()` on all inputs.
-    - **Auth + RBAC**: `requireAdminRole(ROLE_CONSTANTS)` — typed role arrays.
-    - **Output**: Must return `ServiceResult<T>` via `ok()` / `fail()` helpers.
-    - **NO THROW**: Use `catch (e: unknown)` + `toErrorMessage()` — **NEVER** throw.
-    - **Audit**: Must call `logAuditEvent()` on all mutations.
-    - **Rate Limiting**: Sensitive mutations must call `enforceRateLimit()`.
+All Server Actions must follow a strict, unified pattern to guarantee security and reliable error handling.
 
-3.  **Domain Models (`features/*/models/*.model.ts`)**:
-    - Define types, interfaces, role constants, and shared UI utilities.
-    - **NO** `any` types allowed. Use `unknown` + type guards.
+> [!IMPORTANT]
+> **The "No Throw" Rule:** Server Actions must NEVER throw exceptions. All outcomes (success or failure) must be returned using the `ServiceResult<T>` pattern.
 
-4.  **ViewModels (`*.vm.ts`)**:
-    - Encapsulate client-state logic (selection, loading, pagination, action handlers).
-    - Call Server Actions and unwrap `ServiceResult` → `toast.error()` / `toast.success()`.
-    - UI components access state **only** through the ViewModel interface.
+### The Standard Server Action Flow:
 
-5.  **Client Components (`features/*/components/*`)**:
-    - Pure renders. Zero business logic.
-    - Receive data via props from Server Components.
-    - Delegate all interactions to ViewModel hooks.
-    - **NEVER** import `supabase-js` directly.
+1.  **Validate Input**: Use Zod `.safeParse()` on all incoming arguments.
+2.  **Enforce RBAC**: Call `requireAdminRole(ALLOWED_ROLES)`.
+3.  **Execute Logic**: Perform the necessary database operations using `createAdminClient()`.
+4.  **Audit Log**: If the action modifies data, invoke `logAuditEvent()`.
+5.  **Return Result**: Return `ok(data)` or `fail("error message")`.
 
----
+## Client Components (The Frontend)
 
-## 🛡️ Writing Safe Server Actions
+Client components should use the `useViewModel` pattern to abstract complex state.
 
-Every action must follow this template:
+### State Management
+
+- **React State (`useState`)**: Use for ephemeral UI state (e.g., toggling a dropdown, managing a simple modal's open state).
+- **URL State (Query Params)**: Use for state that should be shareable or persistent across reloads (e.g., pagination, search filters, active tabs).
+- **ViewModel State**: Use for managing the async state of Server Action calls (`isPending`, `error`).
+
+## Code Snippet: Standard CRUD Feature Template
+
+### 1. Model & Schema (`src/features/example/models/example.schema.ts`)
+
+```typescript
+import { z } from "zod";
+
+export const CreateExampleSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().optional(),
+});
+export type CreateExampleDTO = z.infer<typeof CreateExampleSchema>;
+
+export const EXAMPLE_WRITE_ROLES = ["admin", "super_admin"];
+```
+
+### 2. Service (`src/features/example/services/example_actions.ts`)
 
 ```typescript
 "use server";
 
-import { createAdminClient as supabaseAdmin } from "@/lib/supabase/admin";
-import { requireAdminRole, logAuditEvent } from "../services/security_guards";
-import { ok, fail, ServiceResult } from "../models/result";
-import { MyInputSchema } from "../models/my-feature.schema";
-import { WRITE_ROLES } from "../models/my-feature.model";
+import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  ok,
+  fail,
+  ServiceResult,
+  toErrorMessage,
+} from "@/features/core/models/result";
+import {
+  requireAdminRole,
+  logAuditEvent,
+} from "@/features/core/security/security_guards";
+import {
+  CreateExampleSchema,
+  CreateExampleDTO,
+  EXAMPLE_WRITE_ROLES,
+} from "../models/example.schema";
 
-// Error helper (shared per feature)
-function toErrorMessage(e: unknown): string {
-  return e instanceof Error ? e.message : "Unknown error";
-}
-
-export async function mySecureAction(
-  id: string,
-  reason: string,
-): Promise<ServiceResult<{ id: string }>> {
+export async function createExample(
+  input: CreateExampleDTO,
+): Promise<ServiceResult<any>> {
   try {
-    // 1. Zod Validation (First Line)
-    const parsed = MyInputSchema.safeParse({ id, reason });
+    // 1. Validate
+    const parsed = CreateExampleSchema.safeParse(input);
     if (!parsed.success) return fail(parsed.error.issues[0].message);
 
-    // 2. Auth + RBAC (typed role constants)
-    const { userId } = await requireAdminRole(WRITE_ROLES);
+    // 2. Authorize
+    const { userId } = await requireAdminRole(EXAMPLE_WRITE_ROLES);
 
-    // 3. Perform Logic
-    const adminClient = supabaseAdmin();
-    const { error } = await adminClient
-      .from("items")
-      .delete()
-      .eq("id", parsed.data.id);
-    if (error) return fail(`Delete failed: ${error.message}`);
+    // 3. Execute
+    const supabase = createAdminClient();
+    const { data, error } = await supabase
+      .from("examples")
+      .insert(parsed.data)
+      .select()
+      .single();
+    if (error) return fail("Failed to create example");
 
-    // 4. Audit Log (Mandatory for mutations)
+    // 4. Audit
     await logAuditEvent({
-      action: "admin.items.delete",
-      actor_user_id: userId,
-      related_entity_type: "item",
-      related_entity_id: parsed.data.id,
-      meta: { reason: parsed.data.reason },
+      action: "example.created",
+      actor_id: userId,
+      target_id: data.id,
+      target_type: "example",
+      metadata: { new_data: data },
     });
 
-    // 5. Return typed ServiceResult
-    return ok({ id: parsed.data.id });
-  } catch (e: unknown) {
-    return fail(toErrorMessage(e));
+    // 5. Return
+    return ok(data);
+  } catch (error) {
+    return fail(toErrorMessage(error));
   }
 }
 ```
 
----
+### 3. ViewModel (`src/features/example/viewmodels/useExample.vm.ts`)
 
-## 🎨 Client Components & Hooks
+```typescript
+import { useState, useTransition } from "react";
+import { createExample } from "../services/example_actions";
+import { CreateExampleDTO } from "../models/example.schema";
 
-Use `useTransition` for mutations to keep the UI responsive.
-
-```tsx
-"use client";
-
-import { useTransition } from "react";
-import { mySecureAction } from "@/actions/my-feature";
-import { toast } from "sonner";
-
-export function ActionButton() {
+export function useExample() {
   const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
 
-  const handleClick = () => {
+  const handleCreate = (data: CreateExampleDTO) => {
+    setError(null);
     startTransition(async () => {
-      const result = await mySecureAction(payload);
+      const result = await createExample(data);
       if (!result.success) {
-        toast.error(result.error);
+        setError(result.error);
       } else {
-        toast.success("Done!");
+        // Handle success
       }
     });
   };
 
+  return { createItem: handleCreate, isPending, error };
+}
+```
+
+### 4. View (`src/features/example/views/ExampleForm.tsx`)
+
+```tsx
+"use client";
+
+import { useExample } from "../viewmodels/useExample.vm";
+import { Button } from "@/components/ui/button";
+
+export function ExampleForm() {
+  const { createItem, isPending, error } = useExample();
+
   return (
-    <Button disabled={isPending} onClick={handleClick}>
-      Execute
-    </Button>
+    <div>
+      {error && <div className="text-red-500">{error}</div>}
+      <Button
+        onClick={() => createItem({ title: "New Item" })}
+        disabled={isPending}
+      >
+        {isPending ? "Creating..." : "Create Item"}
+      </Button>
+    </div>
   );
 }
 ```
-
----
-
-## 🧠 State Management
-
-- **Global State**: Avoid it. Use Server State (fetched via Server Components).
-- **URL State**: Use search params for Filters, Pagination, and Tabs. This makes views shareable.
-- **Local State**: Use `useState` only for ephemeral UI (modals open/close, form inputs).
-
----
-
-## ⚠️ Next.js 15+ Async APIs
-
-In Next.js 15+, `searchParams` and `params` are **Promises** and must be `await`ed:
-
-```typescript
-// ✅ Correct (Next.js 15+)
-export default async function Page({
-  searchParams,
-}: {
-  searchParams: Promise<{ [key: string]: string | undefined }>;
-}) {
-  const resolvedParams = await searchParams;
-  const cursor = resolvedParams.cursor_id;
-}
-
-// ❌ Wrong (deprecated sync access)
-export default async function Page({
-  searchParams,
-}: {
-  searchParams: { [key: string]: string | undefined };
-}) {
-  const cursor = searchParams.cursor_id; // Will break!
-}
-```
-
----
-
-## ⚡ Quick Snippets (Copy-Paste)
-
-### Standard CRUD Feature Structure
-
-```
-src/features/
-  └── my-feature/
-      ├── models/
-      │   └── item.model.ts
-      ├── components/
-      │   ├── ItemList.tsx
-      │   └── ItemForm.tsx
-```
-
-`src/app/dashboard/my-feature/page.tsx` (Server Component) -> Fetches data -> Renders `ItemList`.

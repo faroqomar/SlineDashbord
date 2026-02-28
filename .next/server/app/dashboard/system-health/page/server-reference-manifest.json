@@ -1,19 +1,19 @@
 {
   "node": {
-    "00e7a80b82a510488c7b9b36ff7faaa28f672a6e7a": {
+    "005666ff22b5b929920895f4da88f53c96db8d9522": {
       "workers": {
         "app/dashboard/system-health/page": {
-          "moduleId": 57534,
+          "moduleId": 5759,
           "async": false,
           "exportedName": "getSystemHealth",
-          "filename": "src/app/actions/health.ts"
+          "filename": "src/features/core/services/health_actions.ts"
         }
       },
       "layer": {
         "app/dashboard/system-health/page": "rsc"
       },
       "exportedName": "getSystemHealth",
-      "filename": "src/app/actions/health.ts"
+      "filename": "src/features/core/services/health_actions.ts"
     }
   },
   "edge": {}

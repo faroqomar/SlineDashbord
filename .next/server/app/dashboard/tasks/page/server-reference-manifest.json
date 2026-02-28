@@ -1,49 +1,49 @@
 {
   "node": {
-    "40b50e5ef0388e8e153b26c5318b5b87558552150d": {
+    "400ae702b4860fd567bd117b934cb74adb0a99cb7f": {
       "workers": {
         "app/dashboard/tasks/page": {
-          "moduleId": 43519,
+          "moduleId": 4504,
           "async": false,
           "exportedName": "getTaskDetails",
-          "filename": "src/app/actions/tasks.ts"
+          "filename": "src/features/tasks/services/task_actions.ts"
         }
       },
       "layer": {
         "app/dashboard/tasks/page": "rsc"
       },
       "exportedName": "getTaskDetails",
-      "filename": "src/app/actions/tasks.ts"
+      "filename": "src/features/tasks/services/task_actions.ts"
     },
-    "60894e0d18f581c5e2bba320c5b5fce80ee02b90ab": {
+    "604bbc03aeb6bbe0c1e6e579b26bbc83a6ef1b1399": {
       "workers": {
         "app/dashboard/tasks/page": {
-          "moduleId": 43519,
+          "moduleId": 4504,
           "async": false,
           "exportedName": "cancelTask",
-          "filename": "src/app/actions/tasks.ts"
+          "filename": "src/features/tasks/services/task_actions.ts"
         }
       },
       "layer": {
         "app/dashboard/tasks/page": "rsc"
       },
       "exportedName": "cancelTask",
-      "filename": "src/app/actions/tasks.ts"
+      "filename": "src/features/tasks/services/task_actions.ts"
     },
-    "785f1d47abaede25b37803d4a22c35e969d099ef5a": {
+    "78a9bc029f7ad83735077927b67aef64622c7c93c9": {
       "workers": {
         "app/dashboard/tasks/page": {
-          "moduleId": 43519,
+          "moduleId": 4504,
           "async": false,
           "exportedName": "getTasks",
-          "filename": "src/app/actions/tasks.ts"
+          "filename": "src/features/tasks/services/task_actions.ts"
         }
       },
       "layer": {
         "app/dashboard/tasks/page": "rsc"
       },
       "exportedName": "getTasks",
-      "filename": "src/app/actions/tasks.ts"
+      "filename": "src/features/tasks/services/task_actions.ts"
     }
   },
   "edge": {}

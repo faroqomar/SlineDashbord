@@ -1,49 +1,34 @@
 {
   "node": {
-    "407e45c8ffc17e56405819352b0742b95aa033184c": {
+    "70ae80271c91e434f80604dbca82583be1abdc5449": {
       "workers": {
         "app/dashboard/users/page": {
-          "moduleId": 70177,
-          "async": false,
-          "exportedName": "getUserDetails",
-          "filename": "src/app/actions/users.ts"
-        }
-      },
-      "layer": {
-        "app/dashboard/users/page": "rsc"
-      },
-      "exportedName": "getUserDetails",
-      "filename": "src/app/actions/users.ts"
-    },
-    "707676772b5444210ed7120ffe96bea10c20ea6c42": {
-      "workers": {
-        "app/dashboard/users/page": {
-          "moduleId": 70177,
+          "moduleId": 41639,
           "async": false,
           "exportedName": "suspendUser",
-          "filename": "src/app/actions/users.ts"
+          "filename": "src/features/users/services/user_actions.ts"
         }
       },
       "layer": {
         "app/dashboard/users/page": "action-browser"
       },
       "exportedName": "suspendUser",
-      "filename": "src/app/actions/users.ts"
+      "filename": "src/features/users/services/user_actions.ts"
     },
-    "70dff6e9a23cf030a55031a53a61efa873f74ad1f8": {
+    "70ea89b926538b02e3ba20eea9cf0bffa3acb5afd2": {
       "workers": {
         "app/dashboard/users/page": {
-          "moduleId": 70177,
+          "moduleId": 41639,
           "async": false,
           "exportedName": "getUsers",
-          "filename": "src/app/actions/users.ts"
+          "filename": "src/features/users/services/user_actions.ts"
         }
       },
       "layer": {
-        "app/dashboard/users/page": "rsc"
+        "app/dashboard/users/page": "action-browser"
       },
       "exportedName": "getUsers",
-      "filename": "src/app/actions/users.ts"
+      "filename": "src/features/users/services/user_actions.ts"
     }
   },
   "edge": {}

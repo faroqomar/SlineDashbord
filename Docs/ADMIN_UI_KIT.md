@@ -1,72 +1,42 @@
-# 🎨 ADMIN_UI_KIT (The Face)
+# 🎨 SLine Admin UI Kit
 
-> **Goal**: A consistent, professional, and accessible interface.
+> [!TIP]
+> The Design System and visual constraints for the SLine Admin Dashboard, powered by Tailwind CSS and Shadcn/UI.
 
-## 🎨 Theme
+## Theme & Palette
 
-### Colors
+The admin dashboard uses a clean, deeply professional theme emphasizing data visibility over visual flair.
 
-We use Tailwind CSS variables defined in `global.css`.
+- **Primary (`bg-primary`)**: Deep SLine Blue. Used for primary call-to-action buttons.
+- **Muted (`text-muted-foreground`)**: Used heavily in tables and secondary labels to reduce visual noise.
+- **Destructive (`text-destructive`)**: Deep Red. Used strictly for deletions, suspensions, and critical errors.
+- **Fonts**: The standard font stack is `Inter`, forced dynamically via `next/font`.
 
-- **Primary**: Brand color (Teal/Emerald). Used for main actions.
-- **Destructive**: Red. Used for bans, deletions, and errors.
-- **Muted**: Gray. Used for secondary text and backgrounds.
-- **Background**: White (Light) / Dark Gray (Dark).
+## Available Shadcn Components
 
-### Fonts
+The project heavily utilizes the standard Shadcn/UI component library. Run `npx shadcn-ui@latest add [component]` if a component is missing.
 
-- **Sans**: `Inter` (Google Fonts).
-- **Mono**: `JetBrains Mono` (for code/IDs).
+- **`Button`**: Includes variants like `default`, `outline`, `ghost`, `destructive`.
+- **`Table`**: The backbone of the dashboard. Always use the segmented components (`TableHeader`, `TableRow`, `TableCell`).
+- **`Dialog` / `AlertDialog`**: Used for forms (creation, assignment, refunding). Always use `AlertDialog` for destructive actions requiring explicit confirmation.
+- **`Form`**: Integrates tightly with `react-hook-form` and `@hookform/resolvers/zod`.
+- **`Card`**: Used to segment distinct widgets and metrics blocks on the main dashboard views.
 
----
+## Layouts
 
-## 🧩 Components (Shadcn/UI)
+1.  **`DashboardLayout` (`src/app/dashboard/layout.tsx`)**: Wraps the entire logged-in experience. Handles authentication redirection checks.
+2.  **`Sidebar`**: The primary navigation tree. Add new routes here under `src/components/layout/Sidebar.tsx`.
+3.  **`PageHeader`**: A consistent top-bar component passing in Breadcrumbs and the authenticated user's dropdown.
 
-We use a curated set of components from [ui.shadcn.com](https://ui.shadcn.com).
+## Icons
 
-### Core Inputs
-
-- **`Button`**: Primary, Secondary, Ghost, Destructive variants.
-- **`Input`**: Text fields.
-- **`Select`**: Dropdowns.
-- **`Switch`**: Toggles.
-- **`Checkbox`**: Multi-select.
-- **`Textarea`**: Long text.
-- **`Form`**: Wrappers for React Hook Form + Zod.
-
-### Data Display
-
-- **`Table`**: The backbone of the dashboard.
-- **`Badge`**: Status indicators (e.g., "Active", "Banned").
-- **`Card`**: Containers for content sections.
-- **`Avatar`**: User profile images.
-
-### Feedback & Overlays
-
-- **`Dialog`**: Modals for complex actions.
-- **`Sheet`**: Side panels for filters/details.
-- **`AlertDialog`**: Confirmations for destructive actions.
-- **`Popover`**: Small overlays.
-- **`Sonner`**: Toast notifications.
-
----
-
-## 📐 Layouts
-
-### `DashboardLayout`
-
-- **Sidebar**: Navigation links.
-- **Header**: Breadcrumbs, User Menu, Theme Toggle.
-- **Main**: Content area with `max-w-7xl` centered.
-
----
-
-## 🔮 Icons
-
-We use **Lucide React**.
+We standardise on **Lucide React** (`lucide-react`). Do not install alternative icon libraries like FontAwesome or HeroIcons.
 
 ```tsx
-import { User, Shield, AlertTriangle } from "lucide-react";
+import { ShieldAlert, Users, CreditCard } from "lucide-react";
 
-<User className="h-4 w-4" />;
+<Button variant="outline">
+  <ShieldAlert className="w-4 h-4 mr-2 text-destructive" />
+  Suspend User
+</Button>;
 ```
