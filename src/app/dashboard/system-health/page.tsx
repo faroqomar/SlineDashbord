@@ -6,13 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ExternalLink, RefreshCw, AlertTriangle, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getSystemHealth } from "@/app/actions/health";
+import { getSystemHealth } from "@/features/core/services/health_actions";
 import { HealthCharts } from "@/components/health/HealthCharts";
 
 const REFRESH_INTERVAL = 30000; // 30s
 
 export default async function SystemHealthPage() {
-  const services = await getSystemHealth();
+  const res = await getSystemHealth();
+  const services = res.success ? res.data : [];
   const totalServices = services.length;
   const operationalCount = services.filter(s => s.status === 'operational').length;
 

@@ -3,18 +3,24 @@ import { RevenueAreaChart } from "@/components/analytics/RevenueAreaChart";
 import { UserBarChart } from "@/components/analytics/UserBarChart";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { RequiresAttention } from "@/components/dashboard/RequiresAttention";
-import { getOverviewStats, getRecentActivity, getPendingItems, getRevenueHistory, getUserGrowthHistory } from "@/app/actions/analytics";
+import { getOverviewStats, getRecentActivity, getPendingItems, getRevenueHistory, getUserGrowthHistory } from "@/features/analytics/services/analytics_actions";
 import { Users, DollarSign, AlertCircle, Activity } from "lucide-react";
 import { KPIStat } from "@/data/mock/overview";
 
 export default async function DashboardPage() {
-  const [statsData, recentActivity, pendingItems, revenueHistory, userGrowth] = await Promise.all([
+  const [statsRes, activityRes, pendingRes, revenueRes, growthRes] = await Promise.all([
       getOverviewStats(),
       getRecentActivity(),
       getPendingItems(),
       getRevenueHistory(),
       getUserGrowthHistory()
   ]);
+
+  const statsData = statsRes.success ? statsRes.data : { activeUsers: 0, platformRevenue: 0, openDisputes: 0, activeSubscriptions: 0 };
+  const recentActivity = activityRes.success ? activityRes.data : [];
+  const pendingItems = pendingRes.success ? pendingRes.data : [];
+  const revenueHistory = revenueRes.success ? revenueRes.data : [];
+  const userGrowth = growthRes.success ? growthRes.data : [];
 
   const stats: KPIStat[] = [
     {

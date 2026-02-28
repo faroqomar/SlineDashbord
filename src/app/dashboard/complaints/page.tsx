@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { SupportDashboard } from "@/components/complaints/SupportDashboard";
-import { getTickets } from "@/app/actions/support";
+import { getTickets } from "@/features/support/services/support_actions";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -18,7 +18,8 @@ export default async function SupportPage() {
   // Current assumption: Anth Id = Admin User Id (from Phase 2).
   const adminId = user.id;
 
-  const tickets = await getTickets();
+  const res = await getTickets();
+  const tickets = res.success ? res.data.tickets : [];
 
   return (
     <Suspense fallback={<div className="flex items-center justify-center h-full">Loading support dashboard...</div>}>

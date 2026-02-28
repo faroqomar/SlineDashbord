@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useTransition } from "react";
 import { TicketDTO, TicketMessageDTO } from "@/types/support";
-import { getTicketMessages, replyToTicket, updateTicketStatus } from "@/app/actions/support";
+import { getTicketMessages, replyToTicket, updateTicketStatus } from "@/features/support/services/support_actions";
 import { toast } from "sonner";
 
 export interface UseSupportDashboardVM {
@@ -37,7 +37,13 @@ export function useSupportDashboard(initialTickets: TicketDTO[]): UseSupportDash
         if (selectedTicket) {
             setIsLoadingMessages(true);
             getTicketMessages(selectedTicket.id)
-                .then(setMessages)
+                .then(res => {
+                    if (res.success) {
+                        setMessages(res.data);
+                    } else {
+                        throw new Error(res.error);
+                    }
+                })
                 .catch(err => {
                     console.error(err);
                     toast.error("Failed to load messages");
@@ -51,7 +57,7 @@ export function useSupportDashboard(initialTickets: TicketDTO[]): UseSupportDash
     // Computed: Filtered Tickets
     const filteredTickets = tickets.filter((ticket) => {
         const matchesSearch = ticket.subject.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                              ticket.user.full_name.toLowerCase().includes(searchQuery.toLowerCase());
+                              ticket.user?.full_name?.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesStatus = statusFilter === "all" || ticket.status === statusFilter;
         return matchesSearch && matchesStatus;
     });
@@ -74,9 +80,13 @@ export function useSupportDashboard(initialTickets: TicketDTO[]): UseSupportDash
 
         startTransition(async () => {
             try {
-                await replyToTicket(selectedTicket.id, content, adminId);
-                const updatedMessages = await getTicketMessages(selectedTicket.id);
-                setMessages(updatedMessages);
+                const res = await replyToTicket(selectedTicket.id, content);
+                if (!res.success) throw new Error(res.error);
+                
+                const messagesRes = await getTicketMessages(selectedTicket.id);
+                if (messagesRes.success) {
+                    setMessages(messagesRes.data);
+                }
             } catch (error) {
                 toast.error("Failed to send reply");
                 setMessages(prev => prev.filter(m => m.id !== tempId));
@@ -95,8 +105,12 @@ export function useSupportDashboard(initialTickets: TicketDTO[]): UseSupportDash
         setSelectedTicket({ ...selectedTicket, status: newStatus as any });
 
         try {
-            await updateTicketStatus(selectedTicket.id, newStatus);
-            toast.success("Ticket status updated");
+            const res = await updateTicketStatus(selectedTicket.id, newStatus);
+            if (res.success) {
+                toast.success("Ticket status updated");
+            } else {
+                throw new Error(res.error);
+            }
         } catch (error) {
             toast.error("Failed to update status");
             // Could revert here if needed, but for now we keep optimistic state

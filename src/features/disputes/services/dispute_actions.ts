@@ -2,6 +2,10 @@
 
 import { createAdminClient } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
+import { requireAdminRole, logAuditEvent } from '@/features/core/security/security_guards';
+import { ok, fail, ServiceResult, toErrorMessage } from '@/features/core/models/result';
+import { GetDisputesSchema, UpdateDisputeStatusSchema, USERS_READ_ROLES, USERS_WRITE_ROLES } from '../models/dispute.schema';
+import { z } from 'zod';
 
 export interface DisputeDTO {
   id: string;
@@ -23,7 +27,7 @@ export interface DisputeDTO {
   };
   reason: string;
   status: 'open' | 'under_review' | 'resolved' | 'dismissed';
-  amount: number; // Derived from task budget
+  amount: number;
   created_at: string;
 }
 
@@ -38,13 +42,23 @@ export interface DisputeDetailsDTO extends DisputeDTO {
   };
 }
 
-export async function getDisputes(page = 1, status = 'all', limit = 10, query = '') {
-  const supabase = createAdminClient();
-  const PAGE_SIZE = limit;
-  const from = (page - 1) * PAGE_SIZE;
-  const to = from + PAGE_SIZE - 1;
-
+export async function getDisputes(
+  page = 1, 
+  status = 'all', 
+  limit = 10, 
+  query = ''
+): Promise<ServiceResult<{ disputes: DisputeDTO[]; totalDisputes: number; totalPages: number }>> {
   try {
+    const parsed = GetDisputesSchema.safeParse({ page, status, limit });
+    if (!parsed.success) return fail(parsed.error.issues[0].message);
+
+    await requireAdminRole(USERS_READ_ROLES);
+
+    const supabase = createAdminClient();
+    const PAGE_SIZE = parsed.data.limit;
+    const from = (parsed.data.page - 1) * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
+
     let queryBuilder = supabase
       .from('disputes')
       .select(`
@@ -73,8 +87,8 @@ export async function getDisputes(page = 1, status = 'all', limit = 10, query = 
         )
       `, { count: 'exact' });
 
-    if (status && status !== 'all') {
-      queryBuilder = queryBuilder.eq('status', status);
+    if (parsed.data.status && parsed.data.status !== 'all') {
+      queryBuilder = queryBuilder.eq('status', parsed.data.status);
     }
 
     if (query) {
@@ -85,12 +99,9 @@ export async function getDisputes(page = 1, status = 'all', limit = 10, query = 
 
     const { data: disputesData, error, count } = await queryBuilder;
 
-    if (error) {
-      console.error('Error fetching disputes:', error);
-      throw new Error('Failed to fetch disputes');
-    }
+    if (error) return fail('Failed to fetch disputes');
 
-    const disputes: DisputeDTO[] = disputesData.map((d: any) => ({
+    const disputes: DisputeDTO[] = (disputesData || []).map((d: any) => ({
       id: d.id,
       task_id: d.task?.id || d.task_id,
       task_title: d.task?.title || 'Unknown Task',
@@ -114,22 +125,28 @@ export async function getDisputes(page = 1, status = 'all', limit = 10, query = 
       created_at: d.created_at,
     }));
 
-    return {
+    return ok({
       disputes,
       totalPages: Math.ceil((count || 0) / PAGE_SIZE),
       totalDisputes: count || 0
-    };
-
+    });
   } catch (error) {
     console.error('getDisputes error:', error);
-    return { disputes: [], totalPages: 0, totalDisputes: 0 };
+    return fail(toErrorMessage(error));
   }
 }
 
-export async function getDisputeDetails(id: string) {
-  const supabase = createAdminClient();
+const GetDisputeDetailsSchema = z.object({ id: z.string().uuid("Invalid Dispute ID") });
 
+export async function getDisputeDetails(id: string): Promise<ServiceResult<DisputeDetailsDTO>> {
   try {
+    const parsed = GetDisputeDetailsSchema.safeParse({ id });
+    if (!parsed.success) return fail(parsed.error.issues[0].message);
+
+    await requireAdminRole(USERS_READ_ROLES);
+
+    const supabase = createAdminClient();
+
     const { data: d, error } = await supabase
       .from('disputes')
       .select(`
@@ -158,13 +175,10 @@ export async function getDisputeDetails(id: string) {
           active_role
         )
       `)
-      .eq('id', id)
+      .eq('id', parsed.data.id)
       .single();
 
-    if (error || !d) {
-        // If not found, return null or throw
-        throw new Error('Dispute not found');
-    }
+    if (error || !d) return fail('Dispute not found');
 
     const dispute: DisputeDetailsDTO = {
       id: d.id,
@@ -198,43 +212,48 @@ export async function getDisputeDetails(id: string) {
       }
     };
 
-    return dispute;
-
+    return ok(dispute);
   } catch (error) {
     console.error('getDisputeDetails error:', error);
-    return null;
+    return fail(toErrorMessage(error));
   }
 }
 
-export async function resolveDispute(id: string, resolution: string, status: 'resolved' | 'dismissed') {
-    const supabase = createAdminClient();
-
+export async function resolveDispute(id: string, resolution: string, status: 'resolved' | 'dismissed'): Promise<ServiceResult<{id: string}>> {
     try {
+        const parsed = UpdateDisputeStatusSchema.safeParse({ id, status, resolution });
+        if (!parsed.success) return fail(parsed.error.issues[0].message);
+
+        const { userId } = await requireAdminRole(USERS_WRITE_ROLES);
+
+        const supabase = createAdminClient();
+
         const { error } = await supabase
             .from('disputes')
             .update({
-                resolution,
-                status,
+                resolution: parsed.data.resolution,
+                status: parsed.data.status,
                 resolved_at: new Date().toISOString()
             })
-            .eq('id', id);
+            .eq('id', parsed.data.id);
 
-        if (error) throw error;
+        if (error) return fail('Failed to resolve dispute');
 
-        // Log action
-        await supabase.from('admin_logs').insert({
-            action: 'RESOLVE_DISPUTE',
-            target_resource: 'dispute',
-            target_id: id,
-            metadata: { resolution, status }
+        // Log action securely targeting audit_logs
+        await logAuditEvent({
+            action: 'admin.disputes.resolve',
+            actor_user_id: userId,
+            related_entity_type: 'dispute',
+            related_entity_id: parsed.data.id,
+            meta: { resolution: parsed.data.resolution, status: parsed.data.status }
         });
 
         revalidatePath('/dashboard/disputes');
-        revalidatePath(`/dashboard/disputes/${id}`);
-        return { success: true };
-
+        revalidatePath(`/dashboard/disputes/${parsed.data.id}`);
+        
+        return ok({id: parsed.data.id});
     } catch (error) {
         console.error('resolveDispute error:', error);
-        return { success: false, error: 'Failed to resolve dispute' };
+        return fail(toErrorMessage(error));
     }
 }

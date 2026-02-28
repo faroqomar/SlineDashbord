@@ -5,10 +5,11 @@ import { InviteAdminDialog } from "@/components/admin/InviteAdminDialog";
 import { PermissionMatrix } from "@/components/admin/PermissionMatrix";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, Shield } from "lucide-react";
-import { getTeamMembers } from "@/app/actions/team";
+import { getTeamMembers } from "@/features/team/services/team_actions";
 
 export default async function TeamPage() {
-  const teamMembers = await getTeamMembers();
+  const res = await getTeamMembers();
+  const teamMembers = res.success ? res.data : [];
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 h-[calc(100vh-10rem)]">

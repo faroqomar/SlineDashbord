@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { MoreVertical, Trash2, Ban } from "lucide-react";
-import { cancelTask } from "@/app/actions/tasks";
+import { cancelTask } from "@/features/tasks/services/task_actions";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -40,12 +40,16 @@ export function TaskActions({ taskId, status }: TaskActionsProps) {
 
     setLoading(true);
     try {
-      await cancelTask(taskId, reason);
-      toast.success("Task canceled successfully");
-      setOpen(false);
+      const res = await cancelTask(taskId, reason);
+      if (res.success) {
+        toast.success("Task has been canceled successfully");
+        setOpen(false);
+        setReason("");
+      } else {
+        toast.error(res.error || "Failed to cancel task");
+      }
     } catch (error) {
       toast.error("Failed to cancel task");
-      console.error(error);
     } finally {
       setLoading(false);
     }

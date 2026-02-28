@@ -2,11 +2,11 @@ export type TicketDTO = {
   id: string;
   subject: string;
   status: 'open' | 'in_progress' | 'resolved' | 'closed';
-  priority: 'high' | 'medium' | 'low';
-  category: string;
+  priority: 'low' | 'normal' | 'high' | 'urgent';
+  category?: string;
   created_at: string;
   updated_at: string;
-  user: {
+  user?: {
     id: string;
     full_name: string;
     email: string;

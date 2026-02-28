@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, Plus, MessageSquare } from "lucide-react";
-import { getTicketMessages, replyToTicket, updateTicketStatus } from "@/app/actions/support";
+import { getTicketMessages, replyToTicket, updateTicketStatus } from "@/features/support/services/support_actions";
 import { toast } from "sonner";
 import { useSupportDashboard } from "@/features/support/viewmodels/useSupportDashboard.vm";
 

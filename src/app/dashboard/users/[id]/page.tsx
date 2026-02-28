@@ -9,20 +9,23 @@ import { notFound } from "next/navigation";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { MOCK_RECENT_ACTIVITY } from "@/data/mock/overview"; // We'll migrate this later or use logs
-import { getUserDetails } from "@/app/actions/users";
-import { getLogsByTarget } from "@/app/actions/logs";
+import { getUserDetails } from "@/features/users/services/user_actions";
+import { getLogsByTarget } from "@/features/logs/services/log_actions";
 import { SuspendUserButton } from "@/components/users/SuspendUserButton";
 
 export default async function UserDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [user, logs] = await Promise.all([
+  const [userRes, logsRes] = await Promise.all([
       getUserDetails(id),
       getLogsByTarget(id)
   ]);
 
-  if (!user) {
+  if (!userRes.success) {
     notFound();
   }
+
+  const user = userRes.data;
+  const logs = logsRes.success ? logsRes.data : [];
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">

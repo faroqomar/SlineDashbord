@@ -43,12 +43,12 @@ export function TicketChat({ ticket, messages, onSendMessage, isSending }: Ticke
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <Avatar className="w-10 h-10">
-                  <AvatarImage src={ticket.user.avatar_url || undefined} />
-                  <AvatarFallback>{ticket.user.full_name.charAt(0)}</AvatarFallback>
+                  <AvatarImage src={ticket.user?.avatar_url || undefined} />
+                  <AvatarFallback>{ticket.user?.full_name?.charAt(0) || 'U'}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <div className="font-medium text-sm">{ticket.user.full_name}</div>
-                  <div className="text-xs text-muted-foreground">{ticket.user.email}</div>
+                  <div className="font-medium text-sm">{ticket.user?.full_name || 'Unknown User'}</div>
+                  <div className="text-xs text-muted-foreground">{ticket.user?.email || 'No email'}</div>
                 </div>
                 <Button variant="outline" size="sm" className="ml-auto h-8 text-xs">
                   <User className="w-3 h-3 mr-2" />

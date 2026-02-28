@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Mail, Plus, Loader2 } from "lucide-react";
-import { inviteMember } from "@/app/actions/team";
+import { inviteMember } from "@/features/team/services/team_actions";
 import { useRouter } from "next/navigation";
 
 export function InviteAdminDialog() {
@@ -38,14 +38,20 @@ export function InviteAdminDialog() {
     
     startTransition(async () => {
         try {
-            await inviteMember(email, role, fullName);
-            setOpen(false);
-            toast.success(`Invite sent to ${email}`, {
-                description: `Role assigned: ${role}`
-            });
-            setEmail("");
-            setFullName("");
-            router.refresh();
+            const res = await inviteMember(email, role, fullName);
+            if (res.success) {
+                toast.success(`Invite sent to ${email}`, {
+                    description: `Role assigned: ${role}`
+                });
+                setOpen(false);
+                setEmail("");
+                setFullName("");
+                router.refresh();
+            } else {
+                toast.error("Failed to send invite", {
+                    description: res.error || "Unknown error"
+                });
+            }
         } catch (error) {
             toast.error("Failed to send invite", {
                 description: error instanceof Error ? error.message : "Unknown error"

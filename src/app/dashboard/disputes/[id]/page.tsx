@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { getDisputeDetails } from "@/app/actions/disputes";
+import { getDisputeDetails } from "@/features/disputes/services/dispute_actions";
 import { TimelineEvent } from "@/data/mock/disputes";
 
 // Remove static params for dynamic updates
@@ -14,7 +14,8 @@ export default async function DisputePage({ params }: { params: Promise<{ id: st
   
   let disputeData;
   try {
-      disputeData = await getDisputeDetails(id);
+      const res = await getDisputeDetails(id);
+      disputeData = res.success ? res.data : null;
   } catch (error) {
       console.error(error);
   }

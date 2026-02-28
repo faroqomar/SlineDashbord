@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { suspendUser } from "@/app/actions/users";
+import { suspendUser } from "@/features/users/services/user_actions";
 import { toast } from "sonner";
 
 interface SuspendUserButtonProps {
@@ -51,7 +51,7 @@ export function SuspendUserButton({ userId, currentStatus }: SuspendUserButtonPr
         toast.success("User suspended successfully");
         setOpen(false);
       } else {
-        toast.error("Failed to suspend user");
+        toast.error(result.error || "Failed to suspend user");
       }
     } catch (error) {
       toast.error("An error occurred");

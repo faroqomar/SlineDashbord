@@ -22,7 +22,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Shield, UserX, UserCheck, Mail, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { AdminUserDTO, removeMember } from "@/app/actions/team";
+import { AdminUserDTO } from "@/features/team/models/team.schema";
+import { removeMember } from "@/features/team/services/team_actions";
 import { useRouter } from "next/navigation";
 
 interface AdminTableProps {
@@ -34,16 +35,21 @@ export function AdminTable({ initialUsers }: AdminTableProps) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (userToDelete: string) => {
     // Optimistic update
     const previousUsers = [...users];
-    setUsers(users.filter(u => u.id !== id));
+    setUsers(users.filter(u => u.id !== userToDelete));
     
     startTransition(async () => {
         try {
-            await removeMember(id);
-            toast.success("User access revoked");
-            router.refresh();
+            const res = await removeMember(userToDelete);
+            if (res.success) {
+                toast.success("User access revoked");
+                router.refresh();
+            } else {
+                setUsers(previousUsers); // Revert
+                toast.error(res.error || "Failed to revoke access");
+            }
         } catch (error) {
             setUsers(previousUsers); // Revert
             toast.error("Failed to revoke access");

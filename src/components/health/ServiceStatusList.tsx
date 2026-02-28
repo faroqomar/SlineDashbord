@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Server } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ServiceStatus } from "@/app/actions/health";
+import { ServiceStatus } from "@/features/core/services/health_actions";
 
 interface ServiceStatusListProps {
   services: ServiceStatus[];

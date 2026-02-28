@@ -6,13 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getTaskDetails } from "@/app/actions/tasks";
+import { getTaskDetails } from "@/features/tasks/services/task_actions";
 import { TaskActions } from "@/components/tasks/TaskActions";
 import { Separator } from "@/components/ui/separator";
 
 export default async function TaskDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const task = await getTaskDetails(id);
+  const res = await getTaskDetails(id);
+  const task = res.success ? res.data : null;
 
   if (!task) {
     notFound();

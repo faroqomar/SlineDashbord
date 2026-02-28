@@ -11,19 +11,23 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { AlertCircle, Clock, CheckCircle, MessageSquare, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
-import { getDisputes } from "@/app/actions/disputes";
+import { getDisputes } from "@/features/disputes/services/dispute_actions";
 
 export default async function DisputesPage() {
-  const [openDisputes, investigatingDisputes, resolvedDisputes] = await Promise.all([
+  const [openRes, investigatingRes, resolvedRes] = await Promise.all([
     getDisputes(1, 'open', 50),
     getDisputes(1, 'investigating', 50),
     getDisputes(1, 'resolved', 50)
   ]);
 
+  const openData = openRes.success ? openRes.data.disputes : [];
+  const investigatingData = investigatingRes.success ? investigatingRes.data.disputes : [];
+  const resolvedData = resolvedRes.success ? resolvedRes.data.disputes : [];
+
   const columns = [
-    { title: "Open", status: "open", data: openDisputes.disputes, color: "text-red-500", bgColor: "bg-red-500/10", borderColor: "border-red-500/20" },
-    { title: "Investigating", status: "investigating", data: investigatingDisputes.disputes, color: "text-orange-500", bgColor: "bg-orange-500/10", borderColor: "border-orange-500/20" },
-    { title: "Resolved", status: "resolved", data: resolvedDisputes.disputes, color: "text-green-500", bgColor: "bg-green-500/10", borderColor: "border-green-500/20" }
+    { title: "Open", status: "open", data: openData, color: "text-red-500", bgColor: "bg-red-500/10", borderColor: "border-red-500/20" },
+    { title: "Investigating", status: "investigating", data: investigatingData, color: "text-orange-500", bgColor: "bg-orange-500/10", borderColor: "border-orange-500/20" },
+    { title: "Resolved", status: "resolved", data: resolvedData, color: "text-green-500", bgColor: "bg-green-500/10", borderColor: "border-green-500/20" }
   ];
 
   const getStatusBadgeVariant = (status: string) => {

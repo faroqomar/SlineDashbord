@@ -39,11 +39,11 @@ export function TicketList({ tickets, selectedTicket, onSelect }: TicketListProp
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center gap-2">
                 <Avatar className="h-6 w-6">
-                  <AvatarImage src={ticket.user.avatar_url || undefined} />
-                  <AvatarFallback>{ticket.user.full_name.charAt(0)}</AvatarFallback>
+                  <AvatarImage src={ticket.user?.avatar_url || undefined} />
+                  <AvatarFallback>{ticket.user?.full_name?.charAt(0) || 'U'}</AvatarFallback>
                 </Avatar>
                 <span className="text-xs font-medium text-muted-foreground">
-                  {ticket.user.full_name}
+                  {ticket.user?.full_name || 'Unknown User'}
                 </span>
               </div>
               <span className="text-[10px] text-muted-foreground whitespace-nowrap">

@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { getTasks } from "@/app/actions/tasks";
+import { getTasks } from "@/features/tasks/services/task_actions";
 import { TaskSearch } from "@/components/tasks/TaskSearch";
 import { PaginationControls } from "@/components/users/PaginationControls"; // Reusing pagination
 import { Clock, DollarSign, User } from "lucide-react";
@@ -26,7 +26,8 @@ export default async function TasksPage({
   const query = params.query || "";
   const status = params.status || "all";
 
-  const { tasks, totalPages } = await getTasks(page, status, 10, query);
+  const res = await getTasks(page, status, 10, query);
+  const { tasks, totalPages } = res.success ? res.data : { tasks: [], totalPages: 0 };
 
   const getStatusColor = (status: string) => {
     switch (status) {

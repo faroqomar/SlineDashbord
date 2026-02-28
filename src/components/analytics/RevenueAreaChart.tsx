@@ -2,7 +2,7 @@
 
 import { Area, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { RevenueChartData } from "@/app/actions/analytics";
+import { RevenueChartData } from "@/features/analytics/models/analytics.schema";
 
 interface RevenueAreaChartProps {
   data: RevenueChartData[];

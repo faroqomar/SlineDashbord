@@ -3,7 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
-import { PendingItem } from "@/app/actions/analytics";
+import { PendingItem } from "@/features/analytics/models/analytics.schema";
 import { ArrowRight } from "lucide-react";
 
 interface RequiresAttentionProps {
