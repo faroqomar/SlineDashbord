@@ -2,6 +2,7 @@
 export const dynamic = 'force-dynamic';
 import { getAuditLogs } from '@/features/finance/actions/queries';
 import { AuditLogEntry } from '@/features/finance/models/finance.model';
+import { AuditFilters } from '@/components/finance/AuditFilters';
 import {
   Table,
   TableBody,
@@ -22,7 +23,15 @@ export default async function FinanceAuditPage({ searchParams }: { searchParams:
   
   const cursor = cursor_created_at && cursor_id ? { created_at: cursor_created_at, id: cursor_id } : undefined;
 
-  const result = await getAuditLogs({ limit: 50 }, cursor);
+  const filters = {
+    limit: 50,
+    action: resolvedParams.action,
+    actor_user_id: resolvedParams.actor_user_id,
+    start_date: resolvedParams.start_date,
+    end_date: resolvedParams.end_date,
+  };
+
+  const result = await getAuditLogs(filters, cursor);
   if (!result.success) throw new Error(result.error);
   const { data: logs, nextCursor } = result.data;
 
@@ -56,8 +65,9 @@ export default async function FinanceAuditPage({ searchParams }: { searchParams:
   return (
     <div className="space-y-4">
       <div className="rounded-md border bg-card">
-        <div className="flex items-center justify-between p-4 border-b">
-          <h3 className="text-lg font-semibold">Security Audit Trail</h3>
+        <div className="flex flex-col p-4 border-b">
+          <h3 className="text-lg font-semibold mb-2">Security Audit Trail</h3>
+          <AuditFilters />
         </div>
 
         <div className="overflow-x-auto">

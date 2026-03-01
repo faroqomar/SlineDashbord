@@ -1,7 +1,8 @@
 'use server';
 
 import { createClient as supabaseServer } from '@/lib/supabase/server';
-import { requireAdminRole, maskMetaForRole, logAuditEvent } from '../services/security_guards';
+import { requireAdminRole, logAuditEvent } from '@/features/core/security/security_guards';
+import { maskMetaForRole } from '@/features/core/security/data_masking';
 import { ok, fail, ServiceResult } from '../models/result';
 import {
   JournalLedgerEntry,
@@ -195,6 +196,7 @@ export async function getUserFinanceTimeline(
     const { data, error } = await supabase
       .from('vw_wallet_activity_user')
       .select('*')
+      .eq('user_id', parsed.data.userId)
       .order('created_at', { ascending: false })
       .limit(filters.limit || 50);
 
@@ -258,7 +260,7 @@ export async function getWithdrawals(
 // ─── Audit Logs ───────────────────────────────────────────
 
 export async function getAuditLogs(
-  filters: { limit?: number } = {},
+  filters: { limit?: number; action?: string; actor_user_id?: string; start_date?: string; end_date?: string } = {},
   cursor?: { created_at: string; id: string }
 ): Promise<ServiceResult<{ data: AuditLogEntry[]; nextCursor?: { created_at: string; id: string } }>> {
   try {
@@ -270,6 +272,11 @@ export async function getAuditLogs(
       .select('*')
       .order('created_at', { ascending: false })
       .order('id', { ascending: false });
+
+    if (filters.action) query = query.eq('action', filters.action);
+    if (filters.actor_user_id) query = query.eq('actor_user_id', filters.actor_user_id);
+    if (filters.start_date) query = query.gte('created_at', filters.start_date);
+    if (filters.end_date) query = query.lte('created_at', filters.end_date);
 
     if (cursor) {
       query = query.or(`created_at.lt.${cursor.created_at},and(created_at.eq.${cursor.created_at},id.lt.${cursor.id})`);

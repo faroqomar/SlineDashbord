@@ -16,6 +16,19 @@ export const SuspendUserSchema = z.object({
   duration: z.enum(['24h', '30d', 'permanent']).default('24h'),
 });
 
+export const BanUserSchema = z.object({
+  userId: z.string().uuid("Invalid User ID"),
+  reason: z.string().min(5, "Reason must be at least 5 characters").max(500, "Reason is too long"),
+});
+
+export const UnbanUserSchema = z.object({
+  userId: z.string().uuid("Invalid User ID"),
+});
+
+export const VerifyUserSchema = z.object({
+  userId: z.string().uuid("Invalid User ID"),
+});
+
 // Role Access Control Definitions
 export const USERS_READ_ROLES = ['support', 'moderator', 'admin', 'super_admin'];
 export const USERS_WRITE_ROLES = ['admin', 'super_admin'];

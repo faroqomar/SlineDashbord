@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { 
   Card, 
   CardContent, 
@@ -89,7 +91,7 @@ export default async function DisputesPage() {
                               <CardDescription className="text-xs flex items-center gap-2">
                                  <span className="font-mono text-[10px] text-muted-foreground">{dispute.id.slice(0, 8)}...</span>
                                  <span>•</span>
-                                 <span className="font-semibold text-primary">${dispute.amount?.toFixed(2) || "0.00"}</span>
+                                 <span className="font-semibold text-primary">IQD {dispute.amount?.toLocaleString() || "0"}</span>
                              </CardDescription>
                              </CardHeader>
                              <CardContent className="p-4 pt-0">

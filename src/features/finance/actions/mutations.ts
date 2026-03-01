@@ -1,7 +1,7 @@
 'use server';
 
 import { createAdminClient as supabaseAdmin } from '@/lib/supabase/admin';
-import { enforceRateLimit, requireAdminRole, logAuditEvent } from '../services/security_guards';
+import { enforceRateLimit, requireAdminRole, logAuditEvent } from '@/features/core/security/security_guards';
 import { ok, fail, ServiceResult } from '../models/result';
 import {
   ApproveWithdrawalSchema,
@@ -34,7 +34,7 @@ export async function approveWithdrawal(
     if (!parsed.success) return fail(parsed.error.issues[0].message);
 
     const { userId } = await requireAdminRole(FINANCE_SUPERADMIN_ROLES);
-    enforceRateLimit('approve_withdrawal', userId, 5, 60000);
+    await enforceRateLimit('approve_withdrawal', userId, 5, 60000);
 
     const adminClient = supabaseAdmin();
     const { error } = await adminClient.rpc('admin_process_withdrawal', {
@@ -69,7 +69,7 @@ export async function rejectWithdrawal(
     if (!parsed.success) return fail(parsed.error.issues[0].message);
 
     const { userId } = await requireAdminRole(FINANCE_SUPERADMIN_ROLES);
-    enforceRateLimit('reject_withdrawal', userId, 5, 60000);
+    await enforceRateLimit('reject_withdrawal', userId, 5, 60000);
 
     const adminClient = supabaseAdmin();
     const { error } = await adminClient.rpc('admin_process_withdrawal', {
@@ -209,7 +209,7 @@ export async function exportTransactionsCSV(
     if (!parsed.success) return fail(parsed.error.issues[0].message);
 
     const { userId } = await requireAdminRole(FINANCE_WRITE_ROLES);
-    enforceRateLimit('export_csv', userId, 2, 60000);
+    await enforceRateLimit('export_csv', userId, 2, 60000);
 
     const adminClient = supabaseAdmin();
 

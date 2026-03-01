@@ -38,6 +38,7 @@ export const UpdateDisputeStatusSchema = z.object({
   id: z.string().uuid("Invalid Dispute ID"),
   status: z.enum(['open', 'in_progress', 'resolved', 'escalated']),
   resolution: z.string().optional(),
+  decision: z.enum(['refund_client', 'release_freelancer']).optional(),
 });
 
 export const USERS_READ_ROLES = ['support', 'moderator', 'admin', 'super_admin'];

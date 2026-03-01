@@ -15,6 +15,11 @@ export const SupportTicketSchema = z.object({
     email: z.string(),
     avatar_url: z.string().nullable()
   }).optional(),
+  assignee: z.object({
+    id: z.string(),
+    full_name: z.string(),
+    avatar_url: z.string().nullable()
+  }).optional(),
   last_message: z.string().optional(),
 });
 

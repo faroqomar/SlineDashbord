@@ -1,42 +1,68 @@
-# 🎨 SLine Admin UI Kit
+# Admin UI Kit & Design System
+
+The Sline Admin Dashboard utilizes a custom aesthetic powered by **Tailwind CSS**, pre-built **Shadcn/UI components**, and **Lucide-React** iconography. The goal is a highly functional, responsive, and visually cohesive workspace for staff.
+
+---
+
+## 🎨 Theme & Typography
+
+- **Font Family**: We use **Inter** as the foundational sans-serif typeface. It is highly legible for data-heavy dashboard rows.
+- **Color Variables**: All colors run through CSS variables defined in `@/app/globals.css`. Never hardcode colors unless necessary.
+
+### Primary Semantic Colors
+
+- `bg-background`: The core page background (White in light mode, dark gray in dark mode).
+- `text-foreground`: The primary text color.
+- `bg-primary`: High-attraction CTA color (e.g., active sidebar links, primary actions).
+- `bg-destructive`: Used strictly for dangerous actions (Banning a user, Refunding money).
+- `bg-muted`: Soft gray backgrounds used for secondary input areas or cards.
+- `bg-secondary`: Low emphasis backgrounds.
+
+---
+
+## 🧩 Shadcn Components
+
+We heavily rely on Shadcn's highly accessible React components. Rather than writing custom CSS, leverage these built-in blocks:
+
+- **`<Button />`**: The primary interactable element. Use variants: `default`, `outline`, `ghost`, `destructive`.
+- **`<Table />`**: For displaying users, tasks, and dispute lists. Use `TableHeader`, `TableRow`, and `TableHead` structural wrappers.
+- **`<Dialog />`**: For intercepting workflows that require confirmation (e.g., The Resolution Modal, or Invite Admin Modal).
+- **`<Form />`**: For rigorous Zod-validated data entry. Pairs seamlessly with `react-hook-form`.
+- **`<Card />`**: For dashboard metrics, analytic graphs, and isolating data groups.
+- **`<Select />`**: Dropdowns for applying filters on query results.
 
 > [!TIP]
-> The Design System and visual constraints for the SLine Admin Dashboard, powered by Tailwind CSS and Shadcn/UI.
+> Do not manually type out custom CSS transitions or drop-shadows. Stick to Tailwind's `shadow-sm`, `animate-in fade-in`, and semantic color classes to maintain UI consistency.
 
-## Theme & Palette
+---
 
-The admin dashboard uses a clean, deeply professional theme emphasizing data visibility over visual flair.
+## 📏 Core Layouts
 
-- **Primary (`bg-primary`)**: Deep SLine Blue. Used for primary call-to-action buttons.
-- **Muted (`text-muted-foreground`)**: Used heavily in tables and secondary labels to reduce visual noise.
-- **Destructive (`text-destructive`)**: Deep Red. Used strictly for deletions, suspensions, and critical errors.
-- **Fonts**: The standard font stack is `Inter`, forced dynamically via `next/font`.
+### 1. The `DashboardLayout` Server Component
 
-## Available Shadcn Components
+Located at `src/app/dashboard/layout.tsx`. This checks for the Supabase Session, fetches the user's role profile to ensure they have administrative access, and wraps the authenticated view with a global `SidebarServer` wrapper and standard CSS styling.
 
-The project heavily utilizes the standard Shadcn/UI component library. Run `npx shadcn-ui@latest add [component]` if a component is missing.
+### 2. The `Sidebar` Client Component
 
-- **`Button`**: Includes variants like `default`, `outline`, `ghost`, `destructive`.
-- **`Table`**: The backbone of the dashboard. Always use the segmented components (`TableHeader`, `TableRow`, `TableCell`).
-- **`Dialog` / `AlertDialog`**: Used for forms (creation, assignment, refunding). Always use `AlertDialog` for destructive actions requiring explicit confirmation.
-- **`Form`**: Integrates tightly with `react-hook-form` and `@hookform/resolvers/zod`.
-- **`Card`**: Used to segment distinct widgets and metrics blocks on the main dashboard views.
+Provides contextual navigation. The highlighted active route uses a high-contrast standard `primary` color tag depending on the current `pathname`.
 
-## Layouts
+### 3. Page Headers
 
-1.  **`DashboardLayout` (`src/app/dashboard/layout.tsx`)**: Wraps the entire logged-in experience. Handles authentication redirection checks.
-2.  **`Sidebar`**: The primary navigation tree. Add new routes here under `src/components/layout/Sidebar.tsx`.
-3.  **`PageHeader`**: A consistent top-bar component passing in Breadcrumbs and the authenticated user's dropdown.
-
-## Icons
-
-We standardise on **Lucide React** (`lucide-react`). Do not install alternative icon libraries like FontAwesome or HeroIcons.
+Every major feature screen should contain an intro header explaining the context. Utilize a Lucide Icon and an `h1` `font-bold text-3xl`.
 
 ```tsx
-import { ShieldAlert, Users, CreditCard } from "lucide-react";
-
-<Button variant="outline">
-  <ShieldAlert className="w-4 h-4 mr-2 text-destructive" />
-  Suspend User
-</Button>;
+<h1 className="text-3xl font-bold flex items-center gap-2">
+  <Users className="w-8 h-8 text-primary" />
+  Platform Users
+</h1>
 ```
+
+---
+
+## 🏷 Iconography (`lucide-react`)
+
+We exclusively use the `lucide-react` library for dashboard icons.
+
+- Use standard sizes like `w-5 h-5` or `w-4 h-4` alongside text blocks.
+- Pair dangerous actions with a related danger icon (e.g., `<ShieldAlert />`, `<XCircle />`).
+- Pair financial actions with money-related icons (e.g., `<Banknote />`, `<RefreshCw />`).

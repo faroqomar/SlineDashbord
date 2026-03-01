@@ -10,16 +10,14 @@ interface RevenueAreaChartProps {
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
-    return (
-      <div className="bg-background border border-border p-3 rounded-lg shadow-lg text-sm">
-        <p className="font-semibold mb-2">{label}</p>
-        <p className="text-primary flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-primary"></span>
-            Revenue: ${payload[0].value}
-        </p>
-      </div>
-    );
-  }
+    return        <div className="rounded-lg border bg-background p-2 shadow-sm">
+          <div className="grid grid-cols-2 gap-2">
+            <span className="font-semibold">{payload[0].payload.name}</span>
+            <span className="font-mono text-muted-foreground">
+              IQD {payload[0].value.toLocaleString()}
+            </span>
+          </div>
+        </div> }
   return null;
 };
 
@@ -34,7 +32,7 @@ export function RevenueAreaChart({ data }: RevenueAreaChartProps) {
       </CardHeader>
       <CardContent className="pl-2">
         <div className="h-[300px] w-full min-w-0">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minHeight={0}>
             <AreaChart
                 data={data}
                 margin={{
@@ -62,7 +60,7 @@ export function RevenueAreaChart({ data }: RevenueAreaChartProps) {
                     fontSize={12} 
                     tickLine={false} 
                     axisLine={false} 
-                    tickFormatter={(value) => `$${value}`} 
+                    tickFormatter={(value) => `IQD ${value.toLocaleString()}`} 
                 />
                 <Tooltip content={<CustomTooltip />} />
                 <Area 

@@ -1,6 +1,6 @@
 {
   "node": {
-    "00025f761a9d3e9e8f78d09a0e80e256a8ba600ed2": {
+    "000423c6fdc30d08b5e09e4b862e839e562a858fb6": {
       "workers": {
         "app/dashboard/page": {
           "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/analytics/services/analytics_actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
@@ -15,7 +15,7 @@
       "filename": "src/features/analytics/services/analytics_actions.ts",
       "exportedName": "getRevenueHistory"
     },
-    "003f20c7229bd2d35dbcb0160492ba5a1ce236d877": {
+    "000778df05bbde2e5625ac71dbe5d4f6dca426bc16": {
       "workers": {
         "app/dashboard/page": {
           "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/analytics/services/analytics_actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
@@ -30,22 +30,7 @@
       "filename": "src/features/analytics/services/analytics_actions.ts",
       "exportedName": "getRecentActivity"
     },
-    "00914bed8bc5690c0959b0fca66c570ef5ef652a35": {
-      "workers": {
-        "app/dashboard/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/analytics/services/analytics_actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "getPendingItems",
-          "filename": "src/features/analytics/services/analytics_actions.ts"
-        }
-      },
-      "layer": {
-        "app/dashboard/page": "rsc"
-      },
-      "filename": "src/features/analytics/services/analytics_actions.ts",
-      "exportedName": "getPendingItems"
-    },
-    "0093303300d455bddb4aaef75f21bdb6b198db0436": {
+    "006591678d2c3844cce9b2476847eb1f004ff8f697": {
       "workers": {
         "app/dashboard/page": {
           "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/analytics/services/analytics_actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
@@ -60,7 +45,22 @@
       "filename": "src/features/analytics/services/analytics_actions.ts",
       "exportedName": "getOverviewStats"
     },
-    "00c0e959861ea519df9daaf3d52f375987da1ad0f9": {
+    "006e8ee6727fbc38dd1540ffb1b25729c3b671dd84": {
+      "workers": {
+        "app/dashboard/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/analytics/services/analytics_actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getDashboardOverview",
+          "filename": "src/features/analytics/services/analytics_actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/page": "rsc"
+      },
+      "filename": "src/features/analytics/services/analytics_actions.ts",
+      "exportedName": "getDashboardOverview"
+    },
+    "00db6e5fad35a1e71e38aae7c7338dfdbaf0035f38": {
       "workers": {
         "app/dashboard/page": {
           "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/analytics/services/analytics_actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
@@ -75,284 +75,22 @@
       "filename": "src/features/analytics/services/analytics_actions.ts",
       "exportedName": "getUserGrowthHistory"
     },
-    "003df4c30c6e8619f14e6cb894f9251bc3c54753a1": {
+    "00f43bd253ee4f8734444106f0808606785f313645": {
       "workers": {
-        "app/dashboard/finance/overview/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/overview/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/finance/actions/queries.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+        "app/dashboard/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/analytics/services/analytics_actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
-          "exportedName": "getPlatformMetrics",
-          "filename": "src/features/finance/actions/queries.ts"
-        },
-        "app/dashboard/finance/transactions/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/transactions/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/finance/actions/queries.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "getPlatformMetrics",
-          "filename": "src/features/finance/actions/queries.ts"
-        },
-        "app/dashboard/finance/withdrawals/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/withdrawals/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/finance/actions/queries.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/features/finance/actions/mutations.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "getPlatformMetrics",
-          "filename": "src/features/finance/actions/queries.ts"
+          "exportedName": "getPendingItems",
+          "filename": "src/features/analytics/services/analytics_actions.ts"
         }
       },
       "layer": {
-        "app/dashboard/finance/overview/page": "rsc",
-        "app/dashboard/finance/transactions/page": "rsc",
-        "app/dashboard/finance/withdrawals/page": "rsc"
+        "app/dashboard/page": "rsc"
       },
-      "filename": "src/features/finance/actions/queries.ts",
-      "exportedName": "getPlatformMetrics"
+      "filename": "src/features/analytics/services/analytics_actions.ts",
+      "exportedName": "getPendingItems"
     },
-    "408d93c4c134e6fa439807d099b6f93be97451174d": {
-      "workers": {
-        "app/dashboard/finance/overview/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/overview/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/finance/actions/queries.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "getUserWalletSummary",
-          "filename": "src/features/finance/actions/queries.ts"
-        },
-        "app/dashboard/finance/transactions/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/transactions/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/finance/actions/queries.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "getUserWalletSummary",
-          "filename": "src/features/finance/actions/queries.ts"
-        },
-        "app/dashboard/finance/withdrawals/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/withdrawals/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/finance/actions/queries.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/features/finance/actions/mutations.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "getUserWalletSummary",
-          "filename": "src/features/finance/actions/queries.ts"
-        }
-      },
-      "layer": {
-        "app/dashboard/finance/overview/page": "rsc",
-        "app/dashboard/finance/transactions/page": "rsc",
-        "app/dashboard/finance/withdrawals/page": "rsc"
-      },
-      "filename": "src/features/finance/actions/queries.ts",
-      "exportedName": "getUserWalletSummary"
-    },
-    "40c0764ba36c1f7cc0766b1e572e07d774ede34649": {
-      "workers": {
-        "app/dashboard/finance/overview/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/overview/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/finance/actions/queries.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "getTransactionDetails",
-          "filename": "src/features/finance/actions/queries.ts"
-        },
-        "app/dashboard/finance/transactions/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/transactions/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/finance/actions/queries.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "getTransactionDetails",
-          "filename": "src/features/finance/actions/queries.ts"
-        },
-        "app/dashboard/finance/withdrawals/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/withdrawals/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/finance/actions/queries.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/features/finance/actions/mutations.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "getTransactionDetails",
-          "filename": "src/features/finance/actions/queries.ts"
-        }
-      },
-      "layer": {
-        "app/dashboard/finance/overview/page": "action-browser",
-        "app/dashboard/finance/transactions/page": "action-browser",
-        "app/dashboard/finance/withdrawals/page": "rsc"
-      },
-      "filename": "src/features/finance/actions/queries.ts",
-      "exportedName": "getTransactionDetails"
-    },
-    "6008fb73e36b3fc1cb310fbe5bf8ed19debaca7b55": {
-      "workers": {
-        "app/dashboard/finance/overview/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/overview/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/finance/actions/queries.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "getWithdrawals",
-          "filename": "src/features/finance/actions/queries.ts"
-        },
-        "app/dashboard/finance/transactions/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/transactions/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/finance/actions/queries.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "getWithdrawals",
-          "filename": "src/features/finance/actions/queries.ts"
-        },
-        "app/dashboard/finance/withdrawals/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/withdrawals/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/finance/actions/queries.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/features/finance/actions/mutations.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "getWithdrawals",
-          "filename": "src/features/finance/actions/queries.ts"
-        }
-      },
-      "layer": {
-        "app/dashboard/finance/overview/page": "rsc",
-        "app/dashboard/finance/transactions/page": "rsc",
-        "app/dashboard/finance/withdrawals/page": "rsc"
-      },
-      "filename": "src/features/finance/actions/queries.ts",
-      "exportedName": "getWithdrawals"
-    },
-    "6025739869545e41f99010f1c5ace82ede7cd1da1f": {
-      "workers": {
-        "app/dashboard/finance/overview/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/overview/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/finance/actions/queries.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "getAuditLogs",
-          "filename": "src/features/finance/actions/queries.ts"
-        },
-        "app/dashboard/finance/transactions/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/transactions/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/finance/actions/queries.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "getAuditLogs",
-          "filename": "src/features/finance/actions/queries.ts"
-        },
-        "app/dashboard/finance/withdrawals/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/withdrawals/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/finance/actions/queries.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/features/finance/actions/mutations.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "getAuditLogs",
-          "filename": "src/features/finance/actions/queries.ts"
-        }
-      },
-      "layer": {
-        "app/dashboard/finance/overview/page": "rsc",
-        "app/dashboard/finance/transactions/page": "rsc",
-        "app/dashboard/finance/withdrawals/page": "rsc"
-      },
-      "filename": "src/features/finance/actions/queries.ts",
-      "exportedName": "getAuditLogs"
-    },
-    "609529ce8c0349b1b92764e3303e744047f32ed671": {
-      "workers": {
-        "app/dashboard/finance/overview/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/overview/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/finance/actions/queries.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "getEntityTrace",
-          "filename": "src/features/finance/actions/queries.ts"
-        },
-        "app/dashboard/finance/transactions/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/transactions/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/finance/actions/queries.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "getEntityTrace",
-          "filename": "src/features/finance/actions/queries.ts"
-        },
-        "app/dashboard/finance/withdrawals/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/withdrawals/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/finance/actions/queries.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/features/finance/actions/mutations.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "getEntityTrace",
-          "filename": "src/features/finance/actions/queries.ts"
-        }
-      },
-      "layer": {
-        "app/dashboard/finance/overview/page": "rsc",
-        "app/dashboard/finance/transactions/page": "rsc",
-        "app/dashboard/finance/withdrawals/page": "rsc"
-      },
-      "filename": "src/features/finance/actions/queries.ts",
-      "exportedName": "getEntityTrace"
-    },
-    "60a41a9113ba9a51443a6654ed6c69b69804135636": {
-      "workers": {
-        "app/dashboard/finance/overview/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/overview/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/finance/actions/queries.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "getTransactionsPaginated",
-          "filename": "src/features/finance/actions/queries.ts"
-        },
-        "app/dashboard/finance/transactions/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/transactions/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/finance/actions/queries.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "getTransactionsPaginated",
-          "filename": "src/features/finance/actions/queries.ts"
-        },
-        "app/dashboard/finance/withdrawals/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/withdrawals/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/finance/actions/queries.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/features/finance/actions/mutations.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "getTransactionsPaginated",
-          "filename": "src/features/finance/actions/queries.ts"
-        }
-      },
-      "layer": {
-        "app/dashboard/finance/overview/page": "rsc",
-        "app/dashboard/finance/transactions/page": "rsc",
-        "app/dashboard/finance/withdrawals/page": "rsc"
-      },
-      "filename": "src/features/finance/actions/queries.ts",
-      "exportedName": "getTransactionsPaginated"
-    },
-    "7039cddd7d97f8a8be0e4c6bdfd36d3d4c2ef08580": {
-      "workers": {
-        "app/dashboard/finance/overview/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/overview/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/finance/actions/queries.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "getUserFinanceTimeline",
-          "filename": "src/features/finance/actions/queries.ts"
-        },
-        "app/dashboard/finance/transactions/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/transactions/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/finance/actions/queries.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "getUserFinanceTimeline",
-          "filename": "src/features/finance/actions/queries.ts"
-        },
-        "app/dashboard/finance/withdrawals/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/withdrawals/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/finance/actions/queries.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/features/finance/actions/mutations.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "getUserFinanceTimeline",
-          "filename": "src/features/finance/actions/queries.ts"
-        }
-      },
-      "layer": {
-        "app/dashboard/finance/overview/page": "rsc",
-        "app/dashboard/finance/transactions/page": "rsc",
-        "app/dashboard/finance/withdrawals/page": "rsc"
-      },
-      "filename": "src/features/finance/actions/queries.ts",
-      "exportedName": "getUserFinanceTimeline"
-    },
-    "601a8506af83893df9ab658be4cb96c97e8cad8e5b": {
-      "workers": {
-        "app/dashboard/finance/withdrawals/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/withdrawals/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/finance/actions/queries.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/features/finance/actions/mutations.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "approveWithdrawal",
-          "filename": "src/features/finance/actions/mutations.ts"
-        }
-      },
-      "layer": {
-        "app/dashboard/finance/withdrawals/page": "action-browser"
-      },
-      "filename": "src/features/finance/actions/mutations.ts",
-      "exportedName": "approveWithdrawal"
-    },
-    "60b2022e205ab99c42c946264f27fa73a81126750d": {
-      "workers": {
-        "app/dashboard/finance/withdrawals/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/withdrawals/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/finance/actions/queries.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/features/finance/actions/mutations.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "rejectWithdrawal",
-          "filename": "src/features/finance/actions/mutations.ts"
-        }
-      },
-      "layer": {
-        "app/dashboard/finance/withdrawals/page": "action-browser"
-      },
-      "filename": "src/features/finance/actions/mutations.ts",
-      "exportedName": "rejectWithdrawal"
-    },
-    "702c1aff13c52f2ae4dfd6770c35cf7632771ff4f0": {
-      "workers": {
-        "app/dashboard/users/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/users/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/users/services/user_actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "suspendUser",
-          "filename": "src/features/users/services/user_actions.ts"
-        }
-      },
-      "layer": {
-        "app/dashboard/users/page": "action-browser"
-      },
-      "filename": "src/features/users/services/user_actions.ts",
-      "exportedName": "suspendUser"
-    },
-    "70258f4056f50a8c69baea68b0b873c4e0bdcc8ae9": {
+    "704823146b11fe2e607674c0df61e6171879aef5ef": {
       "workers": {
         "app/dashboard/users/page": {
           "moduleId": "[project]/.next-internal/server/app/dashboard/users/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/users/services/user_actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
@@ -367,14 +105,23 @@
       "filename": "src/features/users/services/user_actions.ts",
       "exportedName": "getUsers"
     },
-    "408afefe9bd2946359d15bf7d2c7a4a1b576629126": {
+    "70971c68966d52546dc36cefc7e70584a998c9a501": {
       "workers": {
-        "app/dashboard/disputes/[id]/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/disputes/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/disputes/services/dispute_actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/actions/disputes.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+        "app/dashboard/users/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/users/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/users/services/user_actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
-          "exportedName": "getDisputeDetails",
-          "filename": "src/features/disputes/services/dispute_actions.ts"
-        },
+          "exportedName": "suspendUser",
+          "filename": "src/features/users/services/user_actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/users/page": "action-browser"
+      },
+      "filename": "src/features/users/services/user_actions.ts",
+      "exportedName": "suspendUser"
+    },
+    "40b46d939e857a35a9a362138c2bcdbb86214547ce": {
+      "workers": {
         "app/dashboard/disputes/page": {
           "moduleId": "[project]/.next-internal/server/app/dashboard/disputes/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/disputes/services/dispute_actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
@@ -383,42 +130,13 @@
         }
       },
       "layer": {
-        "app/dashboard/disputes/[id]/page": "rsc",
         "app/dashboard/disputes/page": "rsc"
       },
       "filename": "src/features/disputes/services/dispute_actions.ts",
       "exportedName": "getDisputeDetails"
     },
-    "705f282954dbf56acc9a9edb1d9374318548a6b42a": {
+    "7875b4110433e6051e183bf364dd72b124284944d8": {
       "workers": {
-        "app/dashboard/disputes/[id]/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/disputes/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/disputes/services/dispute_actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/actions/disputes.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "resolveDispute",
-          "filename": "src/features/disputes/services/dispute_actions.ts"
-        },
-        "app/dashboard/disputes/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/disputes/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/disputes/services/dispute_actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "resolveDispute",
-          "filename": "src/features/disputes/services/dispute_actions.ts"
-        }
-      },
-      "layer": {
-        "app/dashboard/disputes/[id]/page": "rsc",
-        "app/dashboard/disputes/page": "rsc"
-      },
-      "filename": "src/features/disputes/services/dispute_actions.ts",
-      "exportedName": "resolveDispute"
-    },
-    "7814d92471b2c68e998094e2a8c45cd92f12d3c02f": {
-      "workers": {
-        "app/dashboard/disputes/[id]/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/disputes/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/disputes/services/dispute_actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/actions/disputes.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
-          "async": false,
-          "exportedName": "getDisputes",
-          "filename": "src/features/disputes/services/dispute_actions.ts"
-        },
         "app/dashboard/disputes/page": {
           "moduleId": "[project]/.next-internal/server/app/dashboard/disputes/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/disputes/services/dispute_actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
@@ -427,28 +145,207 @@
         }
       },
       "layer": {
-        "app/dashboard/disputes/[id]/page": "rsc",
         "app/dashboard/disputes/page": "rsc"
       },
       "filename": "src/features/disputes/services/dispute_actions.ts",
       "exportedName": "getDisputes"
     },
-    "788d2d033625f9659cdcf4b06d4a918d8b1f23339c": {
+    "789ae6fc0693e08f56fdc38189256b3547fb4ed0d1": {
       "workers": {
-        "app/dashboard/disputes/[id]/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/disputes/[id]/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/disputes/services/dispute_actions.ts [app-rsc] (ecmascript)\", ACTIONS_MODULE1 => \"[project]/src/actions/disputes.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+        "app/dashboard/disputes/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/disputes/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/disputes/services/dispute_actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
           "exportedName": "resolveDispute",
-          "filename": "src/actions/disputes.ts"
+          "filename": "src/features/disputes/services/dispute_actions.ts"
         }
       },
       "layer": {
-        "app/dashboard/disputes/[id]/page": "action-browser"
+        "app/dashboard/disputes/page": "rsc"
       },
-      "filename": "src/actions/disputes.ts",
+      "filename": "src/features/disputes/services/dispute_actions.ts",
       "exportedName": "resolveDispute"
+    },
+    "6048f199b08ab93dd714ca0b98e9c53551f1e72b48": {
+      "workers": {
+        "app/dashboard/logs/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/logs/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/logs/services/log_actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getLogsByTarget",
+          "filename": "src/features/logs/services/log_actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/logs/page": "rsc"
+      },
+      "filename": "src/features/logs/services/log_actions.ts",
+      "exportedName": "getLogsByTarget"
+    },
+    "788687400782031914043beff018c0bd9c99adf6c0": {
+      "workers": {
+        "app/dashboard/logs/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/logs/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/logs/services/log_actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getSystemLogs",
+          "filename": "src/features/logs/services/log_actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/logs/page": "rsc"
+      },
+      "filename": "src/features/logs/services/log_actions.ts",
+      "exportedName": "getSystemLogs"
+    },
+    "000d8b513601eb108ae8ed9b8d10db6f469cbf2aa7": {
+      "workers": {
+        "app/dashboard/finance/overview/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/overview/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/finance/actions/queries.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getPlatformMetrics",
+          "filename": "src/features/finance/actions/queries.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/finance/overview/page": "rsc"
+      },
+      "filename": "src/features/finance/actions/queries.ts",
+      "exportedName": "getPlatformMetrics"
+    },
+    "40274e7a718216983460fa9ec87b1b5b411f7f98b3": {
+      "workers": {
+        "app/dashboard/finance/overview/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/overview/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/finance/actions/queries.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getUserWalletSummary",
+          "filename": "src/features/finance/actions/queries.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/finance/overview/page": "rsc"
+      },
+      "filename": "src/features/finance/actions/queries.ts",
+      "exportedName": "getUserWalletSummary"
+    },
+    "4097e642c2325d2134ca7b55698ebccf84fb88bea3": {
+      "workers": {
+        "app/dashboard/finance/overview/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/overview/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/finance/actions/queries.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getTransactionDetails",
+          "filename": "src/features/finance/actions/queries.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/finance/overview/page": "action-browser"
+      },
+      "filename": "src/features/finance/actions/queries.ts",
+      "exportedName": "getTransactionDetails"
+    },
+    "601171014d0a6fc981a22bac0efad5395e966e1988": {
+      "workers": {
+        "app/dashboard/finance/overview/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/overview/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/finance/actions/queries.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getEntityTrace",
+          "filename": "src/features/finance/actions/queries.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/finance/overview/page": "rsc"
+      },
+      "filename": "src/features/finance/actions/queries.ts",
+      "exportedName": "getEntityTrace"
+    },
+    "602539451fcfd4a1a2f034b2d49b50c7061d6de968": {
+      "workers": {
+        "app/dashboard/finance/overview/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/overview/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/finance/actions/queries.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getWithdrawals",
+          "filename": "src/features/finance/actions/queries.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/finance/overview/page": "rsc"
+      },
+      "filename": "src/features/finance/actions/queries.ts",
+      "exportedName": "getWithdrawals"
+    },
+    "606b61ab0978f9bd1d34e01671759e16766ee8b582": {
+      "workers": {
+        "app/dashboard/finance/overview/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/overview/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/finance/actions/queries.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getAuditLogs",
+          "filename": "src/features/finance/actions/queries.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/finance/overview/page": "rsc"
+      },
+      "filename": "src/features/finance/actions/queries.ts",
+      "exportedName": "getAuditLogs"
+    },
+    "60fd2cb35d352101cda1197cae6dea29e4648ece4d": {
+      "workers": {
+        "app/dashboard/finance/overview/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/overview/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/finance/actions/queries.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getTransactionsPaginated",
+          "filename": "src/features/finance/actions/queries.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/finance/overview/page": "rsc"
+      },
+      "filename": "src/features/finance/actions/queries.ts",
+      "exportedName": "getTransactionsPaginated"
+    },
+    "7081ecb760ad2552d4fed2a5d13b7fdfe9bea3d1b4": {
+      "workers": {
+        "app/dashboard/finance/overview/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/finance/overview/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/finance/actions/queries.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getUserFinanceTimeline",
+          "filename": "src/features/finance/actions/queries.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/finance/overview/page": "rsc"
+      },
+      "filename": "src/features/finance/actions/queries.ts",
+      "exportedName": "getUserFinanceTimeline"
+    },
+    "0077705c4c2856c26a03c18cb0e876a3780eb0d7bc": {
+      "workers": {
+        "app/dashboard/settings/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/settings/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/settings/services/settings_actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getSystemConfigs",
+          "filename": "src/features/settings/services/settings_actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/settings/page": "rsc"
+      },
+      "filename": "src/features/settings/services/settings_actions.ts",
+      "exportedName": "getSystemConfigs"
+    },
+    "60dc567be99650caa38aa804730c5f7c662d706ca5": {
+      "workers": {
+        "app/dashboard/settings/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/settings/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/settings/services/settings_actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "updateSystemConfig",
+          "filename": "src/features/settings/services/settings_actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/settings/page": "action-browser"
+      },
+      "filename": "src/features/settings/services/settings_actions.ts",
+      "exportedName": "updateSystemConfig"
     }
   },
   "edge": {},
-  "encryptionKey": "+YegMKje1dG79YhwMwNpQqN68DkMcLn8aitqpGfu6zQ="
+  "encryptionKey": "y9aMnXFU5PBWz6k+VWPfAv8ofr52f1LbHxuuzXO4V2E="
 }

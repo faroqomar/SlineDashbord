@@ -10,7 +10,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -21,8 +20,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { suspendUser } from "@/features/users/services/user_actions";
-import { toast } from "sonner";
+import { useUserActionsViewModel } from "@/features/users/viewmodels/use_user_actions.vm";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -31,32 +29,7 @@ interface UserActionsMenuProps {
 }
 
 export function UserActionsMenu({ userId }: UserActionsMenuProps) {
-  const [showBanDialog, setShowBanDialog] = useState(false);
-  const [banReason, setBanReason] = useState("");
-  const [isBanning, setIsBanning] = useState(false);
-
-  const handleBan = async () => {
-    if (!banReason.trim()) {
-      toast.error("Please provide a reason for the ban.");
-      return;
-    }
-
-    setIsBanning(true);
-    try {
-      const res = await suspendUser(userId, banReason, 'permanent');
-      if (res.success) {
-        toast.success("User has been banned.");
-        setShowBanDialog(false);
-        setBanReason("");
-      } else {
-        toast.error(res.error || "Failed to ban user.");
-      }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to ban user.");
-    } finally {
-      setIsBanning(false);
-    }
-  };
+  const vm = useUserActionsViewModel(userId);
 
   return (
     <>
@@ -75,14 +48,14 @@ export function UserActionsMenu({ userId }: UserActionsMenuProps) {
           <DropdownMenuItem>Edit User</DropdownMenuItem>
           <DropdownMenuItem 
             className="text-destructive focus:text-destructive" 
-            onSelect={() => setShowBanDialog(true)}
+            onSelect={() => vm.setShowBanDialog(true)}
           >
             Ban User
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <AlertDialog open={showBanDialog} onOpenChange={setShowBanDialog}>
+      <AlertDialog open={vm.showBanDialog} onOpenChange={vm.setShowBanDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
@@ -92,26 +65,37 @@ export function UserActionsMenu({ userId }: UserActionsMenuProps) {
           </AlertDialogHeader>
           
           <div className="grid gap-2 py-4">
-            <Label htmlFor="reason">Ban Reason</Label>
-            <Input 
-              id="reason" 
-              placeholder="Violation of terms..." 
-              value={banReason}
-              onChange={(e) => setBanReason(e.target.value)}
-            />
+            <div className="space-y-1">
+              <Label htmlFor="reason">Ban Reason</Label>
+              <Input 
+                id="reason" 
+                placeholder="Violation of terms..." 
+                value={vm.banReason}
+                onChange={(e) => vm.setBanReason(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1 mt-4">
+              <Label htmlFor="confirm" className="text-destructive font-semibold">Type &quot;CONFIRM&quot; to proceed with banning</Label>
+              <Input 
+                id="confirm" 
+                placeholder="CONFIRM" 
+                value={vm.confirmText}
+                onChange={(e) => vm.setConfirmText(e.target.value)}
+              />
+            </div>
           </div>
 
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isBanning}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={vm.isBanning}>Cancel</AlertDialogCancel>
             <AlertDialogAction 
               onClick={(e) => {
                 e.preventDefault(); // Prevent auto-close
-                handleBan();
+                vm.handleBan();
               }}
-              disabled={isBanning}
+              disabled={vm.isBanning || vm.confirmText !== "CONFIRM"}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isBanning ? "Banning..." : "Ban User"}
+              {vm.isBanning ? "Banning..." : "Ban User"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

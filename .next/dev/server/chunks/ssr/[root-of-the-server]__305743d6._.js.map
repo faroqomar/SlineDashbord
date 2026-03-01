@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 18, "column": 0}, "map": {"version":3,"sources":["file:///Users/eros/Dev/Eros_Projects/SlineDashbord/src/app/page.tsx"],"sourcesContent":["export default function Home() {\n  return (\n    <div className=\"flex min-h-screen flex-col items-center justify-center p-24\">\n      <h1 className=\"text-4xl font-bold text-primary\">Sline Admin Setup</h1>\n      <p className=\"mt-4 text-muted-foreground\">Tailwind & Shadcn Configured</p>\n      <div className=\"mt-8 flex gap-4\">\n        <div className=\"h-16 w-16 rounded-lg bg-primary animate-pulse-soft\"></div>\n        <div className=\"h-16 w-16 rounded-lg bg-secondary\"></div>\n        <div className=\"h-16 w-16 rounded-lg bg-destructive\"></div>\n      </div>\n    </div>\n  );\n}\n"],"names":[],"mappings":";;;;;;AAAe,SAAS;IACtB,qBACE,8OAAC;QAAI,WAAU;;0BACb,8OAAC;gBAAG,WAAU;0BAAkC;;;;;;0BAChD,8OAAC;gBAAE,WAAU;0BAA6B;;;;;;0BAC1C,8OAAC;gBAAI,WAAU;;kCACb,8OAAC;wBAAI,WAAU;;;;;;kCACf,8OAAC;wBAAI,WAAU;;;;;;kCACf,8OAAC;wBAAI,WAAU;;;;;;;;;;;;;;;;;;AAIvB"}}]
-}

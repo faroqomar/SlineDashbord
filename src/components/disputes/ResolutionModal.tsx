@@ -1,19 +1,6 @@
 "use client";
 
-import { useState } from "react";
-// import { Dispute } from "@/data/mock/disputes"; 
-// Using any for now as strict type might differ from DB.
-// TODO: Define shared Dispute type
-interface Dispute {
-    id: string;
-    amount: string | number;
-    resolutionOptions?: {
-        canRefund: boolean;
-        canRelease: boolean;
-        canSplit: boolean;
-    };
-    [key: string]: any;
-}
+import { DisputeResolutionContext } from "@/features/disputes/viewmodels/use_resolution_modal.vm";
 import {
   Dialog,
   DialogContent,
@@ -31,54 +18,23 @@ import { AlertTriangle, Check, RefreshCw, Split } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
+import { Dispute } from "@/data/mock/disputes";
+
 interface ResolutionModalProps {
-  dispute: Dispute;
+  dispute: DisputeResolutionContext & Partial<Dispute>;
   trigger?: React.ReactNode;
 }
 
-import { resolveDispute } from "@/actions/disputes";
+import { useResolutionModalViewModel } from "@/features/disputes/viewmodels/use_resolution_modal.vm";
 
 // ...
 
 export function ResolutionModal({ dispute, trigger }: ResolutionModalProps) {
-  const [open, setOpen] = useState(false);
-  const [action, setAction] = useState<"refund" | "release" | "split" | null>(null);
-  const [splitPercentage, setSplitPercentage] = useState(50); // Client percentage
-  const [isProcessing, setIsProcessing] = useState(false);
-
-  const totalAmount = typeof dispute.amount === 'string' 
-      ? parseFloat(dispute.amount.replace(/,/g, "")) 
-      : Number(dispute.amount) || 0;
-  
-  const clientAmount = action === "refund" 
-    ? totalAmount 
-    : action === "release" 
-        ? 0 
-        : (totalAmount * splitPercentage) / 100;
-        
-  const freelancerAmount = totalAmount - clientAmount;
-
-  const handleResolve = async () => {
-    if (!action) return;
-    
-    setIsProcessing(true);
-    try {
-        await resolveDispute(dispute.id, action, action, "Resolved via Admin Dashboard");
-        toast.success(`Dispute resolved via ${action.toUpperCase()}`, {
-            description: `Client: $${clientAmount.toFixed(2)} | Freelancer: $${freelancerAmount.toFixed(2)}`
-        });
-        setOpen(false);
-    } catch (error: any) {
-        toast.error(error.message || "Failed to resolve dispute");
-    } finally {
-        setIsProcessing(false);
-    }
-  };
-
-  const options = dispute.resolutionOptions || { canRefund: true, canRelease: true, canSplit: true };
+  const { state, actions } = useResolutionModalViewModel(dispute);
+  const { open, action, splitPercentage, confirmText, isProcessing, clientAmount, freelancerAmount, options } = state;
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={actions.setOpen}>
       <DialogTrigger asChild>
         {trigger || <Button>Resolve Dispute</Button>}
       </DialogTrigger>
@@ -96,7 +52,7 @@ export function ResolutionModal({ dispute, trigger }: ResolutionModalProps) {
               variant={action === "refund" ? "default" : "outline"}
               className={cn("flex flex-col h-20 gap-1", action === "refund" && "border-primary")}
               disabled={!options.canRefund}
-              onClick={() => setAction("refund")}
+              onClick={() => actions.setAction("refund")}
             >
               <RefreshCw className="h-5 w-5" />
               <span>Refund</span>
@@ -107,7 +63,7 @@ export function ResolutionModal({ dispute, trigger }: ResolutionModalProps) {
               variant={action === "release" ? "default" : "outline"}
               className={cn("flex flex-col h-20 gap-1", action === "release" && "border-primary")}
               disabled={!options.canRelease}
-              onClick={() => setAction("release")}
+              onClick={() => actions.setAction("release")}
             >
               <Check className="h-5 w-5" />
               <span>Release</span>
@@ -118,7 +74,7 @@ export function ResolutionModal({ dispute, trigger }: ResolutionModalProps) {
               variant={action === "split" ? "default" : "outline"}
               className={cn("flex flex-col h-20 gap-1", action === "split" && "border-primary")}
               disabled={!options.canSplit}
-              onClick={() => setAction("split")}
+              onClick={() => actions.setAction("split")}
             >
               <Split className="h-5 w-5" />
               <span>Split</span>
@@ -140,7 +96,7 @@ export function ResolutionModal({ dispute, trigger }: ResolutionModalProps) {
                   max="100" 
                   step="5"
                   value={splitPercentage}
-                  onChange={(e) => setSplitPercentage(parseInt(e.target.value))}
+                  onChange={(e) => actions.setSplitPercentage(parseInt(e.target.value))}
                   className="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer accent-primary"
                />
             </div>
@@ -148,19 +104,32 @@ export function ResolutionModal({ dispute, trigger }: ResolutionModalProps) {
 
           {action && (
              <div className="bg-muted p-4 rounded-lg space-y-2 mt-2">
-                <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Client receives:</span>
-                    <span className="font-mono font-medium text-green-600 dark:text-green-400">
-                        ${clientAmount.toFixed(2)}
-                    </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Freelancer receives:</span>
-                    <span className="font-mono font-medium text-blue-600 dark:text-blue-400">
-                        ${freelancerAmount.toFixed(2)}
-                    </span>
-                </div>
+                    <div className="flex justify-between items-center text-sm p-3 bg-muted/50 rounded-md">
+                        <span className="text-muted-foreground">Client Returns:</span>
+                        <span className="font-medium text-emerald-600">
+                        IQD {clientAmount.toFixed(2)}
+                        </span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm p-3 bg-muted/50 rounded-md">
+                        <span className="text-muted-foreground">Freelancer Receives:</span>
+                        <span className="font-medium text-emerald-600">
+                        IQD {freelancerAmount.toFixed(2)}
+                        </span>
+                    </div>
              </div>
+          )}
+
+          {action && (
+            <div className="space-y-2 mt-4">
+              <Label htmlFor="confirm" className="text-destructive font-semibold">Type &quot;RESOLVE&quot; to permanently close this dispute</Label>
+              <input
+                id="confirm"
+                placeholder="RESOLVE"
+                value={confirmText}
+                onChange={(e) => actions.setConfirmText(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              />
+            </div>
           )}
 
           {action === null && (
@@ -172,8 +141,8 @@ export function ResolutionModal({ dispute, trigger }: ResolutionModalProps) {
         </div>
 
         <DialogFooter>
-          <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button disabled={!action || isProcessing} onClick={handleResolve}>
+          <Button variant="ghost" onClick={() => actions.setOpen(false)}>Cancel</Button>
+          <Button disabled={!action || isProcessing || confirmText !== "RESOLVE"} onClick={actions.handleResolve}>
              {isProcessing ? "Processing..." : "Confirm Resolution"}
           </Button>
         </DialogFooter>

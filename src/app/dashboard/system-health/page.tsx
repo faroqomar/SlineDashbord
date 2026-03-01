@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 
 
 import { ServiceStatusList } from "@/components/health/ServiceStatusList";

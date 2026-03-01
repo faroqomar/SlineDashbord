@@ -1,44 +1,67 @@
-# 🧠 SLine Admin Database Reference
+# Admin Database Reference
 
-> [!NOTE]
-> The database schema and its specific relevance to the Admin Dashboard.
+This document covers the structure, types, and nuances of how the Sline Admin Dashboard interacts with the underlying Postgres Database via Supabase.
 
-## Core Tables Accessed
+---
 
-The Admin Dashboard interacts heavily with the following core Supabase tables:
+## 📊 Core Administrative Tables
 
-1.  **`profiles`**: The master table of all SLine users (Clients & Freelancers). Accessed primarily as read-only, except for suspension/banning features.
-2.  **`admin_users`**: The internal table managing dashboard staff, their roles, and status.
-3.  **`admin_logs`**: The immutably appended audit trail of every administrative mutation.
-4.  **`support_tickets`** & **`support_messages`**: The core of the Complaint/Support module. Read/Write.
-5.  **`disputes`**: Mediating conflicts between clients and freelancers on active jobs. Read/Write.
+While the Sline App has many tables, the Admin Dashboard primarily focuses on the orchestration and oversight of these entities:
 
-## Admin Enums
+| Table             | Description                                                        | Admin Permissions                               |
+| ----------------- | ------------------------------------------------------------------ | ----------------------------------------------- |
+| `profiles`        | User accounts, roles, and platform status.                         | View, Ban, Unban, Verify, Change Role           |
+| `tasks`           | Marketplace jobs, budgets, and descriptions.                       | View, Escalate                                  |
+| `disputes`        | Conflict resolution contexts generated when a task goes wrong.     | View, Mediate, Resolve (Financial Split/Refund) |
+| `support_tickets` | Incoming user questions, bug reports, and complaints.              | View, Reply, Close                              |
+| `audit_logs`      | Immutable ledger of all admin actions taken inside this dashboard. | Read-Only (System Appends)                      |
+| `system_config`   | Global variables (Maintenance mode, forced app version, banners).  | Read / Update                                   |
 
-- **`AdminRole`**: `viewer` | `support` | `moderator` | `admin` | `super_admin`
-- **`TicketStatus`**: `open` | `in_progress` | `resolved` | `closed`
-- **`TicketPriority`**: `low` | `normal` | `high` | `urgent`
-- **`DisputeStatus`**: `open` | `under_review` | `resolved` | `escalated`
+---
 
-## RLS Bypasses
+## 🗂 Key Postgres Enums
 
-Row Level Security (RLS) is standard practice in Supabase. However, the Admin Dashboard bypasses RLS policies entirely by using the `Service Role Key`.
+Type-safety begins at the database level. Sline uses custom ENUMs heavily.
 
-**Explicit Bypasses & Reasons:**
+1. **`UserRole` / Active Roles**: `user`, `admin`, `super_admin`, `moderator`, `support`, `finance`.
+2. **`TaskStatus`**: `open`, `in_progress`, `in_review`, `completed`, `cancelled`, `disputed`.
+3. **`DisputeStatus`**: `open`, `investigating`, `mediation`, `resolved`, `dismissed`.
+4. **`TicketStatus`**: `open`, `in_progress`, `waiting_on_user`, `resolved`, `closed`.
 
-- `profiles`: Bypassed because moderators need to view all user profiles entirely, even hidden or suspended ones.
-- `support_tickets`: Bypassed because support staff need global read/write access to assign tickets and resolve them regardless of the user `auth.uid()`.
-- `admin_logs`: Bypassed because only the Service Role can insert into this table, which is otherwise structurally restricted.
+---
 
-## Type Generation
+## 🛡 RLS Bypasses via Service Role
 
-Do not manually write or update backend types. SLine uses `supabase gen types` to produce a unified `Database` TS interface.
+The Admin Dashboard is built entirely on the `createAdminClient()` helper, which initiates a Supabase client using the `SUPABASE_SERVICE_ROLE_KEY`.
 
-**Command to Sync Types:**
+**This intentionally BYPASSES all Row Level Security (RLS) policies.**
+
+- **Why**: Traditional RLS requires the executing request to belong to the row owner (e.g., a freelancer selecting their own tasks). Determining administrative access natively inside Postgres RLS policies is inherently slow and complex.
+- **The Result**: The Admin server actions act as a "God Mode". We rely entirely on the App-Level Application Code (`requireAdminRole` guard) to restrict viewing and mutating capabilities.
+
+---
+
+## 🧬 Type Generation Pipeline
+
+We maintain 100% end-to-end type safety. Instead of manually typing database payloads, we generate them directly from the live Postgres schema.
+
+**Command to generate types:**
 
 ```bash
-supabase gen types typescript --project-id "your-project-id" --schema public > src/types/supabase.ts
+npx supabase gen types typescript --project-id isddrknbjsgaantjojhm > src/types/supabase.ts
 ```
 
-**Usage Rule:**
-Map the verbose `Database['public']['Tables']['x']['Row']` types to clean Data Transfer Objects (DTOs) in the feature layer (e.g. `export type TicketDTO = Database['public']['Tables']['support_tickets']['Row']`).
+_(Ensure you have the Supabase CLI installed and are authenticated)._
+
+**Consuming the Types:**
+Whenever typing a raw data payload, use the `Database` interfaces:
+
+```typescript
+import { Database } from "@/types/supabase";
+
+export type TaskRow = Database["public"]["Tables"]["tasks"]["Row"];
+export type ProfileUpdate = Database["public"]["Tables"]["profiles"]["Update"];
+```
+
+> [!TIP]
+> Never use `any` when dealing with Supabase responses! Always map the raw row data into a formatted `DTO` (Data Transfer Object) inside your Service Action before handing it off to the React View Model.

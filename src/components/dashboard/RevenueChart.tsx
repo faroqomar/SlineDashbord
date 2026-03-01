@@ -17,7 +17,7 @@ export function RevenueChart({ data }: RevenueChartProps) {
       </CardHeader>
       <CardContent className="pl-2">
         <div className="h-[350px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minHeight={0}>
             <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                 <defs>
                 <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
@@ -37,7 +37,7 @@ export function RevenueChart({ data }: RevenueChartProps) {
                     fontSize={12}
                     tickLine={false}
                     axisLine={false}
-                    tickFormatter={(value) => `$${value}`}
+                    tickFormatter={(value) => `IQD ${value.toLocaleString()}`}
                 />
                 <Tooltip 
                     contentStyle={{ 

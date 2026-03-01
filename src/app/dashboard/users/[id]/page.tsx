@@ -8,7 +8,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
-import { MOCK_RECENT_ACTIVITY } from "@/data/mock/overview"; // We'll migrate this later or use logs
 import { getUserDetails } from "@/features/users/services/user_actions";
 import { getLogsByTarget } from "@/features/logs/services/log_actions";
 import { SuspendUserButton } from "@/components/users/SuspendUserButton";
@@ -80,14 +79,15 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ id
       </Card>
 
       {/* Tabs */}
-      <Tabs defaultValue="overview" className="space-y-4">
+      <Tabs defaultValue="info" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="history">History</TabsTrigger>
-          <TabsTrigger value="logs">Security Logs</TabsTrigger>
+          <TabsTrigger value="info">Info</TabsTrigger>
+          <TabsTrigger value="activity">Activity</TabsTrigger>
+          <TabsTrigger value="wallet">Wallet</TabsTrigger>
+          <TabsTrigger value="logs">Audit Logs</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="overview" className="space-y-4">
+        <TabsContent value="info" className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -95,7 +95,7 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ id
                 <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">${user.spent.toLocaleString()}</div>
+                <div className="text-2xl font-bold">IQD {user.spent.toLocaleString()}</div>
               </CardContent>
             </Card>
             <Card>
@@ -119,15 +119,39 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ id
           </div>
         </TabsContent>
 
-        <TabsContent value="history">
+        <TabsContent value="activity">
           <Card>
             <CardHeader>
-              <CardTitle>Transaction History</CardTitle>
-              <CardDescription>Recent transactions and job activity.</CardDescription>
+              <CardTitle>Job Activity</CardTitle>
+              <CardDescription>Recent jobs and task interactions.</CardDescription>
             </CardHeader>
             <CardContent>
-                 {/* Reusing ActivityFeed logic for now, but really this should be transaction history */}
-                 <ActivityFeed activity={MOCK_RECENT_ACTIVITY} />
+                 <ActivityFeed activity={
+                   user.recent_activity.map(task => ({
+                     id: task.id,
+                     user: { name: user.full_name, email: user.email, avatar: user.avatar_url },
+                     action: `Job: ${task.title || 'Task Activity'}`,
+                     time: new Date(task.created_at).toLocaleString(),
+                     status: task.status === 'completed' ? 'success' : 'pending'
+                   }))
+                 } />
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="wallet">
+          <Card>
+            <CardHeader>
+              <CardTitle>Ledger Wallet</CardTitle>
+              <CardDescription>Current available balance derived from the double-entry journal.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                 <div className="text-3xl font-bold text-success">
+                   IQD {user.wallet_balance.toLocaleString()}
+                 </div>
+                 <p className="text-sm text-muted-foreground mt-2">
+                   This balance represents the real-time sum of completed ledger entries.
+                 </p>
             </CardContent>
           </Card>
         </TabsContent>
@@ -135,7 +159,7 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ id
         <TabsContent value="logs">
            <Card>
             <CardHeader>
-              <CardTitle>Security Logs</CardTitle>
+              <CardTitle>Audit Logs</CardTitle>
               <CardDescription>Recent system events related to this user.</CardDescription>
             </CardHeader>
             <CardContent>

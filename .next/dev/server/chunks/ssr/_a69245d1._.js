@@ -97,21 +97,24 @@ async function logAuditEvent(payload) {
         throw new Error(`Audit Log Failure: ${error.message}`);
     }
 }
-// Basic in-memory rate limiter using a sliding window approach. 
-// NOTE: Since Server Actions run in a serverless environment (Vercel), memory may reset on cold starts.
-// For true production rigidness, Upstash Redis is recommended.
-const rateLimitCache = new Map();
-function enforceRateLimit(action, userId, limit, windowMs) {
-    const now = Date.now();
+async function enforceRateLimit(action, userId, limit, windowMs) {
+    const adminClient = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$supabase$2f$admin$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["createAdminClient"])();
     const key = `${action}:${userId}`;
-    const timestamps = rateLimitCache.get(key) || [];
-    // Filter out timestamps outside the sliding window
-    const validTimestamps = timestamps.filter((t)=>now - t < windowMs);
-    if (validTimestamps.length >= limit) {
+    const windowSeconds = Math.max(1, Math.floor(windowMs / 1000));
+    const { data: isAllowed, error } = await adminClient.rpc('check_rate_limit', {
+        p_key: key,
+        p_limit: limit,
+        p_window_seconds: windowSeconds
+    });
+    if (error) {
+        console.error('Rate limit check error:', error);
+        // Be safe: if rate limiter fails, allow the request but log it.
+        // Alternatively, for high-security, throw. Here we allow but log.
+        return;
+    }
+    if (!isAllowed) {
         throw new Error('Rate limit exceeded. Please try again later.');
     }
-    validTimestamps.push(now);
-    rateLimitCache.set(key, validTimestamps);
 }
 }),
 "[project]/src/features/core/models/result.ts [app-rsc] (ecmascript)", ((__turbopack_context__) => {
@@ -147,6 +150,8 @@ function toErrorMessage(e) {
 "use strict";
 
 __turbopack_context__.s([
+    "BanUserSchema",
+    ()=>BanUserSchema,
     "GetUserDetailsSchema",
     ()=>GetUserDetailsSchema,
     "GetUsersSchema",
@@ -156,7 +161,11 @@ __turbopack_context__.s([
     "USERS_READ_ROLES",
     ()=>USERS_READ_ROLES,
     "USERS_WRITE_ROLES",
-    ()=>USERS_WRITE_ROLES
+    ()=>USERS_WRITE_ROLES,
+    "UnbanUserSchema",
+    ()=>UnbanUserSchema,
+    "VerifyUserSchema",
+    ()=>VerifyUserSchema
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$zod$2f$v4$2f$classic$2f$external$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$export__$2a$__as__z$3e$__ = __turbopack_context__.i("[project]/node_modules/zod/v4/classic/external.js [app-rsc] (ecmascript) <export * as z>");
 ;
@@ -177,6 +186,16 @@ const SuspendUserSchema = __TURBOPACK__imported__module__$5b$project$5d2f$node_m
         'permanent'
     ]).default('24h')
 });
+const BanUserSchema = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$zod$2f$v4$2f$classic$2f$external$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$export__$2a$__as__z$3e$__["z"].object({
+    userId: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$zod$2f$v4$2f$classic$2f$external$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$export__$2a$__as__z$3e$__["z"].string().uuid("Invalid User ID"),
+    reason: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$zod$2f$v4$2f$classic$2f$external$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$export__$2a$__as__z$3e$__["z"].string().min(5, "Reason must be at least 5 characters").max(500, "Reason is too long")
+});
+const UnbanUserSchema = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$zod$2f$v4$2f$classic$2f$external$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$export__$2a$__as__z$3e$__["z"].object({
+    userId: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$zod$2f$v4$2f$classic$2f$external$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$export__$2a$__as__z$3e$__["z"].string().uuid("Invalid User ID")
+});
+const VerifyUserSchema = __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$zod$2f$v4$2f$classic$2f$external$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$export__$2a$__as__z$3e$__["z"].object({
+    userId: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$zod$2f$v4$2f$classic$2f$external$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$export__$2a$__as__z$3e$__["z"].string().uuid("Invalid User ID")
+});
 const USERS_READ_ROLES = [
     'support',
     'moderator',
@@ -191,13 +210,19 @@ const USERS_WRITE_ROLES = [
 "[project]/src/features/users/services/user_actions.ts [app-rsc] (ecmascript)", ((__turbopack_context__) => {
 "use strict";
 
-/* __next_internal_action_entry_do_not_use__ [{"4018fa51aaa499abf32c05f3c450fbc8f4d01ec166":"getUserDetails","70258f4056f50a8c69baea68b0b873c4e0bdcc8ae9":"getUsers","702c1aff13c52f2ae4dfd6770c35cf7632771ff4f0":"suspendUser"},"",""] */ __turbopack_context__.s([
+/* __next_internal_action_entry_do_not_use__ [{"403043e39664001ef442dd3fc808591c2c095a2193":"unbanUser","404ff4eaa9c7159743d1820427794640e7de49699a":"getUserDetails","40eaf36f7231dcfbeabac2794beae6beb3174aa116":"verifyUser","606a53046bbb9135285bbd927004554e71f26c4ae5":"banUser","704823146b11fe2e607674c0df61e6171879aef5ef":"getUsers","70971c68966d52546dc36cefc7e70584a998c9a501":"suspendUser"},"",""] */ __turbopack_context__.s([
+    "banUser",
+    ()=>banUser,
     "getUserDetails",
     ()=>getUserDetails,
     "getUsers",
     ()=>getUsers,
     "suspendUser",
-    ()=>suspendUser
+    ()=>suspendUser,
+    "unbanUser",
+    ()=>unbanUser,
+    "verifyUser",
+    ()=>verifyUser
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/build/webpack/loaders/next-flight-loader/server-reference.js [app-rsc] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$supabase$2f$admin$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/lib/supabase/admin.ts [app-rsc] (ecmascript)");
@@ -274,13 +299,20 @@ async function getUserDetails(id) {
         if (!parsed.success) return (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$models$2f$result$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["fail"])(parsed.error.issues[0].message);
         await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$security$2f$security_guards$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["requireAdminRole"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$users$2f$models$2f$user$2e$schema$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["USERS_READ_ROLES"]);
         const supabase = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$supabase$2f$admin$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["createAdminClient"])();
-        const [authRes, profileRes] = await Promise.all([
+        const [authRes, profileRes, tasksRes, walletRes] = await Promise.all([
             supabase.auth.admin.getUserById(parsed.data.id),
-            supabase.from('profiles').select('*').eq('id', parsed.data.id).single()
+            supabase.from('profiles').select('*').eq('id', parsed.data.id).single(),
+            supabase.from('tasks').select('*').or(`client_id.eq.${parsed.data.id},freelancer_id.eq.${parsed.data.id}`).order('created_at', {
+                ascending: false
+            }).limit(10),
+            supabase.from('vw_wallet_balances_user').select('available_balance').eq('user_id', parsed.data.id).maybeSingle()
         ]);
         if (authRes.error || !authRes.data.user) return (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$models$2f$result$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["fail"])('User not found in Auth system');
         const authUser = authRes.data.user;
         const profile = profileRes.data || {};
+        const recent_activity = tasksRes.data || [];
+        const wallet_balance = walletRes.data?.available_balance || 0;
+        const job_count = recent_activity.length; // Approximate for now
         const user = {
             id: authUser.id,
             email: authUser.email || '',
@@ -299,7 +331,9 @@ async function getUserDetails(id) {
             rating: profile.rating || 0,
             spent: 0,
             earned: 0,
-            job_count: 0,
+            job_count,
+            wallet_balance,
+            recent_activity,
             metadata: authUser.user_metadata
         };
         return (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$models$2f$result$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["ok"])(user);
@@ -317,6 +351,7 @@ async function suspendUser(id, reason, duration) {
         });
         if (!parsed.success) return (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$models$2f$result$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["fail"])(parsed.error.issues[0].message);
         const { userId } = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$security$2f$security_guards$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["requireAdminRole"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$users$2f$models$2f$user$2e$schema$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["USERS_WRITE_ROLES"]);
+        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$security$2f$security_guards$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["enforceRateLimit"])('suspend_user', userId, 5, 60000);
         const supabase = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$supabase$2f$admin$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["createAdminClient"])();
         const durationInput = parsed.data.duration;
         const banDurationStr = durationInput === 'permanent' ? '876000h' : durationInput === '30d' ? '720h' : '24h';
@@ -350,15 +385,147 @@ async function suspendUser(id, reason, duration) {
         return (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$models$2f$result$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["fail"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$models$2f$result$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["toErrorMessage"])(error));
     }
 }
+async function banUser(userId, reason) {
+    try {
+        const parsed = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$users$2f$models$2f$user$2e$schema$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["BanUserSchema"].safeParse({
+            userId,
+            reason
+        });
+        if (!parsed.success) return (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$models$2f$result$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["fail"])(parsed.error.issues[0].message);
+        const { userId: adminId } = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$security$2f$security_guards$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["requireAdminRole"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$users$2f$models$2f$user$2e$schema$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["USERS_WRITE_ROLES"]);
+        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$security$2f$security_guards$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["enforceRateLimit"])('ban_user', adminId, 5, 60000);
+        const supabaseAdmin = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$supabase$2f$admin$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["createAdminClient"])();
+        // Fetch existing metadata to avoid overwriting
+        const { data: profile } = await supabaseAdmin.from('profiles').select('metadata').eq('id', parsed.data.userId).single();
+        const currentMetadata = profile?.metadata || {};
+        const { error: profileError } = await supabaseAdmin.from('profiles').update({
+            status: 'banned',
+            metadata: {
+                ...currentMetadata,
+                ban_reason: parsed.data.reason,
+                banned_by: adminId,
+                banned_at: new Date().toISOString()
+            }
+        }).eq('id', parsed.data.userId);
+        if (profileError) return (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$models$2f$result$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["fail"])(`Failed to ban user profile: ${profileError.message}`);
+        const { error: banError } = await supabaseAdmin.auth.admin.updateUserById(parsed.data.userId, {
+            ban_duration: '876000h' // ~100 years
+        });
+        if (banError) console.error('Failed to ban user in Auth:', banError);
+        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$security$2f$security_guards$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["logAuditEvent"])({
+            action: 'admin.users.ban',
+            actor_user_id: adminId,
+            related_entity_type: 'profile',
+            related_entity_id: parsed.data.userId,
+            meta: {
+                reason: parsed.data.reason
+            }
+        });
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])('/dashboard/users');
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])(`/dashboard/users/${parsed.data.userId}`);
+        return (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$models$2f$result$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["ok"])({
+            userId: parsed.data.userId
+        });
+    } catch (error) {
+        console.error('banUser error:', error);
+        return (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$models$2f$result$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["fail"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$models$2f$result$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["toErrorMessage"])(error));
+    }
+}
+async function unbanUser(userId) {
+    try {
+        const parsed = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$users$2f$models$2f$user$2e$schema$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["UnbanUserSchema"].safeParse({
+            userId
+        });
+        if (!parsed.success) return (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$models$2f$result$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["fail"])(parsed.error.issues[0].message);
+        const { userId: adminId } = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$security$2f$security_guards$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["requireAdminRole"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$users$2f$models$2f$user$2e$schema$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["USERS_WRITE_ROLES"]);
+        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$security$2f$security_guards$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["enforceRateLimit"])('unban_user', adminId, 5, 60000);
+        const supabaseAdmin = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$supabase$2f$admin$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["createAdminClient"])();
+        // Fetch existing metadata to avoid overwriting
+        const { data: profile } = await supabaseAdmin.from('profiles').select('metadata').eq('id', parsed.data.userId).single();
+        const currentMetadata = profile?.metadata || {};
+        const { error: profileError } = await supabaseAdmin.from('profiles').update({
+            status: 'active',
+            metadata: {
+                ...currentMetadata,
+                unbanned_by: adminId,
+                unbanned_at: new Date().toISOString()
+            }
+        }).eq('id', parsed.data.userId);
+        if (profileError) return (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$models$2f$result$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["fail"])(`Failed to unban user profile: ${profileError.message}`);
+        const { error: banError } = await supabaseAdmin.auth.admin.updateUserById(parsed.data.userId, {
+            ban_duration: 'none'
+        });
+        if (banError) console.error('Failed to unban user in Auth:', banError);
+        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$security$2f$security_guards$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["logAuditEvent"])({
+            action: 'admin.users.unban',
+            actor_user_id: adminId,
+            related_entity_type: 'profile',
+            related_entity_id: parsed.data.userId,
+            meta: {}
+        });
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])('/dashboard/users');
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])(`/dashboard/users/${parsed.data.userId}`);
+        return (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$models$2f$result$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["ok"])({
+            userId: parsed.data.userId
+        });
+    } catch (error) {
+        console.error('unbanUser error:', error);
+        return (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$models$2f$result$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["fail"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$models$2f$result$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["toErrorMessage"])(error));
+    }
+}
+async function verifyUser(userId) {
+    try {
+        const parsed = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$users$2f$models$2f$user$2e$schema$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["VerifyUserSchema"].safeParse({
+            userId
+        });
+        if (!parsed.success) return (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$models$2f$result$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["fail"])(parsed.error.issues[0].message);
+        const { userId: adminId } = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$security$2f$security_guards$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["requireAdminRole"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$users$2f$models$2f$user$2e$schema$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["USERS_WRITE_ROLES"]);
+        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$security$2f$security_guards$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["enforceRateLimit"])('verify_user', adminId, 10, 60000);
+        const supabaseAdmin = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$supabase$2f$admin$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["createAdminClient"])();
+        // Fetch existing metadata to avoid overwriting
+        const { data: profile } = await supabaseAdmin.from('profiles').select('metadata').eq('id', parsed.data.userId).single();
+        const currentMetadata = profile?.metadata || {};
+        const { error: profileError } = await supabaseAdmin.from('profiles').update({
+            metadata: {
+                ...currentMetadata,
+                is_verified: true,
+                verified_by: adminId,
+                verified_at: new Date().toISOString()
+            }
+        }).eq('id', parsed.data.userId);
+        if (profileError) return (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$models$2f$result$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["fail"])(`Failed to verify user profile: ${profileError.message}`);
+        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$security$2f$security_guards$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["logAuditEvent"])({
+            action: 'admin.users.verify',
+            actor_user_id: adminId,
+            related_entity_type: 'profile',
+            related_entity_id: parsed.data.userId,
+            meta: {}
+        });
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])('/dashboard/users');
+        (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])(`/dashboard/users/${parsed.data.userId}`);
+        return (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$models$2f$result$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["ok"])({
+            userId: parsed.data.userId
+        });
+    } catch (error) {
+        console.error('verifyUser error:', error);
+        return (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$models$2f$result$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["fail"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$models$2f$result$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["toErrorMessage"])(error));
+    }
+}
 ;
 (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$action$2d$validate$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["ensureServerEntryExports"])([
     getUsers,
     getUserDetails,
-    suspendUser
+    suspendUser,
+    banUser,
+    unbanUser,
+    verifyUser
 ]);
-(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(getUsers, "70258f4056f50a8c69baea68b0b873c4e0bdcc8ae9", null);
-(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(getUserDetails, "4018fa51aaa499abf32c05f3c450fbc8f4d01ec166", null);
-(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(suspendUser, "702c1aff13c52f2ae4dfd6770c35cf7632771ff4f0", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(getUsers, "704823146b11fe2e607674c0df61e6171879aef5ef", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(getUserDetails, "404ff4eaa9c7159743d1820427794640e7de49699a", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(suspendUser, "70971c68966d52546dc36cefc7e70584a998c9a501", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(banUser, "606a53046bbb9135285bbd927004554e71f26c4ae5", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(unbanUser, "403043e39664001ef442dd3fc808591c2c095a2193", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(verifyUser, "40eaf36f7231dcfbeabac2794beae6beb3174aa116", null);
 }),
 "[project]/.next-internal/server/app/dashboard/users/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/users/services/user_actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript) <locals>", ((__turbopack_context__) => {
 "use strict";
@@ -372,9 +539,9 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$users$2f$
 "use strict";
 
 __turbopack_context__.s([
-    "70258f4056f50a8c69baea68b0b873c4e0bdcc8ae9",
+    "704823146b11fe2e607674c0df61e6171879aef5ef",
     ()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$users$2f$services$2f$user_actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getUsers"],
-    "702c1aff13c52f2ae4dfd6770c35cf7632771ff4f0",
+    "70971c68966d52546dc36cefc7e70584a998c9a501",
     ()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$users$2f$services$2f$user_actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["suspendUser"]
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$dashboard$2f$users$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$features$2f$users$2f$services$2f$user_actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i('[project]/.next-internal/server/app/dashboard/users/page/actions.js { ACTIONS_MODULE0 => "[project]/src/features/users/services/user_actions.ts [app-rsc] (ecmascript)" } [app-rsc] (server actions loader, ecmascript) <locals>');

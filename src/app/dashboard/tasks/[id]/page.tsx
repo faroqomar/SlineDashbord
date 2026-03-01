@@ -1,19 +1,28 @@
 
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Calendar, DollarSign, Tag, User, Briefcase, FileImage } from "lucide-react";
+import { ArrowLeft, Calendar, DollarSign, Tag, User, Briefcase, FileImage, ShieldCheck, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getTaskDetails } from "@/features/tasks/services/task_actions";
+import { getTaskDetails, getTaskActivity } from "@/features/tasks/services/task_actions";
 import { TaskActions } from "@/components/tasks/TaskActions";
 import { Separator } from "@/components/ui/separator";
+import { TaskActivity } from "@/features/tasks/view/components/TaskActivity";
+import { cn } from "@/lib/utils";
 
 export default async function TaskDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const res = await getTaskDetails(id);
-  const task = res.success ? res.data : null;
+  
+  // Parallel fetch for details and activity
+  const [detailsRes, activityRes] = await Promise.all([
+    getTaskDetails(id),
+    getTaskActivity(id)
+  ]);
+
+  const task = detailsRes.success ? detailsRes.data : null;
+  const activity = activityRes.success ? activityRes.data : [];
 
   if (!task) {
     notFound();
@@ -34,160 +43,185 @@ export default async function TaskDetailsPage({ params }: { params: Promise<{ id
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Link href="/dashboard/tasks">
-          <Button variant="ghost" size="sm">
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Tasks
-          </Button>
-        </Link>
-        <div className="flex-1" />
-         <TaskActions taskId={task.id} status={task.status} />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+            <Link href="/dashboard/tasks">
+            <Button variant="ghost" size="sm" className="h-8">
+                <ArrowLeft className="mr-2 h-4 w-4" /> Back
+            </Button>
+            </Link>
+            <div className="h-4 w-[1px] bg-border hidden sm:block" />
+            <div className="flex flex-col">
+                <h1 className="text-xl font-bold tracking-tight">{task.title}</h1>
+                <p className="text-xs text-muted-foreground font-mono">TASK-{task.id.slice(0, 8).toUpperCase()}</p>
+            </div>
+        </div>
+        <div className="flex items-center gap-2">
+            <Badge variant="outline" className={cn("px-3 py-1", getStatusColor(task.status))}>
+                {task.status.replace('_', ' ').toUpperCase()}
+            </Badge>
+            <TaskActions taskId={task.id} status={task.status} />
+        </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
-        {/* Main Content */}
-        <div className="md:col-span-2 space-y-6">
-          <Card>
-            <CardHeader>
+      <div className="grid gap-6 lg:grid-cols-12">
+        {/* Main Content Column */}
+        <div className="lg:col-span-8 space-y-6">
+          <Card className="border-none shadow-md bg-gradient-to-br from-background to-muted/20">
+            <CardHeader className="pb-2">
               <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle className="text-2xl font-bold">{task.title}</CardTitle>
-                    <CardDescription className="mt-2 flex items-center gap-2">
-                        <Badge variant="outline" className={getStatusColor(task.status)}>
-                            {task.status.replace('_', ' ')}
-                        </Badge>
-                        <span className="text-muted-foreground">•</span>
-                        <span className="text-sm text-muted-foreground font-mono">ID: {task.id.slice(0, 8)}</span>
-                    </CardDescription>
+                    <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                        <Briefcase className="h-5 w-5 text-primary" />
+                        Task Description
+                    </CardTitle>
                   </div>
                    <div className="text-right">
-                      <div className="text-2xl font-bold font-mono text-primary flex items-center justify-end">
-                        <DollarSign className="h-5 w-5 text-muted-foreground mr-1" />
-                        {task.budget}
+                      <div className="text-2xl font-black font-mono text-primary flex items-center justify-end">
+                        <DollarSign className="h-5 w-5 mr-0.5 opacity-50" />
+                        {task.budget.toLocaleString()}
                       </div>
-                      <div className="text-xs text-muted-foreground mt-1">Budget</div>
+                      <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">IQD Budget</div>
                    </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-6">
-                <div>
-                    <h3 className="font-semibold mb-2 flex items-center gap-2">
-                        <Briefcase className="h-4 w-4 text-muted-foreground" />
-                        Description
-                    </h3>
-                    <div className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap bg-muted/30 p-4 rounded-md">
-                        {task.description}
-                    </div>
+            <CardContent className="space-y-6 pt-4">
+                <div className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap bg-background/50 p-6 rounded-xl border border-primary/5 italic shadow-inner">
+                    {task.description}
                 </div>
 
-                <Separator />
-
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                         <h3 className="font-semibold mb-2 flex items-center gap-2">
-                            <Calendar className="h-4 w-4 text-muted-foreground" />
-                            Dates
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="p-4 rounded-xl bg-muted/30 border border-border/50">
+                         <h3 className="text-xs font-bold uppercase text-muted-foreground mb-3 flex items-center gap-2">
+                            <Calendar className="h-3 w-3" />
+                            Timeline
                         </h3>
-                        <div className="grid gap-1 text-sm">
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Posted:</span>
-                                <span>{new Date(task.created_at).toLocaleDateString()}</span>
+                        <div className="space-y-2 text-sm">
+                            <div className="flex justify-between items-center bg-background/40 p-2 rounded-lg">
+                                <span className="text-muted-foreground text-xs italic">Posted</span>
+                                <span className="font-medium text-xs">{new Date(task.created_at).toLocaleDateString()}</span>
                             </div>
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">Deadline:</span>
-                                <span>{task.deadline ? new Date(task.deadline).toLocaleDateString() : 'No deadline'}</span>
+                            <div className="flex justify-between items-center bg-background/40 p-2 rounded-lg">
+                                <span className="text-muted-foreground text-xs italic">Deadline</span>
+                                <span className={cn("font-medium text-xs", !task.deadline && "text-muted-foreground")}>
+                                    {task.deadline ? new Date(task.deadline).toLocaleDateString() : 'None'}
+                                </span>
                             </div>
                         </div>
                     </div>
-                     <div>
-                         <h3 className="font-semibold mb-2 flex items-center gap-2">
-                            <Tag className="h-4 w-4 text-muted-foreground" />
-                            Category & Skills
+                     <div className="p-4 rounded-xl bg-muted/30 border border-border/50">
+                         <h3 className="text-xs font-bold uppercase text-muted-foreground mb-3 flex items-center gap-2">
+                            <Tag className="h-3 w-3" />
+                            Skills & Taxonomy
                         </h3>
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-1.5 pt-1">
                             {task.category && (
-                                <Badge variant="secondary">{task.category}</Badge>
+                                <Badge className="bg-primary/5 text-primary hover:bg-primary/10 border-primary/20">{task.category}</Badge>
                             )}
                             {task.skills?.map(skill => (
-                                <Badge key={skill} variant="outline">{skill}</Badge>
+                                <Badge key={skill} variant="secondary" className="text-[10px] font-medium opacity-80">{skill}</Badge>
                             ))}
                              {!task.category && (!task.skills || task.skills.length === 0) && (
-                                <span className="text-sm text-muted-foreground italic">No category or skills listed.</span>
+                                <span className="text-xs text-muted-foreground italic opacity-50">Empty taxonomy</span>
                             )}
                         </div>
                     </div>
                 </div>
 
                 {task.image_paths && task.image_paths.length > 0 && (
-                     <>
-                        <Separator />
-                        <div>
-                            <h3 className="font-semibold mb-2 flex items-center gap-2">
-                                <FileImage className="h-4 w-4 text-muted-foreground" />
-                                Attachments
-                            </h3>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                                {task.image_paths.map((path, index) => (
-                                    <div key={index} className="aspect-video bg-muted rounded-md flex items-center justify-center border text-xs text-muted-foreground overflow-hidden">
-                                        {/* Displaying filename. Full image preview requires storage bucket configuration. */}
-                                        <span className="p-2 break-all">{path.split('/').pop()}</span>
-                                    </div>
-                                ))}
-                            </div>
+                     <div className="pt-2">
+                        <h3 className="text-xs font-bold uppercase text-muted-foreground mb-3 flex items-center gap-2">
+                            <FileImage className="h-3 w-3" />
+                            Attachments ({task.image_paths.length})
+                        </h3>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            {task.image_paths.map((path, index) => (
+                                <div key={index} className="aspect-square bg-muted/50 rounded-lg flex flex-col items-center justify-center border-2 border-dashed border-muted-foreground/20 hover:border-primary/30 transition-all cursor-pointer group">
+                                    <FileImage className="h-6 w-6 text-muted-foreground mb-2 group-hover:text-primary transition-colors" />
+                                    <span className="px-2 text-[9px] text-muted-foreground font-mono truncate w-full text-center">
+                                        {path.split('/').pop()}
+                                    </span>
+                                </div>
+                            ))}
                         </div>
-                     </>
+                     </div>
                 )}
             </CardContent>
           </Card>
+
+          {/* Activity Section Mobile Only (Hidden on LG) */}
+          <div className="lg:hidden">
+              <TaskActivity activities={activity} />
+          </div>
         </div>
 
-        {/* Sidebar */}
-        <div className="space-y-6">
-            {/* Client Card */}
-            <Card>
-                <CardHeader className="pb-3">
-                    <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Client</CardTitle>
+        {/* Sidebar Column */}
+        <div className="lg:col-span-4 space-y-6">
+            {/* Participants Card */}
+            <Card className="border-primary/10 shadow-sm overflow-hidden">
+                <CardHeader className="bg-muted/30 pb-3">
+                    <CardTitle className="text-xs font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
+                        <User className="h-3.5 w-3.5" />
+                        Ownership & Assignment
+                    </CardTitle>
                 </CardHeader>
-                <CardContent>
-                    <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10">
-                            <AvatarImage src={task.client.avatar_url} />
-                            <AvatarFallback>{task.client.full_name?.charAt(0) || "C"}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                            <div className="font-medium text-sm">{task.client.full_name}</div>
-                            <Link href={`/dashboard/users/${task.client.id}`} className="text-xs text-primary hover:underline">
-                                View Profile
-                            </Link>
+                <CardContent className="pt-4 space-y-6">
+                    {/* Client */}
+                    <div className="relative">
+                        <div className="text-[10px] font-black text-muted-foreground/40 absolute -top-1 left-9 uppercase">Client / Owner</div>
+                        <div className="flex items-center gap-3 bg-muted/10 p-2 rounded-xl border border-transparent hover:border-border transition-colors">
+                            <Avatar className="h-10 w-10 ring-2 ring-background">
+                                <AvatarImage src={task.client.avatar_url} />
+                                <AvatarFallback className="bg-primary/5 text-primary">{task.client.full_name?.charAt(0) || "C"}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                                <div className="font-bold text-sm truncate">{task.client.full_name}</div>
+                                <Link href={`/dashboard/users/${task.client.id}`} className="text-[10px] text-primary hover:underline font-bold flex items-center gap-1">
+                                    Profile Link
+                                </Link>
+                            </div>
                         </div>
+                    </div>
+
+                    <Separator className="opacity-50" />
+
+                    {/* Freelancer */}
+                    <div className="relative">
+                        <div className="text-[10px] font-black text-muted-foreground/40 absolute -top-1 left-9 uppercase">Freelancer / Assignee</div>
+                        {task.freelancer ? (
+                             <div className="flex items-center gap-3 bg-muted/10 p-2 rounded-xl border border-transparent hover:border-border transition-colors">
+                                <Avatar className="h-10 w-10 ring-2 ring-background">
+                                    <AvatarImage src={task.freelancer.avatar_url} />
+                                    <AvatarFallback className="bg-primary/5 text-primary">{task.freelancer.full_name?.charAt(0) || "F"}</AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1 min-w-0">
+                                    <div className="font-bold text-sm truncate">{task.freelancer.full_name}</div>
+                                    <Link href={`/dashboard/users/${task.freelancer.id}`} className="text-[10px] text-primary hover:underline font-bold flex items-center gap-1">
+                                        Profile Link
+                                    </Link>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-3 p-4 rounded-xl border-2 border-dashed border-muted text-center italic text-xs text-muted-foreground justify-center">
+                                No assigned freelancer
+                            </div>
+                        )}
                     </div>
                 </CardContent>
             </Card>
 
-            {/* Freelancer Card */}
-            <Card className={task.freelancer ? "" : "border-dashed bg-muted/20"}>
-                <CardHeader className="pb-3">
-                    <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Freelancer</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {task.freelancer ? (
-                         <div className="flex items-center gap-3">
-                            <Avatar className="h-10 w-10">
-                                <AvatarImage src={task.freelancer.avatar_url} />
-                                <AvatarFallback>{task.freelancer.full_name?.charAt(0) || "F"}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                                <div className="font-medium text-sm">{task.freelancer.full_name}</div>
-                                <Link href={`/dashboard/users/${task.freelancer.id}`} className="text-xs text-primary hover:underline">
-                                    View Profile
-                                </Link>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="text-sm text-muted-foreground italic text-center py-2">
-                            Not assigned yet
-                        </div>
-                    )}
+            {/* Admin Activity Sidebar (Lg Only) */}
+            <div className="hidden lg:block">
+                <TaskActivity activities={activity} />
+            </div>
+
+            {/* Security Notice */}
+            <Card className="bg-primary/5 border-primary/20 shadow-none">
+                <CardContent className="p-4 flex gap-3 text-xs leading-normal">
+                    <ShieldCheck className="h-5 w-5 text-primary shrink-0" />
+                    <p className="text-primary/80">
+                        <strong>Admin Override Active</strong>: Any status changes here bypass standard escrow triggers unless using <em>Force Cancel</em>.
+                    </p>
                 </CardContent>
             </Card>
         </div>

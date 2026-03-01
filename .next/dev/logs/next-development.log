@@ -1,81 +1,110 @@
-[00:00:02.130] Server  WARN    ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
-[00:00:02.388] Server  LOG     ✓ Ready in 1922ms
-[00:19:29.143] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:19:29.530] Browser ERROR   A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+[00:00:03.998] Server  LOG     ✓ Ready in 3.6s
+[00:00:04.275] Server  ERROR   ⨯ The file "./src/proxy.ts" must export a function, either as a default export or as a named "proxy" export.
+This function is what Next.js runs for every request handled by this proxy (previously called middleware).
 
-- A server/client branch `if (typeof window !== 'undefined')`.
-- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
-- Date formatting in a user's locale which doesn't match the server.
-- External changing data without sending a snapshot of it along with the HTML.
-- Invalid HTML tag nesting.
+Why this happens:
+- You are migrating from `middleware` to `proxy`, but haven't updated the exported function.
+- The file exists but doesn't export a function.
+- The export is not a function (e.g., an object or constant).
+- There's a syntax error preventing the export from being recognized.
 
-It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+To fix it:
+- Ensure this file has either a default or "proxy" function export.
 
-%s%s https://react.dev/link/hydration-mismatch 
+Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+[00:00:07.853] Server  LOG     ○ Compiling /_not-found/page ...
+[00:00:22.952] Server  ERROR   ⨯ Error: The Proxy file "/proxy" must export a function named `proxy` or a default function.
+[00:00:37.786] Server  ERROR   ⨯ Error: The Proxy file "/proxy" must export a function named `proxy` or a default function.
+[00:00:42.921] Browser ERROR   uncaughtError: Error: ./src/proxy.ts
+Proxy is missing expected function export name
+This function is what Next.js runs for every request handled by this proxy (previously called middleware).
 
-  ...
-    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
-      <AppDevOverlayErrorBoundary globalError={[...]}>
-        <ReplaySsrOnlyErrors>
-        <DevRootHTTPAccessFallbackBoundary>
-          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
-            <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<NotAllowedRootHTTPFallbackError>} ...>
-              <RedirectBoundary>
-                <RedirectErrorBoundary router={{...}}>
-                  <Head>
-                  <__next_root_layout_boundary__>
-                    <SegmentViewNode type="layout" pagePath="layout.tsx">
-                      <SegmentTrieNode>
-                      <link>
-                      <script>
-                      <RootLayout>
-                        <html lang="en">
-                          <body
-                            className="inter_b2991b2-module__9mH_6q__variable font-sans antialiased"
--                           data-new-gr-c-s-check-loaded="14.1275.0"
--                           data-gr-ext-installed=""
-                          >
-                  ...
+Why this happens:
+- You are migrating from `middleware` to `proxy`, but haven't updated the exported function.
+- The file exists but doesn't export a function.
+- The export is not a function (e.g., an object or constant).
+- There's a syntax error preventing the export from being recognized.
 
-[00:19:40.067] Server  LOG     ○ Compiling /dashboard ...
-[00:19:41.841] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:19:43.035] Server  WARN    The width(-1) and height(-1) of chart should be greater than 0,
+To fix it:
+- Ensure this file has either a default or "proxy" function export.
+
+Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+
+
+[00:00:44.359] Browser ERROR   ./src/proxy.ts
+Proxy is missing expected function export name
+This function is what Next.js runs for every request handled by this proxy (previously called middleware).
+
+Why this happens:
+- You are migrating from `middleware` to `proxy`, but haven't updated the exported function.
+- The file exists but doesn't export a function.
+- The export is not a function (e.g., an object or constant).
+- There's a syntax error preventing the export from being recognized.
+
+To fix it:
+- Ensure this file has either a default or "proxy" function export.
+
+Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+[00:00:44.698] Browser ERROR   ./src/proxy.ts
+Proxy is missing expected function export name
+This function is what Next.js runs for every request handled by this proxy (previously called middleware).
+
+Why this happens:
+- You are migrating from `middleware` to `proxy`, but haven't updated the exported function.
+- The file exists but doesn't export a function.
+- The export is not a function (e.g., an object or constant).
+- There's a syntax error preventing the export from being recognized.
+
+To fix it:
+- Ensure this file has either a default or "proxy" function export.
+
+Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+[00:01:18.231] Server  LOG     ✓ Compiled in 393ms
+[00:01:22.657] Server  LOG     ○ Compiling /dashboard ...
+[00:01:40.417] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:01:41.536] Server  WARN    The width(-1) and height(-1) of chart should be greater than 0,
        please check the style of container, or the props width(100%) and height(100%),
-       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       or add a minWidth(0) or minHeight(0) or use aspect(undefined) to control the
        height and width.
-[00:19:43.074] Server  WARN    The width(-1) and height(-1) of chart should be greater than 0,
+[00:01:41.543] Server  WARN    The width(-1) and height(-1) of chart should be greater than 0,
        please check the style of container, or the props width(100%) and height(100%),
-       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       or add a minWidth(0) or minHeight(0) or use aspect(undefined) to control the
        height and width.
-[00:19:43.523] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+[00:04:09.746] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
        please check the style of container, or the props width(100%) and height(100%),
-       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       or add a minWidth(0) or minHeight(0) or use aspect(undefined) to control the
        height and width.
-[00:19:43.524] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+[00:04:09.747] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
        please check the style of container, or the props width(100%) and height(100%),
-       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       or add a minWidth(0) or minHeight(0) or use aspect(undefined) to control the
        height and width.
-[00:19:43.524] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+[00:04:09.747] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
        please check the style of container, or the props width(100%) and height(100%),
-       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       or add a minWidth(0) or minHeight(0) or use aspect(undefined) to control the
        height and width.
-[00:19:43.524] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+[00:04:09.747] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
        please check the style of container, or the props width(100%) and height(100%),
-       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       or add a minWidth(0) or minHeight(0) or use aspect(undefined) to control the
        height and width.
-[00:59:52.002] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+[00:04:14.350] Server  LOG     ○ Compiling /dashboard/users ...
+[00:04:25.276] Server  LOG     ○ Compiling /dashboard/disputes ...
+[00:04:32.424] Server  LOG     ○ Compiling /dashboard/logs ...
+[00:04:39.540] Server  LOG     ○ Compiling /dashboard/finance ...
+[00:04:43.573] Server  LOG     ○ Compiling /dashboard/finance/overview ...
+[00:05:04.231] Server  ERROR   Failed to write audit log: {}
+[00:05:35.590] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
        please check the style of container, or the props width(100%) and height(100%),
-       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       or add a minWidth(0) or minHeight(0) or use aspect(undefined) to control the
        height and width.
-[00:59:52.004] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+[00:05:35.591] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
        please check the style of container, or the props width(100%) and height(100%),
-       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       or add a minWidth(0) or minHeight(0) or use aspect(undefined) to control the
        height and width.
-[00:59:52.005] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+[00:05:35.591] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
        please check the style of container, or the props width(100%) and height(100%),
-       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       or add a minWidth(0) or minHeight(0) or use aspect(undefined) to control the
        height and width.
-[00:59:52.005] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
+[00:05:35.591] Browser WARN    The width(-1) and height(-1) of chart should be greater than 0,
        please check the style of container, or the props width(100%) and height(100%),
-       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       or add a minWidth(0) or minHeight(0) or use aspect(undefined) to control the
        height and width.

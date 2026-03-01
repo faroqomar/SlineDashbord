@@ -97,21 +97,24 @@ async function logAuditEvent(payload) {
         throw new Error(`Audit Log Failure: ${error.message}`);
     }
 }
-// Basic in-memory rate limiter using a sliding window approach. 
-// NOTE: Since Server Actions run in a serverless environment (Vercel), memory may reset on cold starts.
-// For true production rigidness, Upstash Redis is recommended.
-const rateLimitCache = new Map();
-function enforceRateLimit(action, userId, limit, windowMs) {
-    const now = Date.now();
+async function enforceRateLimit(action, userId, limit, windowMs) {
+    const adminClient = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$supabase$2f$admin$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["createAdminClient"])();
     const key = `${action}:${userId}`;
-    const timestamps = rateLimitCache.get(key) || [];
-    // Filter out timestamps outside the sliding window
-    const validTimestamps = timestamps.filter((t)=>now - t < windowMs);
-    if (validTimestamps.length >= limit) {
+    const windowSeconds = Math.max(1, Math.floor(windowMs / 1000));
+    const { data: isAllowed, error } = await adminClient.rpc('check_rate_limit', {
+        p_key: key,
+        p_limit: limit,
+        p_window_seconds: windowSeconds
+    });
+    if (error) {
+        console.error('Rate limit check error:', error);
+        // Be safe: if rate limiter fails, allow the request but log it.
+        // Alternatively, for high-security, throw. Here we allow but log.
+        return;
+    }
+    if (!isAllowed) {
         throw new Error('Rate limit exceeded. Please try again later.');
     }
-    validTimestamps.push(now);
-    rateLimitCache.set(key, validTimestamps);
 }
 }),
 "[project]/src/features/core/models/result.ts [app-rsc] (ecmascript)", ((__turbopack_context__) => {
@@ -171,7 +174,11 @@ const UpdateDisputeStatusSchema = __TURBOPACK__imported__module__$5b$project$5d2
         'resolved',
         'escalated'
     ]),
-    resolution: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$zod$2f$v4$2f$classic$2f$external$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$export__$2a$__as__z$3e$__["z"].string().optional()
+    resolution: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$zod$2f$v4$2f$classic$2f$external$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$export__$2a$__as__z$3e$__["z"].string().optional(),
+    decision: __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$zod$2f$v4$2f$classic$2f$external$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__$3c$export__$2a$__as__z$3e$__["z"].enum([
+        'refund_client',
+        'release_freelancer'
+    ]).optional()
 });
 const USERS_READ_ROLES = [
     'support',
@@ -188,7 +195,7 @@ const USERS_WRITE_ROLES = [
 "[project]/src/features/disputes/services/dispute_actions.ts [app-rsc] (ecmascript)", ((__turbopack_context__) => {
 "use strict";
 
-/* __next_internal_action_entry_do_not_use__ [{"408afefe9bd2946359d15bf7d2c7a4a1b576629126":"getDisputeDetails","705f282954dbf56acc9a9edb1d9374318548a6b42a":"resolveDispute","7814d92471b2c68e998094e2a8c45cd92f12d3c02f":"getDisputes"},"",""] */ __turbopack_context__.s([
+/* __next_internal_action_entry_do_not_use__ [{"40b46d939e857a35a9a362138c2bcdbb86214547ce":"getDisputeDetails","7875b4110433e6051e183bf364dd72b124284944d8":"getDisputes","789ae6fc0693e08f56fdc38189256b3547fb4ed0d1":"resolveDispute"},"",""] */ __turbopack_context__.s([
     "getDisputeDetails",
     ()=>getDisputeDetails,
     "getDisputes",
@@ -330,6 +337,25 @@ async function getDisputeDetails(id) {
           email,
           avatar_url,
           active_role
+        ),
+        messages:dispute_messages (
+          id,
+          content,
+          created_at,
+          is_admin,
+          sender:profiles!dispute_messages_sender_id_fkey (
+             full_name
+          )
+        ),
+        evidence:dispute_evidence (
+          id,
+          file_url,
+          file_type,
+          description,
+          created_at,
+          uploader:profiles!dispute_evidence_uploader_id_fkey (
+             full_name
+          )
         )
       `).eq('id', parsed.data.id).single();
         if (error || !d) return (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$models$2f$result$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["fail"])('Dispute not found');
@@ -362,7 +388,9 @@ async function getDisputeDetails(id) {
                 budget: d.task?.budget_cents ? d.task.budget_cents / 100 : d.task?.budget || 0,
                 deadline: d.task?.deadline,
                 status: d.task?.status || 'unknown'
-            }
+            },
+            messages: d.messages || [],
+            evidence: d.evidence || []
         };
         return (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$models$2f$result$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["ok"])(dispute);
     } catch (error) {
@@ -370,22 +398,38 @@ async function getDisputeDetails(id) {
         return (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$models$2f$result$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["fail"])((0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$models$2f$result$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["toErrorMessage"])(error));
     }
 }
-async function resolveDispute(id, resolution, status) {
+async function resolveDispute(id, resolution, status, decision) {
     try {
         const parsed = __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$disputes$2f$models$2f$dispute$2e$schema$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["UpdateDisputeStatusSchema"].safeParse({
             id,
             status,
-            resolution
+            resolution,
+            decision
         });
         if (!parsed.success) return (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$models$2f$result$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["fail"])(parsed.error.issues[0].message);
         const { userId } = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$security$2f$security_guards$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["requireAdminRole"])(__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$disputes$2f$models$2f$dispute$2e$schema$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["USERS_WRITE_ROLES"]);
+        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$security$2f$security_guards$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["enforceRateLimit"])('resolve_dispute', userId, 5, 60000);
         const supabase = (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$supabase$2f$admin$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["createAdminClient"])();
-        const { error } = await supabase.from('disputes').update({
-            resolution: parsed.data.resolution,
-            status: parsed.data.status,
-            resolved_at: new Date().toISOString()
-        }).eq('id', parsed.data.id);
-        if (error) return (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$models$2f$result$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["fail"])('Failed to resolve dispute');
+        // If it's a financial resolution ('resolved') with a valid decision
+        if (parsed.data.status === 'resolved' && parsed.data.decision) {
+            const { error: rpcError } = await supabase.rpc('admin_resolve_dispute', {
+                p_dispute_id: parsed.data.id,
+                p_decision: parsed.data.decision
+            });
+            if (rpcError) return (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$models$2f$result$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["fail"])(`Failed to execute financial resolution: ${rpcError.message}`);
+            // Still update the admin reasoning notes
+            await supabase.from('disputes').update({
+                resolution: parsed.data.resolution
+            }).eq('id', parsed.data.id);
+        } else {
+            // Non-financial resolution (e.g., dismissed)
+            const { error } = await supabase.from('disputes').update({
+                resolution: parsed.data.resolution,
+                status: parsed.data.status,
+                resolved_at: new Date().toISOString()
+            }).eq('id', parsed.data.id);
+            if (error) return (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$models$2f$result$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["fail"])('Failed to resolve dispute');
+        }
         // Log action securely targeting audit_logs
         await (0, __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$core$2f$security$2f$security_guards$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["logAuditEvent"])({
             action: 'admin.disputes.resolve',
@@ -394,7 +438,8 @@ async function resolveDispute(id, resolution, status) {
             related_entity_id: parsed.data.id,
             meta: {
                 resolution: parsed.data.resolution,
-                status: parsed.data.status
+                status: parsed.data.status,
+                decision: parsed.data.decision
             }
         });
         (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$cache$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["revalidatePath"])('/dashboard/disputes');
@@ -413,9 +458,9 @@ async function resolveDispute(id, resolution, status) {
     getDisputeDetails,
     resolveDispute
 ]);
-(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(getDisputes, "7814d92471b2c68e998094e2a8c45cd92f12d3c02f", null);
-(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(getDisputeDetails, "408afefe9bd2946359d15bf7d2c7a4a1b576629126", null);
-(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(resolveDispute, "705f282954dbf56acc9a9edb1d9374318548a6b42a", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(getDisputes, "7875b4110433e6051e183bf364dd72b124284944d8", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(getDisputeDetails, "40b46d939e857a35a9a362138c2bcdbb86214547ce", null);
+(0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$webpack$2f$loaders$2f$next$2d$flight$2d$loader$2f$server$2d$reference$2e$js__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["registerServerReference"])(resolveDispute, "789ae6fc0693e08f56fdc38189256b3547fb4ed0d1", null);
 }),
 "[project]/.next-internal/server/app/dashboard/disputes/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/disputes/services/dispute_actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript) <locals>", ((__turbopack_context__) => {
 "use strict";
@@ -430,12 +475,12 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$disputes$
 "use strict";
 
 __turbopack_context__.s([
-    "408afefe9bd2946359d15bf7d2c7a4a1b576629126",
+    "40b46d939e857a35a9a362138c2bcdbb86214547ce",
     ()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$disputes$2f$services$2f$dispute_actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getDisputeDetails"],
-    "705f282954dbf56acc9a9edb1d9374318548a6b42a",
-    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$disputes$2f$services$2f$dispute_actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["resolveDispute"],
-    "7814d92471b2c68e998094e2a8c45cd92f12d3c02f",
-    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$disputes$2f$services$2f$dispute_actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getDisputes"]
+    "7875b4110433e6051e183bf364dd72b124284944d8",
+    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$disputes$2f$services$2f$dispute_actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["getDisputes"],
+    "789ae6fc0693e08f56fdc38189256b3547fb4ed0d1",
+    ()=>__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$disputes$2f$services$2f$dispute_actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["resolveDispute"]
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f2e$next$2d$internal$2f$server$2f$app$2f$dashboard$2f$disputes$2f$page$2f$actions$2e$js__$7b$__ACTIONS_MODULE0__$3d3e$__$225b$project$5d2f$src$2f$features$2f$disputes$2f$services$2f$dispute_actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$2922$__$7d$__$5b$app$2d$rsc$5d$__$28$server__actions__loader$2c$__ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i('[project]/.next-internal/server/app/dashboard/disputes/page/actions.js { ACTIONS_MODULE0 => "[project]/src/features/disputes/services/dispute_actions.ts [app-rsc] (ecmascript)" } [app-rsc] (server actions loader, ecmascript) <locals>');
 var __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$features$2f$disputes$2f$services$2f$dispute_actions$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/src/features/disputes/services/dispute_actions.ts [app-rsc] (ecmascript)");

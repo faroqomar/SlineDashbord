@@ -1,5 +1,9 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const KEY_PATTERN = /SUPABASE_SERVICE_ROLE_KEY/;
 const EXCLUDED_DIRS = ['node_modules', '.next', '.git', 'scripts', 'src/lib/supabase', 'src/actions', 'src/proxy.ts', 'src/instrumentation.ts', 'src/features/finance/services'];

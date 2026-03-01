@@ -1,165 +1,115 @@
-# 📘 SLine Admin Developer Guide
+# Admin Developer Guide
 
-> [!NOTE]
-> This guide outlines the core architecture and development patterns for building features in the SLine Admin Dashboard.
+This document is the core architectural reference for the Sline Dashboard (Next.js 15). It dictates how features are built, structured, and maintained in this repository.
 
-## Architecture: MVVM + Service Layer
+## 🏗 Architecture Pattern (Service -> ViewModel -> View)
 
-The Admin Dashboard strictly adheres to a Model-View-ViewModel (MVVM) architecture, adapted for Next.js 15 App Router and React Server Components. Features are encapsulated within `src/features/[feature_name]/`.
+We strictly follow an MVVM (Model-View-ViewModel) architectural pattern adapted for Next.js App Router. This isolates standard UI rendering from complex state and database interactions.
 
-- **View (UI Components)**: Pure React components responsible only for rendering UI and handling user interactions. They strictly consume data and methods provided by the ViewModel.
-- **ViewModel (Custom Hooks)**: React hooks (`use[Feature].vm.ts`) that manage local component state, loading states, and orchestrate calls to the Service layer. **No security checks or direct database calls happen here.**
-- **Service (Server Actions)**: Backend logic executing on the server (`use server`). This layer enforces security (RBAC), validates input (Zod), performs database operations, and writes Audit Logs.
-- **Model (Schemas & Types)**: Zod schemas and TypeScript interfaces defining the shape of data flowing through the system.
+1. **Service (Server Actions / Data Layer):** Located in `src/features/[feature]/services/`. These files run strictly on the server (`'use server'`). They handle database fetching, Zod validations, RLS bypasses via the Admin Client, and Audit Logging.
+2. **ViewModel (State / Logic):** Located in `src/features/[feature]/viewmodels/`. These are custom React Hooks (e.g., `useTasksViewModel`) that encapsulate the state, mutations, and optimistic UI updates. The UI component simply reads state and triggers actions from the ViewModel.
+3. **View (UI Layer):** Located in `src/features/[feature]/view/`. These are React Components (`'use client'`). They contain strictly JSX and design system components (Shadcn/Tailwind), pulling their logic from the ViewModel.
 
-## Server Actions (The Backend)
+---
 
-All Server Actions must follow a strict, unified pattern to guarantee security and reliable error handling.
+## 🔒 Server Actions Protocol
 
-> [!IMPORTANT]
-> **The "No Throw" Rule:** Server Actions must NEVER throw exceptions. All outcomes (success or failure) must be returned using the `ServiceResult<T>` pattern.
+Server Actions are the lifeblood of the dashboard. Due to the high-security nature of an Admin Panel, **every Server Action must follow these rules**:
 
-### The Standard Server Action Flow:
+> [!CAUTION]
+> **"No Throw" Rule:** Server actions must _never_ throw native JS errors. All endpoints must return a `ServiceResult<T>` object mapping `{ success: false, error: "..." }` to gracefully handle boundaries.
 
-1.  **Validate Input**: Use Zod `.safeParse()` on all incoming arguments.
-2.  **Enforce RBAC**: Call `requireAdminRole(ALLOWED_ROLES)`.
-3.  **Execute Logic**: Perform the necessary database operations using `createAdminClient()`.
-4.  **Audit Log**: If the action modifies data, invoke `logAuditEvent()`.
-5.  **Return Result**: Return `ok(data)` or `fail("error message")`.
+1. **Zod Validation**: Input parameters must be parsed via Zod immediately.
+2. **Auth & RBAC Check**: `requireAdminRole(['role_name'])` must be invoked.
+3. **DB Execution**: Execute logic using the `createAdminClient()` (Bypasses RLS).
+4. **Audit Logging**: Any mutation must be recorded via `logAuditEvent()`.
+5. **Revalidation**: Call `revalidatePath()` to clear the Next.js cache.
 
-## Client Components (The Frontend)
+---
 
-Client components should use the `useViewModel` pattern to abstract complex state.
+## 💻 Client Components & State Management
 
-### State Management
+**React State vs URL State (`nuqs` / `next/navigation`)**
 
-- **React State (`useState`)**: Use for ephemeral UI state (e.g., toggling a dropdown, managing a simple modal's open state).
-- **URL State (Query Params)**: Use for state that should be shareable or persistent across reloads (e.g., pagination, search filters, active tabs).
-- **ViewModel State**: Use for managing the async state of Server Action calls (`isPending`, `error`).
+- **URL State**: Use for pagination, filtering, searching, and tabs. This ensures dashboards can be bookmarked and shared among admins.
+- **React State (`useState`)**: Use strictly for ephemeral UI state (e.g., "Is this modal currently open?", "Is this dropdown expanded?").
 
-## Code Snippet: Standard CRUD Feature Template
+**Using ViewModels**
+Always wrap client-side logic in a custom hook.
 
-### 1. Model & Schema (`src/features/example/models/example.schema.ts`)
+```tsx
+// ❌ BAD: Mixing logic and UI
+export function UserList() {
+    const [isLoading, setIsLoading] = useState(false);
+    const deleteUser = async () => { ... }
+    return <div>...</div>
+}
+
+// ✅ GOOD: Clean View consuming a ViewModel
+export function UserList() {
+    const vm = useUsersViewModel();
+    return <Button disabled={vm.isLoading} onClick={vm.deleteUser}>Delete</Button>
+}
+```
+
+---
+
+## 📋 Copy-Paste Feature Template
+
+### 1. Model / Schema (`src/features/items/models/item.schema.ts`)
 
 ```typescript
 import { z } from "zod";
 
-export const CreateExampleSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  description: z.string().optional(),
+export const ItemSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(2),
+  status: z.enum(["active", "archived"]),
 });
-export type CreateExampleDTO = z.infer<typeof CreateExampleSchema>;
 
-export const EXAMPLE_WRITE_ROLES = ["admin", "super_admin"];
+export type ItemDTO = z.infer<typeof ItemSchema>;
+export const MANAGE_ITEMS_ROLES = ["admin", "super_admin"];
 ```
 
-### 2. Service (`src/features/example/services/example_actions.ts`)
+### 2. Service Action (`src/features/items/services/item_actions.ts`)
 
 ```typescript
 "use server";
-
 import { createAdminClient } from "@/lib/supabase/admin";
-import {
-  ok,
-  fail,
-  ServiceResult,
-  toErrorMessage,
-} from "@/features/core/models/result";
 import {
   requireAdminRole,
   logAuditEvent,
 } from "@/features/core/security/security_guards";
 import {
-  CreateExampleSchema,
-  CreateExampleDTO,
-  EXAMPLE_WRITE_ROLES,
-} from "../models/example.schema";
+  ServiceResult,
+  ok,
+  fail,
+  toErrorMessage,
+} from "@/features/core/models/result";
+import { revalidatePath } from "next/cache";
 
-export async function createExample(
-  input: CreateExampleDTO,
-): Promise<ServiceResult<any>> {
+export async function deleteItem(
+  id: string,
+): Promise<ServiceResult<{ id: string }>> {
   try {
-    // 1. Validate
-    const parsed = CreateExampleSchema.safeParse(input);
-    if (!parsed.success) return fail(parsed.error.issues[0].message);
-
-    // 2. Authorize
-    const { userId } = await requireAdminRole(EXAMPLE_WRITE_ROLES);
-
-    // 3. Execute
+    const { userId } = await requireAdminRole(["admin", "super_admin"]);
     const supabase = createAdminClient();
-    const { data, error } = await supabase
-      .from("examples")
-      .insert(parsed.data)
-      .select()
-      .single();
-    if (error) return fail("Failed to create example");
 
-    // 4. Audit
+    const { error } = await supabase.from("items").delete().eq("id", id);
+    if (error) return fail("Failed to delete item");
+
     await logAuditEvent({
-      action: "example.created",
-      actor_id: userId,
-      target_id: data.id,
-      target_type: "example",
-      metadata: { new_data: data },
+      action: "admin.items.delete",
+      actor_user_id: userId,
+      related_entity_type: "item",
+      related_entity_id: id,
+      meta: {},
     });
 
-    // 5. Return
-    return ok(data);
-  } catch (error) {
-    return fail(toErrorMessage(error));
+    revalidatePath("/dashboard/items");
+    return ok({ id });
+  } catch (e) {
+    return fail(toErrorMessage(e));
   }
-}
-```
-
-### 3. ViewModel (`src/features/example/viewmodels/useExample.vm.ts`)
-
-```typescript
-import { useState, useTransition } from "react";
-import { createExample } from "../services/example_actions";
-import { CreateExampleDTO } from "../models/example.schema";
-
-export function useExample() {
-  const [isPending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
-
-  const handleCreate = (data: CreateExampleDTO) => {
-    setError(null);
-    startTransition(async () => {
-      const result = await createExample(data);
-      if (!result.success) {
-        setError(result.error);
-      } else {
-        // Handle success
-      }
-    });
-  };
-
-  return { createItem: handleCreate, isPending, error };
-}
-```
-
-### 4. View (`src/features/example/views/ExampleForm.tsx`)
-
-```tsx
-"use client";
-
-import { useExample } from "../viewmodels/useExample.vm";
-import { Button } from "@/components/ui/button";
-
-export function ExampleForm() {
-  const { createItem, isPending, error } = useExample();
-
-  return (
-    <div>
-      {error && <div className="text-red-500">{error}</div>}
-      <Button
-        onClick={() => createItem({ title: "New Item" })}
-        disabled={isPending}
-      >
-        {isPending ? "Creating..." : "Create Item"}
-      </Button>
-    </div>
-  );
 }
 ```

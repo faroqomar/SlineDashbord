@@ -2,7 +2,7 @@
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
-import { requireAdminRole, logAuditEvent } from '@/features/core/security/security_guards';
+import { requireAdminRole, logAuditEvent, enforceRateLimit } from '@/features/core/security/security_guards';
 import { ok, fail, ServiceResult, toErrorMessage } from '@/features/core/models/result';
 import { 
   InviteMemberSchema, 
@@ -62,6 +62,7 @@ export async function inviteMember(email: string, role: string, fullName: string
         if (!parsed.success) return fail(parsed.error.issues[0].message);
 
         const { userId } = await requireAdminRole(TEAM_WRITE_ROLES);
+        await enforceRateLimit('invite_member', userId, 5, 60000);
         const supabase = createAdminClient();
 
         // 1. Invite user via Auth Admin
@@ -116,6 +117,7 @@ export async function updateRole(targetUserId: string, newRole: string): Promise
         if (!parsed.success) return fail(parsed.error.issues[0].message);
 
         const { userId } = await requireAdminRole(TEAM_WRITE_ROLES);
+        await enforceRateLimit('update_role', userId, 5, 60000);
         const supabase = createAdminClient();
 
         const { error } = await supabase
@@ -147,6 +149,7 @@ export async function removeMember(targetUserId: string): Promise<ServiceResult<
         if (!parsed.success) return fail(parsed.error.issues[0].message);
 
         const { userId } = await requireAdminRole(TEAM_WRITE_ROLES);
+        await enforceRateLimit('remove_member', userId, 5, 60000);
         const supabase = createAdminClient();
 
         // 1. Remove from admin_users

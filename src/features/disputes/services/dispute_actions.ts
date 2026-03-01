@@ -2,7 +2,7 @@
 
 import { createAdminClient } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
-import { requireAdminRole, logAuditEvent } from '@/features/core/security/security_guards';
+import { requireAdminRole, logAuditEvent, enforceRateLimit } from '@/features/core/security/security_guards';
 import { ok, fail, ServiceResult, toErrorMessage } from '@/features/core/models/result';
 import { GetDisputesSchema, UpdateDisputeStatusSchema, USERS_READ_ROLES, USERS_WRITE_ROLES } from '../models/dispute.schema';
 import { z } from 'zod';
@@ -40,6 +40,8 @@ export interface DisputeDetailsDTO extends DisputeDTO {
     deadline: string;
     status: string;
   };
+  messages: any[];
+  evidence: any[];
 }
 
 export async function getDisputes(
@@ -173,6 +175,25 @@ export async function getDisputeDetails(id: string): Promise<ServiceResult<Dispu
           email,
           avatar_url,
           active_role
+        ),
+        messages:dispute_messages (
+          id,
+          content,
+          created_at,
+          is_admin,
+          sender:profiles!dispute_messages_sender_id_fkey (
+             full_name
+          )
+        ),
+        evidence:dispute_evidence (
+          id,
+          file_url,
+          file_type,
+          description,
+          created_at,
+          uploader:profiles!dispute_evidence_uploader_id_fkey (
+             full_name
+          )
         )
       `)
       .eq('id', parsed.data.id)
@@ -209,7 +230,9 @@ export async function getDisputeDetails(id: string): Promise<ServiceResult<Dispu
         budget: (d.task?.budget_cents ? d.task.budget_cents / 100 : d.task?.budget || 0),
         deadline: d.task?.deadline,
         status: d.task?.status || 'unknown'
-      }
+      },
+      messages: d.messages || [],
+      evidence: d.evidence || []
     };
 
     return ok(dispute);
@@ -219,25 +242,39 @@ export async function getDisputeDetails(id: string): Promise<ServiceResult<Dispu
   }
 }
 
-export async function resolveDispute(id: string, resolution: string, status: 'resolved' | 'dismissed'): Promise<ServiceResult<{id: string}>> {
+export async function resolveDispute(id: string, resolution: string, status: 'resolved' | 'dismissed', decision?: 'refund_client' | 'release_freelancer'): Promise<ServiceResult<{id: string}>> {
     try {
-        const parsed = UpdateDisputeStatusSchema.safeParse({ id, status, resolution });
+        const parsed = UpdateDisputeStatusSchema.safeParse({ id, status, resolution, decision });
         if (!parsed.success) return fail(parsed.error.issues[0].message);
 
         const { userId } = await requireAdminRole(USERS_WRITE_ROLES);
-
+        await enforceRateLimit('resolve_dispute', userId, 5, 60000);
         const supabase = createAdminClient();
 
-        const { error } = await supabase
-            .from('disputes')
-            .update({
-                resolution: parsed.data.resolution,
-                status: parsed.data.status,
-                resolved_at: new Date().toISOString()
-            })
-            .eq('id', parsed.data.id);
-
-        if (error) return fail('Failed to resolve dispute');
+        // If it's a financial resolution ('resolved') with a valid decision
+        if (parsed.data.status === 'resolved' && parsed.data.decision) {
+            const { error: rpcError } = await supabase.rpc('admin_resolve_dispute', {
+                p_dispute_id: parsed.data.id,
+                p_decision: parsed.data.decision
+            });
+            
+            if (rpcError) return fail(`Failed to execute financial resolution: ${rpcError.message}`);
+            
+            // Still update the admin reasoning notes
+            await supabase.from('disputes').update({ resolution: parsed.data.resolution }).eq('id', parsed.data.id);
+        } else {
+            // Non-financial resolution (e.g., dismissed)
+            const { error } = await supabase
+                .from('disputes')
+                .update({
+                    resolution: parsed.data.resolution,
+                    status: parsed.data.status,
+                    resolved_at: new Date().toISOString()
+                })
+                .eq('id', parsed.data.id);
+    
+            if (error) return fail('Failed to resolve dispute');
+        }
 
         // Log action securely targeting audit_logs
         await logAuditEvent({
@@ -245,7 +282,7 @@ export async function resolveDispute(id: string, resolution: string, status: 're
             actor_user_id: userId,
             related_entity_type: 'dispute',
             related_entity_id: parsed.data.id,
-            meta: { resolution: parsed.data.resolution, status: parsed.data.status }
+            meta: { resolution: parsed.data.resolution, status: parsed.data.status, decision: parsed.data.decision }
         });
 
         revalidatePath('/dashboard/disputes');

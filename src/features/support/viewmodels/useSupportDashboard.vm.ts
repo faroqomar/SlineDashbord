@@ -1,30 +1,29 @@
-
 import { useState, useEffect, useTransition } from "react";
-import { TicketDTO, TicketMessageDTO } from "@/types/support";
-import { getTicketMessages, replyToTicket, updateTicketStatus } from "@/features/support/services/support_actions";
+import { getTicketMessages, replyToTicket, updateTicketStatus, TicketMessageDTO } from "@/features/support/services/support_actions";
+import { SupportTicketDTO } from "@/features/support/models/support.schema";
 import { toast } from "sonner";
 
 export interface UseSupportDashboardVM {
-    tickets: TicketDTO[];
-    selectedTicket: TicketDTO | null;
+    tickets: SupportTicketDTO[];
+    selectedTicket: SupportTicketDTO | null;
     searchQuery: string;
     statusFilter: string;
     showNotes: boolean;
     messages: TicketMessageDTO[];
     isLoadingMessages: boolean;
     isSending: boolean;
-    filteredTickets: TicketDTO[];
+    filteredTickets: SupportTicketDTO[];
     setSearchQuery: (query: string) => void;
     setStatusFilter: (status: string) => void;
     setShowNotes: (show: boolean) => void;
-    selectTicket: (ticket: TicketDTO) => void;
+    selectTicket: (ticket: SupportTicketDTO) => void;
     sendMessage: (content: string, adminId: string) => Promise<void>;
-    updateStatus: (newStatus: string) => Promise<void>;
+    updateStatus: (newStatus: SupportTicketDTO['status']) => Promise<void>;
 }
 
-export function useSupportDashboard(initialTickets: TicketDTO[]): UseSupportDashboardVM {
-    const [tickets, setTickets] = useState<TicketDTO[]>(initialTickets);
-    const [selectedTicket, setSelectedTicket] = useState<TicketDTO | null>(null);
+export function useSupportDashboard(initialTickets: SupportTicketDTO[]): UseSupportDashboardVM {
+    const [tickets, setTickets] = useState<SupportTicketDTO[]>(initialTickets);
+    const [selectedTicket, setSelectedTicket] = useState<SupportTicketDTO | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
     const [showNotes, setShowNotes] = useState(false);
@@ -58,7 +57,8 @@ export function useSupportDashboard(initialTickets: TicketDTO[]): UseSupportDash
     const filteredTickets = tickets.filter((ticket) => {
         const matchesSearch = ticket.subject.toLowerCase().includes(searchQuery.toLowerCase()) || 
                               ticket.user?.full_name?.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesStatus = statusFilter === "all" || ticket.status === statusFilter;
+        const matchesStatus = statusFilter === "all" || 
+                             (statusFilter === "mine" ? true : ticket.status === statusFilter); 
         return matchesSearch && matchesStatus;
     });
 
@@ -95,14 +95,14 @@ export function useSupportDashboard(initialTickets: TicketDTO[]): UseSupportDash
     };
 
     // Action: Update Status
-    const updateStatus = async (newStatus: string) => {
+    const updateStatus = async (newStatus: SupportTicketDTO['status']) => {
         if (!selectedTicket) return;
         
         const updatedTickets = tickets.map(t => 
-            t.id === selectedTicket.id ? { ...t, status: newStatus as any } : t
+            t.id === selectedTicket.id ? { ...t, status: newStatus } : t
         );
         setTickets(updatedTickets);
-        setSelectedTicket({ ...selectedTicket, status: newStatus as any });
+        setSelectedTicket({ ...selectedTicket, status: newStatus });
 
         try {
             const res = await updateTicketStatus(selectedTicket.id, newStatus);
@@ -113,7 +113,6 @@ export function useSupportDashboard(initialTickets: TicketDTO[]): UseSupportDash
             }
         } catch (error) {
             toast.error("Failed to update status");
-            // Could revert here if needed, but for now we keep optimistic state
         }
     };
 

@@ -1,44 +1,40 @@
-"use client";
+import { Suspense } from "react";
+import { SettingsScreen } from "@/features/settings/view/SettingsScreen";
+import { getSystemConfigs } from "@/features/settings/services/settings_actions";
+import { requireAdminRole } from "@/features/core/security/security_guards";
+import { Skeleton } from "@/components/ui/skeleton";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings, Shield, Link2 } from "lucide-react";
-import { GeneralTab } from "@/components/settings/GeneralTab";
-import { SecurityTab } from "@/components/settings/SecurityTab";
-import { IntegrationsTab } from "@/components/settings/IntegrationsTab";
+export default async function SettingsPage() {
+  // Check role - only super_admin for full management, but others might read?
+  // implementation_plan says Step 1 SysOp role validation.
+  const { role } = await requireAdminRole(['super_admin', 'support', 'moderator']);
+  const canManage = role === 'super_admin';
 
-export default function SettingsPage() {
+  const res = await getSystemConfigs();
+  const configs = res.success ? res.data : [];
+
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 h-[calc(100vh-10rem)]">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight">Settings</h2>
-        <p className="text-muted-foreground">Manage system-wide configurations and access controls.</p>
-      </div>
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <Suspense fallback={<SettingsSkeleton />}>
+        <SettingsScreen initialConfigs={configs} canManage={canManage} />
+      </Suspense>
+    </div>
+  );
+}
 
-      <Tabs defaultValue="general" className="w-full">
-        <TabsList className="mb-4">
-            <TabsTrigger value="general" className="flex items-center gap-2">
-                <Settings className="h-4 w-4" /> General
-            </TabsTrigger>
-            <TabsTrigger value="security" className="flex items-center gap-2">
-                <Shield className="h-4 w-4" /> Security
-            </TabsTrigger>
-            <TabsTrigger value="integrations" className="flex items-center gap-2">
-                <Link2 className="h-4 w-4" /> Integrations
-            </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="general" className="mt-0">
-             <GeneralTab />
-        </TabsContent>
-        
-        <TabsContent value="security" className="mt-0">
-             <SecurityTab />
-        </TabsContent>
-        
-        <TabsContent value="integrations" className="mt-0">
-             <IntegrationsTab />
-        </TabsContent>
-      </Tabs>
+function SettingsSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="space-y-2">
+          <Skeleton className="h-10 w-64" />
+          <Skeleton className="h-4 w-96" />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Skeleton className="h-64 w-full" />
+        <Skeleton className="h-64 w-full" />
+      </div>
     </div>
   );
 }

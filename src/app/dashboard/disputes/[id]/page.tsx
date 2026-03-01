@@ -66,7 +66,7 @@ export default async function DisputePage({ params }: { params: Promise<{ id: st
           email: client.email,
           avatar: client.avatar_url,
           rating: 0, 
-          totalSpent: "$0"
+          totalSpent: "IQD 0"
       },
       freelancer: {
           id: freelancer.id,
@@ -74,12 +74,25 @@ export default async function DisputePage({ params }: { params: Promise<{ id: st
           email: freelancer.email,
           avatar: freelancer.avatar_url,
           rating: 0,
-          totalEarned: "$0"
+          totalEarned: "IQD 0"
       },
-      reason: "Other" as const, // Defaulting for now as DB has free text
+      reason: "Other" as const,
       description: disputeData.reason,
-      messages: [], 
-      evidence: [], 
+      messages: disputeData.messages.map((m: any) => ({
+          id: m.id,
+          sender: m.is_admin ? 'Admin' : (m.sender?.full_name || 'System'),
+          content: m.content,
+          timestamp: m.created_at
+      })), 
+      evidence: disputeData.evidence.map((e: any) => ({
+          id: e.id,
+          name: e.description || e.file_url.split('/').pop() || 'File',
+          type: (e.file_type?.includes('image') ? 'image' : e.file_type?.includes('video') ? 'video' : 'document') as any,
+          url: e.file_url,
+          size: 'Unknown', // No file_size column in schema currently
+          uploadedBy: e.uploader?.full_name || 'System',
+          uploadedAt: e.created_at
+      })), 
       timeline: timeline,
       createdAt: disputeData.created_at,
       updatedAt: disputeData.resolved_at || disputeData.created_at,

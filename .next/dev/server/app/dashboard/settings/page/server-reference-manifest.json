@@ -1,4 +1,35 @@
 {
-  "node": {},
+  "node": {
+    "0077705c4c2856c26a03c18cb0e876a3780eb0d7bc": {
+      "workers": {
+        "app/dashboard/settings/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/settings/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/settings/services/settings_actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "getSystemConfigs",
+          "filename": "src/features/settings/services/settings_actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/settings/page": "rsc"
+      },
+      "exportedName": "getSystemConfigs",
+      "filename": "src/features/settings/services/settings_actions.ts"
+    },
+    "60dc567be99650caa38aa804730c5f7c662d706ca5": {
+      "workers": {
+        "app/dashboard/settings/page": {
+          "moduleId": "[project]/.next-internal/server/app/dashboard/settings/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/settings/services/settings_actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "updateSystemConfig",
+          "filename": "src/features/settings/services/settings_actions.ts"
+        }
+      },
+      "layer": {
+        "app/dashboard/settings/page": "action-browser"
+      },
+      "exportedName": "updateSystemConfig",
+      "filename": "src/features/settings/services/settings_actions.ts"
+    }
+  },
   "edge": {}
 }

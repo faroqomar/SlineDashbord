@@ -1,34 +1,34 @@
 {
   "node": {
-    "607d3d7e7a8170bbeb45daa7f78a12ecddfb44076b": {
+    "6048f199b08ab93dd714ca0b98e9c53551f1e72b48": {
       "workers": {
         "app/dashboard/logs/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/logs/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/actions/logs.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "moduleId": "[project]/.next-internal/server/app/dashboard/logs/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/logs/services/log_actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
           "exportedName": "getLogsByTarget",
-          "filename": "src/app/actions/logs.ts"
+          "filename": "src/features/logs/services/log_actions.ts"
         }
       },
       "layer": {
         "app/dashboard/logs/page": "rsc"
       },
       "exportedName": "getLogsByTarget",
-      "filename": "src/app/actions/logs.ts"
+      "filename": "src/features/logs/services/log_actions.ts"
     },
-    "7832b09be0f38b863225787ca07855bcbe774df52b": {
+    "788687400782031914043beff018c0bd9c99adf6c0": {
       "workers": {
         "app/dashboard/logs/page": {
-          "moduleId": "[project]/.next-internal/server/app/dashboard/logs/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/app/actions/logs.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "moduleId": "[project]/.next-internal/server/app/dashboard/logs/page/actions.js { ACTIONS_MODULE0 => \"[project]/src/features/logs/services/log_actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
           "async": false,
           "exportedName": "getSystemLogs",
-          "filename": "src/app/actions/logs.ts"
+          "filename": "src/features/logs/services/log_actions.ts"
         }
       },
       "layer": {
         "app/dashboard/logs/page": "rsc"
       },
       "exportedName": "getSystemLogs",
-      "filename": "src/app/actions/logs.ts"
+      "filename": "src/features/logs/services/log_actions.ts"
     }
   },
   "edge": {}

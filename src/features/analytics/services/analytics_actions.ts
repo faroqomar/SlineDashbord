@@ -12,26 +12,161 @@ import {
   ANALYTICS_READ_ROLES
 } from '../models/analytics.schema';
 
+export type DashboardOverview = {
+  stats: OverviewStats;
+  recentActivity: ActivityItem[];
+  pendingItems: PendingItem[];
+  revenueHistory: RevenueChartData[];
+  userGrowth: UserGrowthChartData[];
+};
+
+export async function getDashboardOverview(): Promise<ServiceResult<DashboardOverview>> {
+  try {
+    await requireAdminRole(ANALYTICS_READ_ROLES);
+    const supabase = createAdminClient();
+
+    // Fetch all in parallel using the SAME admin client and AFTER a single auth check
+    const [statsRes, activityRes, pendingRes, revenueRes, growthRes] = await Promise.all([
+      getOverviewDataInternal(supabase),
+      getRecentActivityInternal(supabase),
+      getPendingItemsInternal(supabase),
+      getRevenueHistoryInternal(supabase),
+      getUserGrowthHistoryInternal(supabase),
+    ]);
+
+    return ok({
+      stats: statsRes,
+      recentActivity: activityRes,
+      pendingItems: pendingRes,
+      revenueHistory: revenueRes,
+      userGrowth: growthRes,
+    });
+  } catch (error) {
+    console.error('getDashboardOverview error:', error);
+    return fail(toErrorMessage(error));
+  }
+}
+
+// Internal helpers that don't perform re-authentication
+async function getOverviewDataInternal(supabase: any): Promise<OverviewStats> {
+    const [profilesResult, revenueResult, disputesResult] = await Promise.all([
+      supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('status', 'active'),
+      supabase.from('vw_financial_metrics_realtime').select('revenue_iqd').single(),
+      supabase.from('disputes').select('*', { count: 'exact', head: true }).in('status', ['open', 'investigating', 'mediation']),
+    ]);
+    return {
+      activeUsers: profilesResult.count || 0,
+      platformRevenue: revenueResult.data?.revenue_iqd || 0,
+      openDisputes: disputesResult.count || 0,
+      activeSubscriptions: 0,
+    };
+}
+
+async function getRecentActivityInternal(supabase: any): Promise<ActivityItem[]> {
+    const { data } = await supabase
+      .from('audit_logs')
+      .select(`id, action, created_at, meta, actor:profiles!actor_user_id(full_name, email, avatar_url)`)
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    const timeAgo = (dateStr: string) => {
+        const seconds = Math.floor((new Date().getTime() - new Date(dateStr).getTime()) / 1000);
+        if (seconds < 60) return seconds + "s ago";
+        if (seconds < 3600) return Math.floor(seconds / 60) + "m ago";
+        if (seconds < 86400) return Math.floor(seconds / 3600) + "h ago";
+        return Math.floor(seconds / 86400) + "d ago";
+    };
+
+    return (data || []).map((log: any) => ({
+      id: log.id,
+      user: {
+        name: log.actor?.full_name || 'System',
+        email: log.actor?.email || '',
+        avatar: log.actor?.avatar_url,
+      },
+      action: log.action.split(/[._]/).map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+      status: 'success', 
+      time: timeAgo(log.created_at),
+    }));
+}
+
+async function getPendingItemsInternal(supabase: any): Promise<PendingItem[]> {
+    const [{ count: disputesCount }, { count: ticketsCount }] = await Promise.all([
+        supabase.from('disputes').select('*', { count: 'exact', head: true }).in('status', ['open', 'investigating']),
+        supabase.from('support_tickets').select('*', { count: 'exact', head: true }).in('status', ['open', 'in_progress']),
+    ]);
+    return [
+      { id: '1', type: 'Disputes', count: disputesCount || 0, status: 'open' },
+      { id: '2', type: 'Support Tickets', count: ticketsCount || 0, status: 'pending' },
+    ];
+}
+
+async function getRevenueHistoryInternal(supabase: any): Promise<RevenueChartData[]> {
+    const { data, error } = await supabase
+        .from('vw_analytics_monthly_revenue')
+        .select('name, revenue');
+
+    if (error) {
+        console.error('getRevenueHistoryInternal error:', error);
+        return [];
+    }
+
+    return (data || []).map((row: any) => ({
+        name: row.name,
+        revenue: Number(row.revenue) || 0
+    }));
+}
+
+async function getUserGrowthHistoryInternal(supabase: any): Promise<UserGrowthChartData[]> {
+    const { data, error } = await supabase
+        .from('vw_analytics_monthly_user_growth')
+        .select('name, new_users');
+
+    if (error) {
+        console.error('getUserGrowthHistoryInternal error:', error);
+        return [];
+    }
+
+    return (data || []).map((row: any) => ({
+        name: row.name,
+        newUsers: Number(row.new_users) || 0
+    }));
+}
+
+
 export async function getOverviewStats(): Promise<ServiceResult<OverviewStats>> {
   try {
     await requireAdminRole(ANALYTICS_READ_ROLES);
     const supabase = createAdminClient();
 
-    const { count: userCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
-    
-    // Revenue logic using completed tasks proxy
-    const { data: revenueData } = await supabase.from('tasks').select('budget').eq('status', 'completed');
-    let revenue = 0;
-    if (revenueData) {
-        revenue = revenueData.reduce((acc, curr) => acc + (Number(curr.budget) || 0), 0);
-    }
+    const [profilesResult, revenueResult, disputesResult] = await Promise.all([
+      // 1. Count active profiles
+      supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'active'),
 
-    const { count: disputeCount } = await supabase.from('disputes').select('*', { count: 'exact', head: true }).in('status', ['open', 'investigating', 'mediation']);
+      // 2. Platform Revenue from Ledger
+      supabase
+        .from('vw_financial_metrics_realtime')
+        .select('revenue_iqd')
+        .single(),
+
+      // 3. Count open disputes
+      supabase
+        .from('disputes')
+        .select('*', { count: 'exact', head: true })
+        .in('status', ['open', 'investigating', 'mediation']),
+    ]);
+
+    const activeUsers = profilesResult.count || 0;
+    const openDisputes = disputesResult.count || 0;
+    const platformRevenue = revenueResult.data?.revenue_iqd || 0;
 
     return ok({
-      activeUsers: userCount || 0,
-      platformRevenue: revenue,
-      openDisputes: disputeCount || 0,
+      activeUsers,
+      platformRevenue,
+      openDisputes,
       activeSubscriptions: 0,
     });
   } catch (error) {
@@ -123,32 +258,15 @@ export async function getRevenueHistory(): Promise<ServiceResult<RevenueChartDat
         const supabase = createAdminClient();
         
         const { data, error } = await supabase
-            .from('tasks')
-            .select('budget, created_at') 
-            .eq('status', 'completed')
-            .gte('created_at', new Date(new Date().setFullYear(new Date().getFullYear() - 1)).toISOString()); 
+            .from('vw_analytics_monthly_revenue')
+            .select('name, revenue');
 
         if (error) return fail('Error fetching revenue history');
 
-        const monthlyData: Record<string, number> = {};
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        
-        const today = new Date();
-        for (let i = 11; i >= 0; i--) {
-            const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
-            const key = `${months[d.getMonth()]}`;
-            monthlyData[key] = 0;
-        }
-
-        data?.forEach((task: any) => {
-            const d = new Date(task.created_at);
-            const key = months[d.getMonth()];
-            if (monthlyData[key] !== undefined) {
-                monthlyData[key] += Number(task.budget) || 0;
-            }
-        });
-
-        return ok(Object.entries(monthlyData).map(([name, revenue]) => ({ name, revenue })));
+        return ok((data || []).map((row: any) => ({
+            name: row.name,
+            revenue: Number(row.revenue) || 0
+        })));
     } catch (error) {
         console.error('getRevenueHistory error:', error);
         return fail(toErrorMessage(error));
@@ -161,31 +279,15 @@ export async function getUserGrowthHistory(): Promise<ServiceResult<UserGrowthCh
         const supabase = createAdminClient();
         
         const { data, error } = await supabase
-            .from('profiles')
-            .select('created_at')
-            .gte('created_at', new Date(new Date().setFullYear(new Date().getFullYear() - 1)).toISOString());
+            .from('vw_analytics_monthly_user_growth')
+            .select('name, new_users');
 
         if (error) return fail('Error fetching user history');
 
-        const monthlyData: Record<string, number> = {};
-        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        
-        const today = new Date();
-        for (let i = 11; i >= 0; i--) {
-            const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
-            const key = `${months[d.getMonth()]}`;
-            monthlyData[key] = 0;
-        }
-
-        data?.forEach((user: any) => {
-            const d = new Date(user.created_at);
-            const key = months[d.getMonth()];
-            if (monthlyData[key] !== undefined) {
-                 monthlyData[key]++;
-            }
-        });
-
-        return ok(Object.entries(monthlyData).map(([name, newUsers]) => ({ name, newUsers })));
+        return ok((data || []).map((row: any) => ({
+            name: row.name,
+            newUsers: Number(row.new_users) || 0
+        })));
     } catch (error) {
         console.error('getUserGrowthHistory error:', error);
         return fail(toErrorMessage(error));

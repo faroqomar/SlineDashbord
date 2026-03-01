@@ -2,7 +2,7 @@
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
-import { requireAdminRole, logAuditEvent } from '@/features/core/security/security_guards';
+import { requireAdminRole, logAuditEvent, enforceRateLimit } from '@/features/core/security/security_guards';
 import { ok, fail, ServiceResult, toErrorMessage } from '@/features/core/models/result';
 import { GetTicketsSchema, UpdateTicketStatusSchema, SUPPORT_READ_ROLES, SUPPORT_WRITE_ROLES, SupportTicketDTO } from '../models/support.schema';
 import { z } from 'zod';
@@ -153,6 +153,7 @@ export async function replyToTicket(ticketId: string, content: string): Promise<
         if (!parsed.success) return fail(parsed.error.issues[0].message);
 
         const { userId } = await requireAdminRole(SUPPORT_WRITE_ROLES);
+        await enforceRateLimit('reply_to_ticket', userId, 20, 60000);
         const supabase = createAdminClient();
         
         // 1. Insert message
@@ -192,6 +193,7 @@ export async function updateTicketStatus(ticketId: string, status: string): Prom
         if (!parsed.success) return fail(parsed.error.issues[0].message);
 
         const { userId } = await requireAdminRole(SUPPORT_WRITE_ROLES);
+        await enforceRateLimit('update_ticket_status', userId, 20, 60000);
 
         const supabase = createAdminClient();
         await supabase.from('support_tickets').update({ status: parsed.data.status }).eq('id', parsed.data.id);
@@ -208,6 +210,39 @@ export async function updateTicketStatus(ticketId: string, status: string): Prom
         return ok({id: parsed.data.id});
     } catch (error) {
         console.error('updateTicketStatus error:', error);
+        return fail(toErrorMessage(error));
+    }
+}
+
+export async function assignTicketToAdmin(ticketId: string, adminId: string): Promise<ServiceResult<{id: string}>> {
+    try {
+        const { userId } = await requireAdminRole(SUPPORT_WRITE_ROLES);
+        await enforceRateLimit('assign_ticket', userId, 20, 60000);
+        const supabase = createAdminClient();
+
+        const { error } = await supabase
+            .from('support_tickets')
+            .update({ 
+                assignee_id: adminId,
+                status: 'in_progress',
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', ticketId);
+
+        if (error) return fail('Failed to assign ticket');
+
+        await logAuditEvent({
+            action: 'admin.support.assign',
+            actor_user_id: userId,
+            related_entity_type: 'support_ticket',
+            related_entity_id: ticketId,
+            meta: { assignee_id: adminId }
+        });
+
+        revalidatePath('/dashboard/complaints');
+        return ok({id: ticketId});
+    } catch (error) {
+        console.error('assignTicketToAdmin error:', error);
         return fail(toErrorMessage(error));
     }
 }

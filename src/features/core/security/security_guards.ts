@@ -57,31 +57,33 @@ export async function logAuditEvent(payload: AuditLogPayload) {
   }
 }
 
-// Basic in-memory rate limiter using a sliding window approach. 
-// NOTE: Since Server Actions run in a serverless environment (Vercel), memory may reset on cold starts.
-// For true production rigidness, Upstash Redis is recommended.
-const rateLimitCache = new Map<string, number[]>();
-
+// Persistent Rate Limiting using database-backed RPC.
 /**
- * Enforces rate limiting per user per action.
+ * Enforces rate limiting per user per action using a persistent database-backed bucket.
  * @param action The string identifier of the action (e.g., 'approve_withdrawal').
  * @param userId The UUID of the user.
- * @param limit Max requests allowed.
+ * @param limit Max requests allowed in the window.
  * @param windowMs Time window in milliseconds.
  */
-export function enforceRateLimit(action: string, userId: string, limit: number, windowMs: number) {
-  const now = Date.now();
+export async function enforceRateLimit(action: string, userId: string, limit: number, windowMs: number) {
+  const adminClient = supabaseAdmin();
   const key = `${action}:${userId}`;
-  
-  const timestamps = rateLimitCache.get(key) || [];
-  
-  // Filter out timestamps outside the sliding window
-  const validTimestamps = timestamps.filter(t => now - t < windowMs);
-  
-  if (validTimestamps.length >= limit) {
+  const windowSeconds = Math.max(1, Math.floor(windowMs / 1000));
+
+  const { data: isAllowed, error } = await adminClient.rpc('check_rate_limit', {
+    p_key: key,
+    p_limit: limit,
+    p_window_seconds: windowSeconds
+  });
+
+  if (error) {
+    console.error('Rate limit check error:', error);
+    // Be safe: if rate limiter fails, allow the request but log it.
+    // Alternatively, for high-security, throw. Here we allow but log.
+    return;
+  }
+
+  if (!isAllowed) {
     throw new Error('Rate limit exceeded. Please try again later.');
   }
-  
-  validTimestamps.push(now);
-  rateLimitCache.set(key, validTimestamps);
 }

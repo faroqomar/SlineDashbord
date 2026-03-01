@@ -1,60 +1,65 @@
-# 🛡️ SLine Admin Security Manual
+# Admin Security Manual
+
+Welcome to the Sline Admin Dashboard. This application has absolute, unrestricted access to the database via the Supabase Service Role Key. Security is not an afterthought; it is the fundamental baseline.
 
 > [!CAUTION]
-> This document outlines the absolute security protocols for the SLine Admin Dashboard. **These rules are unbreakable under any circumstances.** Code violating these rules will be rejected.
+> **Data Isolation Rule**: The Admin Dashboard connects to the exact same Postgres database as the `sline_app` mobile/web clients. You must never execute destructive operations (like cascading deletes) on core user tables without extreme caution, as it will corrupt the entire production application platform.
 
-## The Service Role (God Mode)
+---
 
-The Admin Dashboard connects to Supabase using the `SUPABASE_SERVICE_ROLE_KEY`.
+## 🔑 The Service Role Key
 
-**Why we use it:**
-The Admin dashboard needs absolute read/write access to all tables (`profiles`, `jobs`, `finances`) across the entire SLine ecosystem to provide administrative oversight, support, and moderation.
+The Admin Dashboard relies on Supabase's `SUPABASE_SERVICE_ROLE_KEY`.
 
-**How we protect it:**
+- **Why we use it**: Standard users rely on Row Level Security (RLS) to restrict their data access. Admins need a global view of all data across the platform, requiring the Service Role Key to intentionally bypass RLS.
+- **How we protect it**: The service role key is ONLY loaded in the `src/lib/supabase/admin.ts` file, which includes the `import 'server-only'` directive. This ensures the Next.js compiler will flat-out reject the build if this secret is accidentally referenced inside a Client Component.
 
-1.  **Server-Side ONLY**: The Service Role Key is ONLY available to Next.js Server Actions running in a secure Node environment.
-2.  **Environment Check**: Attempting to use `NEXT_PUBLIC_SUPABASE_ANON_KEY` for database queries inside server actions is an anti-pattern. Always import `createAdminClient()`.
-3.  **No Client-Side Supabase-JS**: Client components are completely barred from using `supabase-js` to read/write data. They MUST call Server Actions.
+---
 
-## Role-Based Access Control (RBAC)
+## 🛡 Role-Based Access Control (RBAC)
 
-Every single server action MUST be prepended with a call to `requireAdminRole()`.
+Not all admins are equal. We enforce a strict RBAC policy.
+
+### The `requireAdminRole` Guard
+
+Every single Server Action MUST begin by verifying the caller's identity and privilege.
 
 ```typescript
-// features/core/security/security_guards.ts
-export async function requireAdminRole(allowedRoles: string[]) {
-  // 1. Verifies the user's JWT from cookies
-  // 2. Checks the `admin_users` table for their explicit role
-  // 3. Rejects if role is not in `allowedRoles`
+import { requireAdminRole } from '@/features/core/security/security_guards';
+
+export async function processRefund() {
+    // 1. Validates the JWT session
+    // 2. Looks up the user's `active_role` in the `profiles` table
+    // 3. Throws a hard Error if they do not match the required list
+    const { userId, role } = await requireAdminRole(['super_admin', 'finance']);
+    ...
 }
 ```
 
-**Implementation Rule:**
-Do not hardcode roles inside actions. Define role constants in the feature's `.schema.ts` file (e.g. `export const FINANCE_WRITE_ROLES = ['admin', 'super_admin'];`).
+### Route Middleware
 
-## Audit Logs (The Paper Trail)
+Next.js `middleware.ts` runs on the Edge to actively block unauthenticated users from accessing the `/dashboard/*` route segments without a valid session. However, middleware cannot securely verify DB roles, so the `requireAdminRole` guard remains critical.
 
-> [!IMPORTANT]
-> **The Golden Rule of Mutations**: You NEVER write, update, or delete from the database without inserting into `admin_logs` immediately afterward.
+---
 
-The `logAuditEvent` helper dictates the exact shape required:
+## 🕵️ Audit Logging System
 
-- `actor_id`: The ID of the admin performing the action.
-- `action`: The namespaced action taken (e.g. `ticket.replied`, `user.suspended`).
-- `target_id`: The ID of the entity affected.
-- `target_type`: The table/domain affected.
-- `metadata`: A JSONB snapshot of relevant before/after context.
+Because admins operate outside of RLS restrictions, **all mutations must be historically tracked**.
 
-## Data Isolation
+The `audit_logs` table (formerly `admin_logs`) is our source of truth for accountability.
+Whenever a Server Action mutates data (`INSERT`, `UPDATE`, `DELETE`), it MUST call `logAuditEvent()`.
 
-The Admin Dashboard does not own user data; it curates it.
+**Schema Protocol (`audit_logs`)**:
 
-- **Rule 1**: Do NOT corrupt `sline_app` user data. Modifications to user profiles must go through strict API boundaries.
-- **Rule 2**: Read generously, but modify cautiously. Validate data extensively to ensure admin mutations do not break mobile-app client logic.
+- `action`: String identifying the event (e.g. `admin.users.ban`).
+- `actor_user_id`: UUID of the Admin performing the action.
+- `related_entity_type`: The table name or type (e.g., `profile`, `dispute`).
+- `related_entity_id`: UUID of the target object affected.
+- `meta`: JSONB payload containing specifics (e.g., the ban reason, the refund amount).
 
-## Destructive Actions
+---
 
-For bans, suspensions, deep deletions, or manual refunds:
+## 🚨 Destructive Actions & Rate Limiting
 
-- **Reason Required**: A "Reason" or "Justification" string must be passed through the UI to the Server Action. It must be mandated by the Zod Schema.
-- **Audit**: The reason must be stored in the `metadata` object of the `admin_logs` entry.
+1. **Reason Required Protocol**: High-impact actions such as banning a user, reverting a task, or issuing a refund MUST carry a `reason` parameter provided by the Admin. This reason is injected into the `meta` column of the audit log.
+2. **Rate Limiting Guard**: Actions that are easily spammed (like resetting passwords or generating reports) should use the `enforceRateLimit()` guard to prevent abuse or accidental Denial of Service scenarios against the database API.
