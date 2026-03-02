@@ -51,7 +51,7 @@ Tests
 
 ⸻
 
-PAGE 02 — Canonical Audit: Kill admin_logs Drift (Read + Write)
+PAGE 02 — Canonical Audit: Kill admin_logs Drift (Read + Write) done
 
 Goal
 
@@ -99,7 +99,7 @@ Tests
 
 ⸻
 
-PAGE 03 — Fix Finance RPC Drift: admin_process_withdrawal + Withdrawal Columns
+PAGE 03 — Fix Finance RPC Drift: admin_process_withdrawal + Withdrawal Columns done
 
 Goal
 
@@ -139,7 +139,7 @@ Tests
 
 ⸻
 
-PAGE 04 — Admin Identity Domain: admin_users (Source of Truth)
+PAGE 04 — Admin Identity Domain: admin_users (Source of Truth) done
 
 Goal
 
@@ -174,9 +174,16 @@ Key defects to fix
 Tests
 	•	RBAC integration tests: 401/403 paths and success path.
 
+**PAGE 04 — Implementation status**
+- **DB:** `supabase/migrations/20260302120000_admin_users.sql` in dashboard repo (enum `admin_role_enum`, table `admin_users` with id, role, status, created_at, RLS). For production, copy to sline_app per MIGRATIONS/README.md.
+- **Contracts:** `packages/shared/src/schemas/auth.ts` — `AdminRoleEnum`, `AuthMeResponseSchema`, `AuthMeUserSchema`; exported from shared index; unit tests in `auth.test.ts`.
+- **API:** `apps/api/src/auth.ts` validates role with `AdminRoleEnum` (fallback `authenticated`); GET /me validates response with `AuthMeResponseSchema` and supports injected test user for tests.
+- **RBAC tests:** `apps/api/src/routes/auth.test.ts` — 401 (no token, invalid token), 403 (support on finance approve), 200 (GET /me with testUser, GET /users as support, finance approve as super_admin).
+- **Gates:** Build, Contracts, Security, API, QA passed.
+
 ⸻
 
-PAGE 05 — Fix User Moderation: Ban/Suspend Must Target Marketplace Users (Not admin_users)
+PAGE 05 — Fix User Moderation: Ban/Suspend Must Target Marketplace Users (Not admin_users) done
 
 Goal
 
@@ -215,7 +222,7 @@ Tests
 
 ⸻
 
-PAGE 06 — Force Logout / Session Revocation
+PAGE 06 — Force Logout / Session Revocation done
 
 Goal
 
@@ -249,7 +256,7 @@ Tests
 
 ⸻
 
-PAGE 07 — Bookings Admin Plane (List + Detail + Cancel + Refund)
+PAGE 07 — Bookings Admin Plane (List + Detail + Cancel + Refund) done
 
 Goal
 
@@ -286,7 +293,7 @@ Tests
 
 ⸻
 
-PAGE 08 — Cases Domain (Case Management Core)
+PAGE 08 — Cases Domain (Case Management Core) done
 
 Goal
 
@@ -320,7 +327,7 @@ Tests
 
 ⸻
 
-PAGE 09 — Chat Moderation with Case-Gated Access
+PAGE 09 — Chat Moderation with Case-Gated Access done
 
 Goal
 
@@ -357,7 +364,7 @@ Tests
 
 ⸻
 
-PAGE 10 — Reports Queue (Tasks/Users/Chats Reports)
+PAGE 10 — Reports Queue (Tasks/Users/Chats Reports) done
 
 Goal
 

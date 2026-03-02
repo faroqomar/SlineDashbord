@@ -14,7 +14,10 @@ import {
   Menu,
   ChevronLeft,
   ChevronRight,
-  LogOut
+  LogOut,
+  CalendarCheck,
+  Flag,
+  FolderOpen
 } from "lucide-react";
 
 interface SidebarProps {
@@ -41,9 +44,24 @@ const navItems = [
     icon: Scale,
   },
   {
+    title: "Reports",
+    href: "/reports",
+    icon: Flag,
+  },
+  {
+    title: "Cases",
+    href: "/cases",
+    icon: FolderOpen,
+  },
+  {
     title: "Finance",
     href: "/finance",
     icon: Banknote,
+  },
+  {
+    title: "Bookings",
+    href: "/bookings",
+    icon: CalendarCheck,
   },
   {
     title: "System Logs",

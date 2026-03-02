@@ -1,31 +1,43 @@
 # Admin Authentication
 
-## Overview
+## Purpose
 
-Secure, isolated access control for Dashboard Admins. It ensures Admin accounts are completely separate from App Users, even if they share an email address.
+Secure, isolated access control for Dashboard Admins. Admin identity and RBAC are enforced server-side; the admin-ui never has Service Role or direct DB access. Role comes from the canonical **`admin_users`** table (source of truth).
 
 ## Architecture
 
-- **Components**: `LoginForm`, `UnauthorizedPage`.
-- **Actions**: `login` (Server Action).
-- **Models**: `admin_users` table schema.
+- **admin-ui**: Login via Supabase Auth (anon key); session cookie sent to API. Calls `GET /api/v1/auth/me` to get current user and role. No `admin_users` or service-role access.
+- **api**: Verifies JWT (cookie or header), looks up `admin_users` by user id to resolve **role**; validates role with `AdminRoleEnum` from `packages/shared`; returns `AuthMeResponseSchema`-shaped payload. RBAC middleware (`requireAdminRole(allowedRoles)`) on every privileged route.
 
-## How It Works
+## API
 
-1.  **Login Flow**:
-    - User enters email/password.
-    - System prefixes email with `admin.` (e.g., `admin.jane@doe.com`) to check Supabase Auth.
-2.  **Middleware Protection**:
-    - Intercepts request.
-    - Checks if user session exists.
-    - Verifies user UUID exists in `admin_users` table.
-    - If missing -> Redirects to `/unauthorized`.
+| Endpoint | Method | Auth | Description |
+|----------|--------|------|-------------|
+| `/api/v1/auth/me` | GET | Cookie/session | Returns `{ user: { id, email?, role }, ok: true }`. Role is from `admin_users` (e.g. `super_admin`, `admin`, `support`) or `'authenticated'` if not in `admin_users`. Response validated with `AuthMeResponseSchema` before send. |
 
-3.  **Data Isolation**:
-    - App users (in `profiles`) cannot log in here because they are not in `admin_users`.
-    - Admins cannot log in to App because their email is namespaced (`admin...`).
+## Contracts (packages/shared)
 
-## Future Work
+- **AdminRoleEnum** — Zod enum of canonical admin roles.
+- **AuthMeUserSchema** / **AuthMeResponseSchema** — GET /me response shape; `role` is `AdminRole | 'authenticated'`.
+- **AuthRole** (in api): `AdminRole | 'authenticated'` for typed `AuthUser.role` in `apps/api/src/auth.ts`.
 
-- [ ] Implement 2FA/MFA.
-- [ ] Password Reset flow for Admins.
+## Routes / screens
+
+- **Login**: Supabase Auth (email/password); may use a dedicated login route that redirects to dashboard after success.
+- **Protected routes**: Use `beforeLoad` or equivalent to call GET /me; redirect to login if 401.
+
+## ViewModels / services
+
+- Session check and GET /me are typically invoked from a root layout or auth context; the response drives role-based UI (e.g. hide Finance approve for `support`).
+
+## Special rules
+
+- **RBAC**: Server-only. API enforces `requireAdminRole([...])` per route; e.g. finance approve/reject requires `super_admin`/`admin`.
+- **No client-side role trust**: UI may show/hide actions for UX, but the API must reject unauthorized requests (401/403).
+- **admin_users**: Defined in `supabase/migrations/20260302120000_admin_users.sql`; for production with shared DB, copy to sline_app. See **MIGRATIONS/README.md**.
+
+## References
+
+- **ADMIN_SECURITY_MANUAL.md** — Trust boundaries, RBAC, Service Role server-only.
+- **ADMIN_DATABASE_REF.md** — `admin_users` table and RLS.
+- **.TODO/APP_VERIFICATION_CHECKLIST_PAGE_04.md** — Verification steps for auth and GET /me.

@@ -17,7 +17,7 @@ Critical Context:
 This dashboard is the privileged admin plane for the production Flutter app (`sline_app`) and shares the same Supabase project.
 All privileged actions MUST run server-side via Fastify. The browser must never have service role access.
 
-Required Output Files (5 markdown files, exhaustive, no summary):
+Required Output Files (5 markdown files, exhaustive, no summary). All live under **`Docs/`** and include a footer linking back to this workflow and to `Docs/ADMIN_DEVELOPER_GUIDE.md` (documentation index):
 
 1) ADMIN_DEVELOPER_GUIDE.md (The Bible)
 - Monorepo layout: apps/admin-ui, apps/api, packages/shared, legacy-source
@@ -65,4 +65,12 @@ Do-Not-Miss Checklist:
 - Idempotency-Key required on replay-sensitive admin routes
 - Every privileged mutation must be audit-atomic (DB RPC), not “log-after-write”
 - Feature docs protocol:
-  - Every feature gets `docs/features/<feature>.md` when v1 shipped
+  - Every feature gets `Docs/features/<feature>.md` when v1 shipped
+
+Deliverables locations (repo root relative):
+- `Docs/ADMIN_DEVELOPER_GUIDE.md`
+- `Docs/ADMIN_SECURITY_MANUAL.md`
+- `Docs/ADMIN_DATABASE_REF.md`
+- `Docs/ADMIN_UI_KIT.md`
+- `Docs/ADMIN_SETUP_GUIDE.md`
+- `Docs/features/README.md` (index of feature docs); individual feature docs under `Docs/features/<feature>.md`

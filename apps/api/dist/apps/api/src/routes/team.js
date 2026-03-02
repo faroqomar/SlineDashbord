@@ -40,13 +40,13 @@ export default async function teamRoutes(fastify) {
                 roles: [role.toLowerCase()],
                 status: 'Invited'
             });
-            // 3. Manual Audit Log (since withAudit needs a functional return)
+            // 3. Manual Audit Log — canonical columns only (actor_user_id, action, related_entity_type, related_entity_id, meta)
             await supabase.from('audit_logs').insert({
-                actor_id: actor.id,
+                actor_user_id: actor.id,
                 action: 'admin.team.invite',
-                entity_type: 'admin_user',
-                entity_id: newUserId,
-                metadata: { email, role, request_id: request.id }
+                related_entity_type: 'admin_user',
+                related_entity_id: newUserId,
+                meta: { email, role, request_id: request.id },
             });
             return success({ id: newUserId });
         }

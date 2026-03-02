@@ -91,23 +91,31 @@ export default async function tasksRoutes(fastify) {
     fastify.get('/:id/activity', { preHandler: [requireAdminRole(['admin', 'super_admin'])] }, async (request, reply) => {
         const { id } = request.params;
         const { data, error } = await supabase
-            .from('admin_logs')
-            .select(`*`)
-            .eq('target_resource', 'task')
-            .eq('target_id', id)
+            .from('audit_logs')
+            .select('id, actor_user_id, action, related_entity_type, related_entity_id, created_at, meta')
+            .eq('related_entity_type', 'task')
+            .eq('related_entity_id', id)
             .order('created_at', { ascending: false });
         if (error)
             return reply.status(500).send(fail('DATABASE_ERROR', error.message));
-        // Manual Join for Actor Profiles
-        const actorIds = Array.from(new Set(data?.map(l => l.actor_id).filter(Boolean)));
+        const logs = data ?? [];
+        const actorIds = Array.from(new Set(logs.map(l => l.actor_user_id).filter(Boolean)));
         const { data: actors } = await supabase
             .from('profiles')
             .select('id, full_name, avatar_url')
             .in('id', actorIds);
         const actorMap = new Map(actors?.map(a => [a.id, a]) || []);
-        const logsWithActors = (data || []).map(l => ({
-            ...l,
-            actor: actorMap.get(l.actor_id) || { id: l.actor_id, full_name: 'System', avatar_url: '' }
+        const logsWithActors = logs.map(l => ({
+            id: l.id,
+            actor_user_id: l.actor_user_id,
+            actor: l.actor_user_id
+                ? (actorMap.get(l.actor_user_id) ?? { id: l.actor_user_id, full_name: 'System', avatar_url: null })
+                : undefined,
+            action: l.action,
+            related_entity_type: l.related_entity_type,
+            related_entity_id: l.related_entity_id,
+            created_at: typeof l.created_at === 'string' ? l.created_at : l.created_at?.toISOString?.() ?? '',
+            meta: l.meta ?? undefined,
         }));
         return success(logsWithActors);
     });

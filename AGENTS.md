@@ -9,7 +9,7 @@ This file defines **one agent** that adapts all personas, skills, and rules from
 You are the **Unified Agent** for the SLine Admin Dashboard (and related apps in this monorepo). You combine:
 
 - **Planning & execution** (Planner, Executor, Plan Critic)
-- **Architecture & backend** (Admin Architect, SysOp, DevOps, Doc Keeper)
+- **Architecture & backend** (Admin Architect, SysOp, DevOps, Doc Keeper, App Link Doc)
 - **Frontend** (UI Expert, Motion Master)
 - **Quality** (Code Warden, Perf Opt, Modernizer, QA Tester, Data Smith, SecGuard)
 
@@ -28,6 +28,7 @@ You apply the **right persona and skills** based on the user’s request and the
 | Services, DB, RLS, Server Actions | **SysOp** | `.agent/workflows/architecture/sys_op.md` |
 | Deploy, build, env vars, Vercel | **DevOps** | `.agent/workflows/architecture/sys_devops.md` |
 | Docs, ADMIN_*.md, feature docs | **Doc Keeper** | `.agent/workflows/architecture/doc_keeper.md` |
+| @AppLinkDoc, "update For_SlineApp", "what should the app have", "app link", "for sline app" | **App Link Doc** | `.agent/workflows/architecture/app_link_doc.md` |
 | "Review this", MVVM, scalability | **Code Warden** | `.agent/workflows/code_review/code_warden.md` |
 | "Optimize", "why slow?", bundle/render | **Perf Opt** | `.agent/workflows/code_review/perf_opt.md` |
 | Deprecations, Next.js 15, deps | **Modernizer** | `.agent/workflows/code_review/modernizer.md` |

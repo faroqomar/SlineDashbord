@@ -18,7 +18,13 @@ import { DisputeDetailPage } from './routes/DisputeDetail';
 import { SettingsPage } from './routes/Settings';
 import { TasksPage } from './routes/Tasks';
 import { TaskDetailPage } from './routes/TaskDetail';
+import { BookingsPage } from './routes/Bookings';
+import { BookingDetailPage } from './routes/BookingDetail';
+import { CasesPage } from './routes/Cases';
+import { CaseDetailPage } from './routes/CaseDetail';
 import { LogsPage } from './routes/Logs';
+import { ReportsPage } from './routes/Reports';
+import { ChatThreadPage } from './routes/ChatThread';
 import { request } from './lib/api';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import { ThemeProvider } from './components/theme-provider';
@@ -132,11 +138,51 @@ const taskDetailRoute = createRoute({
   component: TaskDetailPage,
 });
 
+// Bookings Route
+const bookingsRoute = createRoute({
+  getParentRoute: () => authLayoutRoute,
+  path: '/bookings',
+  component: BookingsPage,
+});
+
+const bookingDetailRoute = createRoute({
+  getParentRoute: () => authLayoutRoute,
+  path: '/bookings/$bookingId',
+  component: BookingDetailPage,
+});
+
 // Logs Route (placeholder until logs API exists)
 const logsRoute = createRoute({
   getParentRoute: () => authLayoutRoute,
   path: '/logs',
   component: LogsPage,
+});
+
+// Reports Route
+const reportsRoute = createRoute({
+  getParentRoute: () => authLayoutRoute,
+  path: '/reports',
+  component: ReportsPage,
+});
+
+// Cases Route (PAGE 08)
+const casesRoute = createRoute({
+  getParentRoute: () => authLayoutRoute,
+  path: '/cases',
+  component: CasesPage,
+});
+
+const caseDetailRoute = createRoute({
+  getParentRoute: () => authLayoutRoute,
+  path: '/cases/$caseId',
+  component: CaseDetailPage,
+});
+
+// Chat thread (case-gated; requires ?caseId=...)
+const chatThreadRoute = createRoute({
+  getParentRoute: () => authLayoutRoute,
+  path: '/chat/threads/$threadId',
+  component: ChatThreadPage,
 });
 
 const routeTree = rootRoute.addChildren([
@@ -153,7 +199,13 @@ const routeTree = rootRoute.addChildren([
     settingsRoute,
     tasksRoute,
     taskDetailRoute,
+    bookingsRoute,
+    bookingDetailRoute,
+    casesRoute,
+    caseDetailRoute,
     logsRoute,
+    reportsRoute,
+    chatThreadRoute,
   ]),
 ]);
 

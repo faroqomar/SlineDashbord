@@ -28,7 +28,8 @@ export interface UserDetailsDTO extends UserDTO {
 type ListResult = { users: UserDTO[]; totalPages: number; totalUsers: number };
 type IdResult = { userId: string };
 
-function mapProfileToUserDTO(p: { id: string; email?: string; full_name?: string; avatar_url?: string; active_role?: string; roles?: string[]; status?: string; created_at?: string; updated_at?: string }): UserDTO {
+function mapProfileToUserDTO(p: { id: string; email?: string; full_name?: string; avatar_url?: string; active_role?: string; roles?: string[]; status?: string; account_status?: string; created_at?: string; updated_at?: string }): UserDTO {
+  const status = (p.account_status ?? p.status) as 'active' | 'suspended' | 'banned' | undefined;
   return {
     id: p.id,
     email: p.email ?? '',
@@ -37,7 +38,7 @@ function mapProfileToUserDTO(p: { id: string; email?: string; full_name?: string
     role: p.active_role ?? (p.roles?.[0]) ?? 'user',
     roles: p.roles ?? ['user'],
     active_role: p.active_role ?? 'user',
-    status: (p.status as 'active' | 'suspended' | 'banned') ?? 'active',
+    status: status ?? 'active',
     created_at: p.created_at ?? '',
     last_sign_in_at: p.updated_at ?? '',
   };
@@ -79,7 +80,7 @@ export async function getUserDetails(id: string): Promise<{ success: true; data:
     role: (profileMap.active_role as string) ?? (profileMap.roles as string[])?.[0] ?? (auth.app_metadata as Record<string, unknown>)?.role ?? 'user',
     roles: (profileMap.roles as string[]) ?? ['user'],
     active_role: (profileMap.active_role as string) ?? 'user',
-    status: (auth.banned_until ? 'banned' : ((profileMap.status as string) ?? 'active')) as UserDetailsDTO['status'],
+    status: (auth.banned_until ? 'banned' : ((profileMap.account_status ?? profileMap.status) as string) ?? 'active') as UserDetailsDTO['status'],
     created_at: auth.created_at ?? '',
     last_sign_in_at: auth.last_sign_in_at ?? '',
     phone: (auth.phone as string) ?? '',
@@ -107,11 +108,18 @@ export async function unbanUser(userId: string): Promise<{ success: true; data: 
   return { success: true, data: { userId } };
 }
 
-/** Maps to API ban (permanent). Used by UI "ban" flow. */
-export async function suspendUser(id: string, reason: string, _duration?: string): Promise<{ success: true; data: { id: string } } | { success: false; error: string }> {
-  const res = await banUser(id, reason);
-  if (!res.success) return res;
+/** Suspend a user (temporary). Calls POST /users/:userId/suspend with reason and duration. */
+export async function suspendUser(userId: string, reason: string, duration: string = '24h'): Promise<{ success: true; data: { id: string } } | { success: false; error: string }> {
+  const res = await request<{ userId: string; duration?: string }>('POST', `/users/${userId}/suspend`, { reason, duration });
+  if (!res.ok) return toLegacyResult(res);
   return { success: true, data: { id: res.data.userId } };
+}
+
+/** Force logout user (admin/super_admin only). User must re-authenticate. POST /users/:userId/force-logout */
+export async function forceLogoutUser(userId: string, reason?: string): Promise<{ success: true; data: IdResult } | { success: false; error: string }> {
+  const res = await request<{ userId: string }>('POST', `/users/${userId}/force-logout`, reason ? { reason } : {});
+  if (!res.ok) return toLegacyResult(res);
+  return { success: true, data: { userId: res.data.userId } };
 }
 
 /** Not implemented in API yet; returns failure. */

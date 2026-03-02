@@ -1,10 +1,6 @@
-import 'server-only';
-import { FinanceRole } from '@/features/finance/models/finance.model';
-
 /**
- * Masks sensitive metadata fields based on the user's role.
- * support and moderator roles get masked metadata.
- * admin and super_admin roles get full metadata.
+ * Role-based metadata masking (client-safe; no server-only in Vite SPA).
+ * support and moderator get masked metadata; admin and super_admin get full metadata.
  */
 export function maskMetaForRole(role: string, meta_full: any): any {
   if (!meta_full) return null;

@@ -8,21 +8,36 @@ This document covers how the Sline Admin Dashboard interacts with the database: 
 
 | Object / Table     | Description | Admin usage | Evidence |
 |--------------------|-------------|------------|----------|
-| `profiles`         | User accounts, roles, platform status | View, ban/unban, suspend, moderation | API routes + RLS bypass via Service Role in api |
+| `profiles`         | User accounts, roles, platform status | View, ban/unban, suspend (moderation), force logout | API + Service Role; moderation: `20260302120000_profiles_moderation_and_rpc.sql`; force logout: `20260302140000_force_logout.sql` |
 | `tasks`            | Marketplace jobs | View, force-cancel, status update | apps/api routes |
+| `bookings`         | Booking records (payments, status) | View list/detail; cancel and refund via RPC (PAGE 07) | apps/api routes/bookings.ts |
+| `admin_cases`     | Investigation/moderation cases (PAGE 08) | Create, list, detail, assign; case-gated chat | apps/api routes/cases.ts; migration `20260302130000_admin_cases_and_chat_access.sql` (canonical; see MIGRATIONS/README) |
+| `admin_case_entities` | Links cases to tasks, users, conversations, etc. | Attach/detach entities to a case | Same migration; RLS service_role only |
 | `disputes`         | Conflict resolution | View, resolve, refund/release | apps/api routes |
 | `audit_logs`       | Immutable ledger of admin actions | **Read** (activity feeds); **Write** only via atomic RPC/transaction with mutation | Canonical; no `admin_logs` for new code |
-| `admin_users`     | Admin identity and roles (source of truth for RBAC) | Read for RBAC; manage via super_admin | To be added in app repo if missing |
+| `admin_users`     | Admin identity and roles (source of truth for RBAC) | Read for RBAC; manage via super_admin | Implemented in dashboard: `supabase/migrations/20260302120000_admin_users.sql`; copy to sline_app for production (see MIGRATIONS/README.md) |
 | `support_tickets`  | User support requests | View, reply, assign, status | If feature exists |
 | `system_config`    | Global flags (maintenance, banners) | Read/update | If feature exists |
 | Finance/ledger     | Withdrawals, transactions | View, approve/reject (via RPC) | apps/api finance routes |
+| `reports`          | User-submitted reports (task/user/chat) | List, detail, triage, close (via RPC) | apps/api routes/reports.ts; migration `20260302130000_reports_queue.sql` |
+| `report_actions`   | Triage/close history per report | Insert via RPC; read for detail | Same migration |
+| `admin_chat_access_logs` | Case-gated chat (PAGE 09) | Every thread view/grant logged | Same migration as admin_cases |
 
-**Missing / to be added in app migrations**: `admin_users`, `cases`, `notes`, `reports`, `approvals`, `system_config` (as needed per product). Dashboard repo may have temporary or read-only migrations for development; production truth is app-owned.
+**Schema ownership**: For production with a shared DB, apply **sline_app** migrations first. Dashboard migrations in `supabase/migrations/` can be applied via Supabase MCP or CLI; equivalent SQL can be copied to **sline_app** so the app repo remains source of truth. **admin_cases conflict**: `20260308100000_admin_cases.sql` defines the same tables with a different schema; per plan Option A we use only `20260302130000_admin_cases_and_chat_access` for those tables. See `MIGRATIONS/README.md`. Optional: `notes`, `approvals`, `system_config` as needed per product.
 
-**RPCs used by admin**:
-- `admin_process_withdrawal(p_request_id, p_decision, p_admin_id, p_reason)` — Approve or reject a withdrawal. Updates `withdrawal_requests` and inserts **exactly one** row into `audit_logs` (atomic). Signature and SQL are in dashboard repo at `MIGRATIONS/for_sline_app/` for copying into the app repo.
+**Admin RPCs (atomic mutation + one audit row)** — SQL in `supabase/migrations/` and `MIGRATIONS/for_sline_app/`:
 
-**Enum extension** (app repo): `related_entity_type_enum` is extended with `task`, `admin_user`, `profile` for canonical audit. Migration: `MIGRATIONS/for_sline_app/20260302100000_extend_related_entity_type_enum.sql`.
+| RPC | Purpose | Audit action |
+|-----|---------|--------------|
+| `admin_process_withdrawal(p_request_id, p_decision, p_admin_id, p_reason)` | Approve/reject withdrawal | One row in `audit_logs` |
+| `admin_cancel_booking(p_booking_id, p_admin_id, p_reason)` | Set booking status to canceled (PAGE 07) | `admin.bookings.cancel` |
+| `admin_refund_booking(p_booking_id, p_admin_id, p_reason, p_idempotency_key?)` | Set booking status to refunded; idempotent by key (PAGE 07) | `admin.bookings.refund` |
+| `admin_set_user_moderation(p_user_id, p_status, p_reason, p_admin_id, p_restriction_scope?)` | Set profile account_status (PAGE 05) | `user_ban`, `user_unban`, `user_suspend` |
+| `admin_force_logout_user(p_user_id, p_admin_id, p_reason?)` | Set `profiles.force_logout_after = now()` (PAGE 06) | `admin.users.force_logout`; app: `FORCE_LOGOUT_APP_ENFORCEMENT.md` |
+| `admin_triage_report(p_report_id, p_action, p_admin_id, p_reason)` | Triage report (PAGE 10) | `admin.report.triage` or `admin.report.resolve` |
+| `admin_close_report(p_report_id, p_admin_id, p_reason)` | Close report (PAGE 10) | `admin.report.resolve` |
+
+**Enum extension**: `related_entity_type_enum` is extended with `task`, `admin_user`, `profile`, `report` (and optionally `admin_case`). Migrations: `supabase/migrations/20260302100000_extend_audit_related_entity_type_enum.sql`; `reports_queue` adds `report` in its DO block.
 
 ---
 
@@ -55,3 +70,7 @@ These views should live in the app repo migrations when they are canonical; the 
 
 - **App users**: Access data through RLS. The mobile/app client uses anon or user JWT and is restricted by RLS.
 - **Admin**: The API uses the Supabase client with `SUPABASE_SERVICE_ROLE_KEY`, which bypasses RLS. Access control is enforced in application code (RBAC middleware and route handlers), not in Postgres, for admin operations.
+
+---
+
+*This document is part of the Admin documentation suite. Maintained per `.agent/workflows/architecture/doc_keeper.md`. See `Docs/ADMIN_DEVELOPER_GUIDE.md` for the documentation index.*

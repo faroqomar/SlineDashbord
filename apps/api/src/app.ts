@@ -9,7 +9,11 @@ import teamRoutes from './routes/team.js';
 import disputeRoutes from './routes/disputes.js';
 import authRoutes from './routes/auth.js';
 import tasksRoutes from './routes/tasks.js';
+import chatRoutes from './routes/chat.js';
+import casesRoutes from './routes/cases.js';
 import dashboardRoutes from './routes/dashboard.js';
+import reportsRoutes from './routes/reports.js';
+import bookingsRoutes from './routes/bookings.js';
 
 export type TestUser = { id: string; role: string };
 
@@ -47,7 +51,11 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   await server.register(teamRoutes, { prefix: '/api/v1/team' });
   await server.register(disputeRoutes, { prefix: '/api/v1/disputes' });
   await server.register(tasksRoutes, { prefix: '/api/v1/tasks' });
+  await server.register(chatRoutes, { prefix: '/api/v1/chat' });
+  await server.register(casesRoutes, { prefix: '/api/v1/cases' });
+  await server.register(bookingsRoutes, { prefix: '/api/v1/bookings' });
   await server.register(dashboardRoutes, { prefix: '/api/v1/dashboard' });
+  await server.register(reportsRoutes, { prefix: '/api/v1/reports' });
 
   server.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }));
 

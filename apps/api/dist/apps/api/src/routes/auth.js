@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { failure, success } from '@sline/shared';
+import { failure, success, AuthMeResponseSchema } from '@sline/shared';
 import { verifyToken, extractToken } from '../auth.js';
 const SessionExchangeSchema = z.object({
     access_token: z.string(),
@@ -48,9 +48,18 @@ export default async function authRoutes(fastify) {
         return success({ message: 'Logged out' });
     });
     /**
-     * Get current session info from cookie
+     * Get current session info from cookie (or injected test user when present).
      */
     fastify.get('/me', async (request, reply) => {
+        const injectedUser = request.user;
+        if (injectedUser) {
+            const response = success({ user: { id: injectedUser.id, email: injectedUser.email, role: injectedUser.role } });
+            const parsed = AuthMeResponseSchema.safeParse(response);
+            if (!parsed.success) {
+                return reply.status(500).send(failure('INTERNAL_ERROR', 'Invalid auth response shape'));
+            }
+            return reply.send(parsed.data);
+        }
         const token = extractToken(request);
         if (!token) {
             return reply.status(401).send(failure('AUTH_ERROR', 'Not authenticated'));
@@ -60,12 +69,17 @@ export default async function authRoutes(fastify) {
             return reply.status(401).send(failure('AUTH_ERROR', 'Session expired'));
         }
         const payload = result.data;
-        return success({
+        const response = success({
             user: {
                 id: payload.id,
                 email: payload.email,
                 role: payload.role
             }
         });
+        const parsed = AuthMeResponseSchema.safeParse(response);
+        if (!parsed.success) {
+            return reply.status(500).send(failure('INTERNAL_ERROR', 'Invalid auth response shape'));
+        }
+        return reply.send(parsed.data);
     });
 }

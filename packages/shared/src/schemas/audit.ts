@@ -12,8 +12,17 @@ export const AuditActionEnum = z.enum([
   'admin.finance.wallet_unfreeze',
   'admin.tasks.force_cancel',
   'admin.disputes.resolve',
+  'admin.case.create',
+  'admin.case.attach_entity',
   'user_ban',
   'user_unban',
+  'user_suspend',
+  'admin.report.triage',
+  'admin.report.resolve',
+  'admin.chat.access',
+  'admin.chat.redact',
+  'admin.chat.delete_attachment',
+  'admin.users.force_logout',
 ]);
 export type AuditAction = z.infer<typeof AuditActionEnum>;
 

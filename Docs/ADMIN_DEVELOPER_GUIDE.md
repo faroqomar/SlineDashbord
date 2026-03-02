@@ -137,6 +137,28 @@ ViewModel: `useMutation({ mutationFn: itemsApi.create, onSuccess: () => queryCli
 
 ---
 
+## Documentation suite (Doc Keeper)
+
+The full admin documentation suite is defined in `.agent/workflows/architecture/doc_keeper.md`. Required deliverables:
+
+| Doc | Purpose |
+|-----|---------|
+| **ADMIN_DEVELOPER_GUIDE.md** (this file) | Architecture, Route → ViewModel → API, TanStack patterns, templates, Do-Not-Miss checklist |
+| **ADMIN_SECURITY_MANUAL.md** | Trust boundaries, Service Role server-only, RBAC, audit atomic, forbidden imports, destructive actions |
+| **ADMIN_DATABASE_REF.md** | DB objects admin touches, `audit_logs` canonical, views, type generation, RPCs |
+| **ADMIN_UI_KIT.md** | Tailwind + shadcn, layouts, list/detail/dialog patterns, Lucide icons |
+| **ADMIN_SETUP_GUIDE.md** | Prereqs, install, env vars (admin-ui + api), run dev, deployment checklist |
+
+Feature-level docs live under `Docs/features/` (see Feature Docs Protocol below). **Migrations**: **MIGRATIONS/README.md** for migration order and per-page SQL; **MIGRATIONS/SLINE_APP_DASHBOARD_UNIFIED_AUDIT.md** for the full audit/implementation plan.
+
+---
+
 ## Feature Docs Protocol
 
-When a feature reaches v1 (shipped), add a short feature doc under `docs/features/<feature>.md`. Include: purpose, main routes/screens, API endpoints used, ViewModels, and any special rules (e.g. idempotency, audit). This keeps the docs in sync with the codebase as features evolve.
+When a feature reaches v1 (shipped), add a short feature doc under `Docs/features/<feature>.md`. Include: purpose, main routes/screens, API endpoints used, ViewModels, and any special rules (e.g. idempotency, audit). This keeps the docs in sync with the codebase as features evolve.
+
+**Current feature docs**: See `Docs/features/README.md`. Examples: `users.md` (user management + Force Logout), `bookings-admin.md` (list/detail/cancel/refund), `finance.md`, `auth.md`, `disputes.md`, and others listed there.
+
+---
+
+*This document is part of the Admin documentation suite. Maintained per `.agent/workflows/architecture/doc_keeper.md`.*

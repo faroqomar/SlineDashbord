@@ -1,6 +1,7 @@
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { request } from '../lib/api';
+import { forceLogoutUser } from '@/features/users/services/users_api';
 import { QUERY_KEYS } from '../lib/query-keys';
 import { useParams, Link } from '@tanstack/react-router';
 import { 
@@ -9,7 +10,8 @@ import {
   ShieldAlert, 
   Mail, 
   Calendar,
-  User as UserIcon
+  User as UserIcon,
+  LogOut
 } from 'lucide-react';
 
 export function UserDetailPage() {
@@ -36,10 +38,23 @@ export function UserDetailPage() {
     },
   });
 
+  const forceLogoutMutation = useMutation({
+    mutationFn: async (reason?: string) => {
+      if (!userId) throw new Error('User ID required');
+      const result = await forceLogoutUser(userId, reason);
+      if (!result.success) throw new Error(result.error);
+      return result.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.users.detail(userId) });
+    },
+  });
+
   if (isLoading) return <div className="p-12 text-center text-slate-500">Loading user details...</div>;
   if (!data) return <div className="p-12 text-center text-rose-400">User not found.</div>;
 
   const { auth, profile } = data;
+  const accountStatus = profile.account_status ?? profile.status ?? 'active';
 
   return (
     <div className="space-y-8 animate-in slide-in-from-bottom-4 duration-500">
@@ -65,8 +80,8 @@ export function UserDetailPage() {
           <p className="text-slate-400 text-sm mb-4">{auth.email}</p>
           
           <div className="flex gap-2 w-full mt-4">
-            <span className={`flex-1 px-3 py-1 rounded-lg text-xs font-bold border ${profile.status === 'active' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-rose-500/10 border-rose-500/20 text-rose-400'}`}>
-              {profile.status.toUpperCase()}
+            <span className={`flex-1 px-3 py-1 rounded-lg text-xs font-bold border ${accountStatus === 'active' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-rose-500/10 border-rose-500/20 text-rose-400'}`}>
+              {(accountStatus || 'active').toUpperCase()}
             </span>
             <span className="flex-1 px-3 py-1 rounded-lg text-xs font-bold bg-blue-500/10 border border-blue-500/20 text-blue-400">
               {profile.role.toUpperCase()}
@@ -79,7 +94,7 @@ export function UserDetailPage() {
           <div className="glass-card grid grid-cols-1 sm:grid-cols-2 gap-6">
             <InfoItem icon={<Mail size={18} />} label="Email" value={auth.email} />
             <InfoItem icon={<Calendar size={18} />} label="Joined" value={new Date(auth.created_at).toLocaleDateString()} />
-            <InfoItem icon={<ShieldCheck size={18} />} label="Auth Provider" value={auth.app_metadata.provider || 'email'} />
+            <InfoItem icon={<ShieldCheck size={18} />} label="Auth Provider" value={(auth.app_metadata?.provider as string) || 'email'} />
             <InfoItem icon={<UserIcon size={18} />} label="Last Seen" value={new Date(auth.last_sign_in_at).toLocaleString()} />
           </div>
 
@@ -92,13 +107,26 @@ export function UserDetailPage() {
                   const reason = prompt('Reason for banning:');
                   if (reason) banMutation.mutate(reason);
                 }}
-                disabled={banMutation.isPending || profile.status === 'banned'}
+                disabled={banMutation.isPending || accountStatus === 'banned'}
                 className="flex items-center gap-2 px-6 py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl transition-all font-semibold disabled:opacity-50"
               >
                 <ShieldAlert size={18} />
-                {profile.status === 'banned' ? 'User Banned' : 'Ban User'}
+                {accountStatus === 'banned' ? 'User Banned' : 'Ban User'}
               </button>
               
+              <button
+                onClick={() => {
+                  if (window.confirm('Force logout this user? They will need to sign in again.')) {
+                    const reason = prompt('Optional reason (for audit):') ?? undefined;
+                    forceLogoutMutation.mutate(reason);
+                  }
+                }}
+                disabled={forceLogoutMutation.isPending}
+                className="flex items-center gap-2 px-6 py-2.5 bg-amber-600/80 hover:bg-amber-500 text-white rounded-xl transition-all font-semibold disabled:opacity-50"
+              >
+                <LogOut size={18} />
+                {forceLogoutMutation.isPending ? 'Logging out…' : 'Force logout'}
+              </button>
               <button className="flex items-center gap-2 px-6 py-2.5 glass rounded-xl text-slate-300 hover:text-white transition-all font-semibold">
                 Reset Password
               </button>

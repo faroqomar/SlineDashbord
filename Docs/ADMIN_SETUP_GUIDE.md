@@ -75,7 +75,15 @@ Ensure the UI is configured to call the API (same origin or correct `VITE_API_BA
 
 ---
 
+*This document is part of the Admin documentation suite. Maintained per `.agent/workflows/architecture/doc_keeper.md`. See `Docs/ADMIN_DEVELOPER_GUIDE.md` for the documentation index.*
+
+---
+
 ## Testing
 
-- **Unit / route tests**: From repo root, `npm run -w @sline/shared test` and `npm run -w @sline/api test`. See `.TODO/APP_TEST_CHECKLIST.md` for a full test checklist.
+- **Unit / route tests**: From repo root, `npm run -w @sline/shared test` and `npm run -w @sline/api test -- --run`. Test and verification checklists live in `.TODO/` (e.g. `.TODO/APP_VERIFICATION_CHECKLIST_PAGE_04.md` for PAGE 04 Admin Identity).
 - **Optional integration tests** (require real Supabase): Set `RUN_AUDIT_INTEGRATION=1` and/or `RUN_FINANCE_INTEGRATION=1` (and ensure `SUPABASE_URL` is not a placeholder) before running API tests to execute the skipped DB-dependent tests (e.g. mutation → one audit row, idempotency).
+
+## Migrations
+
+- **Migration order** when dashboard and sline_app share a DB: apply **sline_app** migrations first, then dashboard migrations. See **MIGRATIONS/README.md** for details and per-page migration notes (admin_users, force logout, bookings RPCs, cases, reports, etc.).

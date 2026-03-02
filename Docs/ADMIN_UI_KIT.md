@@ -15,7 +15,7 @@ The Sline Admin Dashboard uses **Tailwind CSS**, **shadcn/ui**, and **Lucide** i
 ## Layouts
 
 - **Root layout**: Wraps the app (e.g. theme provider, router). Sidebar + main content layout is typically applied to dashboard routes.
-- **Sidebar**: Navigation for main areas (Dashboard, Users, Tasks, Disputes, Finance, Logs, Settings, etc.). Highlight active route (e.g. by pathname). Implemented as a client component.
+- **Sidebar**: Navigation for main areas (Dashboard, Users, Tasks, Cases, Disputes, Finance, Bookings, Logs, Reports, Settings, etc.). Highlight active route (e.g. by pathname). Implemented as a client component.
 - **PageHeader**: Each major screen should have a clear header: title + optional description. Use a Lucide icon and an `h1` with consistent sizing (e.g. `text-3xl font-bold`).
 - **Tables**: Use Shadcn `Table` (TableHeader, TableRow, TableHead, TableCell). Support sorting/filtering where needed; keep server-side pagination for large lists.
 - **Filters**: Use `Select`, `Input`, or dedicated filter components; sync state with URL or ViewModel so filters are shareable and persist.
@@ -27,7 +27,7 @@ The Sline Admin Dashboard uses **Tailwind CSS**, **shadcn/ui**, and **Lucide** i
 
 - **List pages**: Route → View that uses a ViewModel (e.g. `useUsersViewModel`) → table + filters + pagination. Loading and error states from ViewModel.
 - **Detail pages**: Route with `:id` → View that uses a detail ViewModel (e.g. `useUserDetailViewModel(id)`) → sections/cards. Same loading/error handling.
-- **Action dialogs**: Use Shadcn `Dialog` for confirmations (e.g. ban user, force-cancel task). Require reason where policy demands it; submit via ViewModel mutation.
+- **Action dialogs**: Use Shadcn `Dialog` (or browser `confirm`) for confirmations (e.g. ban user, force logout, force-cancel task). Require reason where policy demands it; optional reason for force logout (recommended for audit). Submit via ViewModel mutation.
 - **Toasts**: Use Shadcn `Sonner` or equivalent for success/error feedback after mutations.
 
 ---
@@ -43,3 +43,7 @@ The Sline Admin Dashboard uses **Tailwind CSS**, **shadcn/ui**, and **Lucide** i
 
 - Ensure tables and forms are usable on smaller viewports (horizontal scroll or stacked layout as appropriate).
 - Use semantic HTML and Shadcn’s built-in a11y (focus, labels, ARIA) so the dashboard is keyboard-navigable and screen-reader friendly.
+
+---
+
+*This document is part of the Admin documentation suite. Maintained per `.agent/workflows/architecture/doc_keeper.md`. See `Docs/ADMIN_DEVELOPER_GUIDE.md` for the documentation index.*

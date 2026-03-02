@@ -9,3 +9,8 @@ export * from './schemas/tasks.js';
 export * from './schemas/logs.js';
 export * from './schemas/analytics.js';
 export * from './schemas/audit.js';
+export * from './schemas/reports.js';
+export * from './schemas/auth.js';
+export * from './schemas/bookings.js';
+export * from './schemas/cases.js';
+export * from './schemas/chat.js';

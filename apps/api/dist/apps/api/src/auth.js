@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { failure, success } from '@sline/shared';
+import { failure, success, AdminRoleEnum } from '@sline/shared';
 let supabaseAdmin = null;
 function getSupabaseAdmin() {
     if (!supabaseAdmin) {
@@ -41,10 +41,13 @@ export async function verifyToken(token) {
             .select('role')
             .eq('id', user.id)
             .single();
+        const rawRole = adminUser?.role ?? user.app_metadata?.role ?? user.role;
+        const parsed = AdminRoleEnum.safeParse(rawRole);
+        const role = parsed.success ? parsed.data : 'authenticated';
         return success({
             id: user.id,
             email: user.email,
-            role: adminUser?.role || user.app_metadata?.role || user.role || 'authenticated',
+            role,
         });
     }
     catch (err) {

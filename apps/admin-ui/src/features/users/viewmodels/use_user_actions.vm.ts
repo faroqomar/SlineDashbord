@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { suspendUser } from "@/features/users/services/users_api";
+import { banUser } from "@/features/users/services/users_api";
 import { toast } from "sonner";
 
 export function useUserActionsViewModel(userId: string) {
@@ -16,7 +16,7 @@ export function useUserActionsViewModel(userId: string) {
 
     setIsBanning(true);
     try {
-      const res = await suspendUser(userId, banReason, 'permanent');
+      const res = await banUser(userId, banReason);
       if (res.success) {
         toast.success("User has been banned.");
         setShowBanDialog(false);

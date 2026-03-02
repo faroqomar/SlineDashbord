@@ -26,7 +26,8 @@ This document outlines the operational capabilities required for the "Control Ro
     - Filter by Role (Client/Freelancer) or Status (Active/Banned).
     - Columns: Avatar, Name, Email, Role, Joined Date, Status.
 - **User Detail View (`/users/[id]`)**:
-    - **Header**: Big profile card + Quick Actions (Ban, Reset Password, Send Notification).
+    - **Header**: Big profile card + Quick Actions (Ban, Reset Password, Send Notification, **Force Logout**).
+    - **Force Logout (PAGE 06)**: Revoke session for the user (sets `profiles.force_logout_after`); requires reason; audit via `admin_force_logout_user` RPC. RBAC: admin and super_admin only. See `Docs/features/users.md` and `MIGRATIONS/for_sline_app/FORCE_LOGOUT_APP_ENFORCEMENT.md`.
     - **Tabs**:
         - **Info**: Raw profile data.
         - **Activity**: History of tasks posted or bids made.
@@ -41,6 +42,16 @@ This document outlines the operational capabilities required for the "Control Ro
 - **Moderation**:
     - Ability to flag task descriptions (e.g., offensive content).
     - **Force Cancel**: Admin ability to cancel a task that is stuck, triggering automatic refund logic via Edge Functions.
+
+## 4b. Bookings Admin (`/bookings`) — PAGE 07
+**"Booking lifecycle"**
+- **List**: Paginated table; filter by status (e.g. confirmed, canceled, refunded). Columns: booking id, user, amount, status, dates.
+- **Detail (`/bookings/[id]`)**: Full booking info; **Cancel** and **Refund** actions with confirmation dialog and required reason. Refund supports optional idempotency key. RBAC: moderator+ for list/cancel; admin+ for refund. Audit: one row per action via `admin_cancel_booking` / `admin_refund_booking` RPCs. See `Docs/features/bookings-admin.md`.
+
+## 4c. Cases (`/cases`) — PAGE 08 & Chat Moderation — PAGE 09
+**"Investigation & case-gated chat"**
+- **Cases**: List/create cases; case detail with attached entities (task, user, conversation, booking, dispute). RBAC: support, moderator, admin, super_admin. See `Docs/features/cases.md`.
+- **Chat Moderation (PAGE 09)**: View chat thread content only when linked to a case; open thread from case detail ("View thread"). Every view and access grant is logged in `admin_chat_access_logs`. API: GET/POST `/api/v1/chat/threads/:threadId` (GET requires `case_id`). See `Docs/features/chat-moderation.md`.
 
 ## 5. Dispute Resolution Center (`/disputes`)
 **"The Courtroom"**

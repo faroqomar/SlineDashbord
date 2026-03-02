@@ -55,3 +55,29 @@ export async function withAudit<T>(
 
   return result;
 }
+
+/**
+ * Write a single audit_logs row (canonical columns only). Use when entity id is known only after the mutation (e.g. create case).
+ */
+export async function writeAuditLog(
+  request: FastifyRequest,
+  action: string,
+  entityType: string,
+  entityId: string,
+  meta?: Record<string, unknown>
+): Promise<void> {
+  const actor = (request as any).user;
+  await (getSupabase().from('audit_logs') as any).insert({
+    actor_user_id: actor?.id ?? null,
+    action,
+    related_entity_type: entityType,
+    related_entity_id: entityId,
+    meta: {
+      ...(meta ?? {}),
+      request_id: request.id,
+      user_agent: request.headers['user-agent'] ?? undefined,
+    },
+  }).then(({ error }: { error: unknown }) => {
+    if (error) console.error('Failed to write audit log:', error);
+  });
+}

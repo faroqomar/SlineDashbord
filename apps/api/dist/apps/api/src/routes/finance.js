@@ -16,17 +16,16 @@ export default async function financeRoutes(fastify) {
         if (!validation.success) {
             return reply.status(400).send(failure('VALIDATION_ERROR', 'Invalid input', validation.error.format()));
         }
-        return withAudit(request, 'admin.finance.withdrawal_approve', 'withdrawal_request', requestId, async () => {
-            const { error } = await supabase.rpc('admin_process_withdrawal', {
-                p_request_id: validation.data.requestId,
-                p_decision: 'approve',
-                p_reason: validation.data.reason,
-                p_admin_id: request.user.id,
-            });
-            if (error)
-                return failure('DATABASE_ERROR', error.message);
-            return success({ requestId: validation.data.requestId });
+        // RPC writes the single canonical audit row; no API-layer withAudit (avoids double audit)
+        const { error } = await supabase.rpc('admin_process_withdrawal', {
+            p_request_id: validation.data.requestId,
+            p_decision: 'approve',
+            p_reason: validation.data.reason,
+            p_admin_id: request.user.id,
         });
+        if (error)
+            return reply.send(failure('DATABASE_ERROR', error.message));
+        return reply.send(success({ requestId: validation.data.requestId }));
     });
     /**
      * Reject Withdrawal
@@ -40,17 +39,16 @@ export default async function financeRoutes(fastify) {
         if (!validation.success) {
             return reply.status(400).send(failure('VALIDATION_ERROR', 'Invalid input', validation.error.format()));
         }
-        return withAudit(request, 'admin.finance.withdrawal_reject', 'withdrawal_request', requestId, async () => {
-            const { error } = await supabase.rpc('admin_process_withdrawal', {
-                p_request_id: validation.data.requestId,
-                p_decision: 'reject',
-                p_reason: validation.data.reason,
-                p_admin_id: request.user.id,
-            });
-            if (error)
-                return failure('DATABASE_ERROR', error.message);
-            return success({ requestId: validation.data.requestId });
+        // RPC writes the single canonical audit row; no API-layer withAudit (avoids double audit)
+        const { error } = await supabase.rpc('admin_process_withdrawal', {
+            p_request_id: validation.data.requestId,
+            p_decision: 'reject',
+            p_reason: validation.data.reason,
+            p_admin_id: request.user.id,
         });
+        if (error)
+            return reply.send(failure('DATABASE_ERROR', error.message));
+        return reply.send(success({ requestId: validation.data.requestId }));
     });
     /**
      * Wallet Freeze

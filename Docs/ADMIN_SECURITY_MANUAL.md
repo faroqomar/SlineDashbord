@@ -37,7 +37,7 @@ This document defines trust boundaries, RBAC, audit, and destructive-action prot
 - **Canonical table**: `public.audit_logs` (not `admin_logs`). Single source of truth for all privileged actions.
 - **Atomic requirement**: Every privileged mutation MUST produce an audit record **in the same transaction** as the mutation. Use a DB RPC that does both the mutation and the `audit_logs` insert, or a single transaction in the API that performs the mutation and insert together. **"Log after write" (non-atomic) is forbidden**—if the mutation succeeds but the audit write fails, we lose accountability.
 - **Canonical columns** (align with app repo schema): e.g. `actor_user_id`, `action`, `related_entity_type`, `related_entity_id`, `meta` (JSONB). No legacy columns like `actor_id`, `target_resource`, `target_id`, `metadata` for new code.
-- **Finance approve/reject**: The RPC `admin_process_withdrawal` is the **single** writer to `audit_logs` for these actions (one row per decision). The API does **not** wrap these calls in `withAudit`; doing so would create a double audit row. Other mutations (e.g. task force-cancel, team remove) use the API’s `withAudit` helper when no RPC performs the audit.
+- **Finance approve/reject**: The RPC `admin_process_withdrawal` is the **single** writer to `audit_logs` for these actions (one row per decision). The API does **not** wrap these calls in `withAudit`; doing so would create a double audit row. Other mutations (e.g. task force-cancel, team remove, cases create/attach) use the API’s `withAudit` or `writeAuditLog` helper when no RPC performs the audit; these are non-atomic (handler then audit). Prefer adding a DB RPC that does mutation + audit in one transaction when the feature is critical or high-volume.
 
 ---
 
@@ -58,12 +58,35 @@ Use a script (e.g. `scripts/forbidden-imports.sh`) or ESLint rule to enforce. Th
 
 ## Destructive Actions: Reason + Audit + Idempotency
 
-1. **Reason required**: High-impact actions (ban user, force-cancel task, approve/reject withdrawal, resolve dispute) MUST require a `reason` (or equivalent) from the admin. The reason is stored in the audit `meta` and optionally on the record.
-2. **Audit**: Each such action produces exactly one audit row in `audit_logs`, atomically with the mutation.
-3. **Idempotency**: Replay-sensitive operations (refunds, withdrawals, dispute resolution) MUST require an `Idempotency-Key` header. The API returns the same result for duplicate keys and does not apply the mutation twice.
+1. **Reason required**: High-impact actions (ban user, force-logout user, force-cancel task, approve/reject withdrawal, resolve dispute, cancel/refund booking) MUST require a `reason` (or equivalent) from the admin. The reason is stored in the audit `meta` and optionally on the record.
+2. **Audit**: Each such action produces exactly one audit row in `audit_logs`, atomically with the mutation (via DB RPC; API does not use "log after write").
+3. **Idempotency**: Replay-sensitive operations (refunds, withdrawals, dispute resolution) MUST support idempotency (e.g. `Idempotency-Key` header or request body `idempotency_key`). The API returns the same result for duplicate keys and does not apply the mutation twice.
+
+**Examples**: Force Logout (PAGE 06) and Bookings Cancel/Refund (PAGE 07) follow the above: reason in request body, single audit row written inside the RPC in the same transaction. Refund supports optional `idempotency_key` in body; RPC deduplicates by key.
+
+---
+
+## Force logout / session revocation (PAGE 06)
+
+- **RPC**: `admin_force_logout_user(p_user_id, p_admin_id, p_reason)` sets `profiles.force_logout_after = now()` and inserts one row into `audit_logs` (action `admin.users.force_logout`), atomically.
+- **App enforcement**: The main app (e.g. Flutter) must read `profiles.force_logout_after` and force re-auth when it is set and greater than the token’s issued_at. See `MIGRATIONS/for_sline_app/FORCE_LOGOUT_APP_ENFORCEMENT.md`.
+- **Feature doc**: `Docs/features/users.md` (User Management, Force logout).
+
+---
+
+## Case-gated chat access (PAGE 09)
+
+- **Principle**: Viewing chat thread content is allowed only when the thread is linked to an investigation case and the admin opens it via that case. There is no “browse all conversations” endpoint.
+- **Logging**: Every thread **view** and every **access grant** is recorded in `admin_chat_access_logs` (thread_id, case_id, viewer_admin_id, view_scope, created_at). This table is insert-only by the API; no client can bypass it.
+- **Enforcement**: GET `/api/v1/chat/threads/:threadId` requires query `case_id`; the API checks that the case exists and is linked to the thread (via a prior grant or an `admin_case_entities` row). Missing or unlinked case returns 403. POST grant also requires a valid case and logs the grant.
+- **Contracts**: Request/response shapes and RBAC are in `packages/shared` and `apps/api/src/routes/chat.ts`. **DB**: `admin_chat_access_logs` and `admin_cases` / `admin_case_entities` from migration `20260302130000_admin_cases_and_chat_access.sql`. See `Docs/ADMIN_DATABASE_REF.md` and Cases/chat feature docs.
 
 ---
 
 ## Data Isolation
 
 The dashboard shares the same Postgres database as the production app (`sline_app`). Never run destructive operations (e.g. cascading deletes on core user tables) without explicit design and safeguards. Prefer status flags and soft updates where possible.
+
+---
+
+*This document is part of the Admin documentation suite. Maintained per `.agent/workflows/architecture/doc_keeper.md`. See `Docs/ADMIN_DEVELOPER_GUIDE.md` for the documentation index.*

@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { failure, success, type ServiceResult } from '@sline/shared';
+import { failure, success, type ServiceResult, AdminRoleEnum, type AdminRole } from '@sline/shared';
 
 let supabaseAdmin: ReturnType<typeof createClient> | null = null;
 
@@ -15,10 +15,13 @@ function getSupabaseAdmin() {
   return supabaseAdmin;
 }
 
+/** Role after verification: canonical admin role or 'authenticated' (not in admin_users). */
+export type AuthRole = AdminRole | 'authenticated';
+
 export interface AuthUser {
   id: string;
   email?: string;
-  role: string;
+  role: AuthRole;
 }
 
 /**
@@ -56,10 +59,14 @@ export async function verifyToken(token: string): Promise<ServiceResult<AuthUser
       .eq('id', user.id)
       .single() as { data: { role: string } | null };
 
+    const rawRole = adminUser?.role ?? (user.app_metadata?.role as string) ?? (user.role as string);
+    const parsed = AdminRoleEnum.safeParse(rawRole);
+    const role = parsed.success ? parsed.data : 'authenticated';
+
     return success({
       id: user.id,
       email: user.email,
-      role: adminUser?.role || (user.app_metadata?.role as string) || (user.role as string) || 'authenticated',
+      role,
     });
   } catch (err: any) {
     console.error('[Auth] Unexpected verification error:', err.message);
