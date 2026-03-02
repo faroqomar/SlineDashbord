@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///Users/eros/Dev/Eros_Projects/SlineDashbord/src/app/dashboard/finance/nav-link.tsx"],"sourcesContent":["'use client';\n\nimport Link from 'next/link';\nimport { usePathname } from 'next/navigation';\nimport { cn } from '@/lib/utils';\nimport { ReactNode } from 'react';\n\nexport function NavLink({ href, children }: { href: string; children: ReactNode }) {\n  const pathname = usePathname();\n  const isActive = pathname === href || pathname.startsWith(`${href}/`);\n\n  return (\n    <Link\n      href={href}\n      className={cn(\n        \"px-4 py-2 text-sm font-medium rounded-md transition-colors\",\n        isActive\n          ? \"bg-primary/10 text-primary\"\n          : \"text-muted-foreground hover:bg-muted hover:text-foreground\"\n      )}\n    >\n      {children}\n    </Link>\n  );\n}\n"],"names":[],"mappings":";;;;;AAEA;AACA;AACA;AAJA;;;;;AAOO,SAAS,QAAQ,EAAE,IAAI,EAAE,QAAQ,EAAyC;IAC/E,MAAM,WAAW,IAAA,iJAAW;IAC5B,MAAM,WAAW,aAAa,QAAQ,SAAS,UAAU,CAAC,GAAG,KAAK,CAAC,CAAC;IAEpE,qBACE,8OAAC,uKAAI;QACH,MAAM;QACN,WAAW,IAAA,yHAAE,EACX,8DACA,WACI,+BACA;kBAGL;;;;;;AAGP"}}]
-}

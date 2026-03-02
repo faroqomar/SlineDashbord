@@ -1,0 +1,14 @@
+{
+  "name": "@sline/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "zod": "^3.22.4"
+  }
+}

@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 42, "column": 0}, "map": {"version":3,"sources":["file:///Users/eros/Dev/Eros_Projects/SlineDashbord/src/app/dashboard/finance/page.tsx"],"sourcesContent":["import { redirect } from 'next/navigation';\n\nexport default function FinanceRootPage() {\n  redirect('/dashboard/finance/overview');\n}\n"],"names":[],"mappings":";;;;AAAA;AAAA;;AAEe,SAAS;IACtB,IAAA,iMAAQ,EAAC;AACX"}}]
-}
