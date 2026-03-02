@@ -5,8 +5,16 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SLine Admin | TanStack Edition</title>
-    <script type="module" crossorigin src="/assets/index-BbmNM-KT.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-Bh6MKqbG.css">
+    <script>
+      (function() {
+        var k = 'sline-admin-theme';
+        var v = localStorage.getItem(k);
+        var theme = (v === 'dark' || v === 'light') ? v : 'dark';
+        document.documentElement.classList.add(theme);
+      })();
+    </script>
+    <script type="module" crossorigin src="/assets/index-ByniRWES.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-DkblRn7j.css">
   </head>
   <body>
     <div id="root"></div>

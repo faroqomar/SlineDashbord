@@ -72,3 +72,10 @@ Ensure the UI is configured to call the API (same origin or correct `VITE_API_BA
 - **admin-ui**: Build with `npm run build -w @sline/admin-ui` (or equivalent). Serve the built static files (e.g. from `apps/admin-ui/dist`) via a static host or the same host as the API (e.g. same origin so `/api/v1` is proxied to Fastify).
 - **Secrets separation**: API secrets only in the API environment. No `VITE_*` secrets. Use a single domain and proxy, or configure CORS and `VITE_API_BASE_URL` for cross-origin.
 - **Build gates**: Before release, run build + typecheck for admin-ui and api, and the forbidden-import scan for admin-ui.
+
+---
+
+## Testing
+
+- **Unit / route tests**: From repo root, `npm run -w @sline/shared test` and `npm run -w @sline/api test`. See `.TODO/APP_TEST_CHECKLIST.md` for a full test checklist.
+- **Optional integration tests** (require real Supabase): Set `RUN_AUDIT_INTEGRATION=1` and/or `RUN_FINANCE_INTEGRATION=1` (and ensure `SUPABASE_URL` is not a placeholder) before running API tests to execute the skipped DB-dependent tests (e.g. mutation → one audit row, idempotency).

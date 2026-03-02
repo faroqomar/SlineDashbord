@@ -1,11 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "../../../../components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "../../../../components/ui/avatar";
 import { formatDistanceToNow } from "date-fns";
-import { History, Shield, User, AlertCircle } from "lucide-react";
-import { cn } from "../../../../lib/utils";
+import { History, Shield } from "lucide-react";
+import type { TaskActivityItem } from "@sline/shared";
 
 interface TaskActivityProps {
-    activities: any[];
+    activities: TaskActivityItem[];
 }
 
 export function TaskActivity({ activities }: TaskActivityProps) {
@@ -31,7 +31,7 @@ export function TaskActivity({ activities }: TaskActivityProps) {
                             <div key={log.id} className="p-4 relative z-10 bg-background/50 hover:bg-muted/30 transition-colors">
                                 <div className="flex gap-4">
                                     <Avatar className="h-7 w-7 border-2 border-background shadow-sm shrink-0">
-                                        <AvatarImage src={log.actor?.avatar_url} />
+                                        <AvatarImage src={log.actor?.avatar_url ?? undefined} />
                                         <AvatarFallback className="text-[10px]">
                                             {log.actor?.full_name?.charAt(0) || <Shield className="h-3 w-3" />}
                                         </AvatarFallback>
@@ -56,9 +56,9 @@ export function TaskActivity({ activities }: TaskActivityProps) {
                                             </p>
                                         </div>
 
-                                        {log.meta?.reason && (
+                                        {log.meta?.reason != null && (
                                             <div className="mt-2 p-2 rounded bg-muted text-[11px] italic border-l-2 border-primary/30">
-                                                "{log.meta.reason}"
+                                                &quot;{String(log.meta.reason)}&quot;
                                             </div>
                                         )}
                                     </div>
@@ -72,16 +72,16 @@ export function TaskActivity({ activities }: TaskActivityProps) {
     );
 }
 
-function getDescription(log: any) {
+function getDescription(log: TaskActivityItem): string {
     const action = log.action;
-    const meta = log.meta || {};
+    const meta = (log.meta || {}) as Record<string, unknown>;
 
     if (action.includes('update_status')) {
-        return `Changed status to ${meta.status || 'unknown'}`;
+        return `Changed status to ${String(meta.status ?? 'unknown')}`;
     }
     if (action.includes('force_cancel')) {
         return `Admin Force Canceled with ${meta.reversed_funds ? 'automatic refund' : 'no escrow detected'}`;
     }
-    
+
     return log.action;
 }

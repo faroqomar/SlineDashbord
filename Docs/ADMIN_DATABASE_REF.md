@@ -19,6 +19,11 @@ This document covers how the Sline Admin Dashboard interacts with the database: 
 
 **Missing / to be added in app migrations**: `admin_users`, `cases`, `notes`, `reports`, `approvals`, `system_config` (as needed per product). Dashboard repo may have temporary or read-only migrations for development; production truth is app-owned.
 
+**RPCs used by admin**:
+- `admin_process_withdrawal(p_request_id, p_decision, p_admin_id, p_reason)` — Approve or reject a withdrawal. Updates `withdrawal_requests` and inserts **exactly one** row into `audit_logs` (atomic). Signature and SQL are in dashboard repo at `MIGRATIONS/for_sline_app/` for copying into the app repo.
+
+**Enum extension** (app repo): `related_entity_type_enum` is extended with `task`, `admin_user`, `profile` for canonical audit. Migration: `MIGRATIONS/for_sline_app/20260302100000_extend_related_entity_type_enum.sql`.
+
 ---
 
 ## Canonical Audit Table: `audit_logs` (Not admin_logs)

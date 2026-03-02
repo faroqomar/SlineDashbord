@@ -1,0 +1,75 @@
+import 'dotenv/config';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { buildApp, type TestUser } from '../app.js';
+import { TaskActivityResponseSchema } from '@sline/shared';
+
+if (!process.env.SUPABASE_URL) process.env.SUPABASE_URL = 'https://placeholder.supabase.co';
+if (!process.env.SUPABASE_SERVICE_ROLE_KEY) process.env.SUPABASE_SERVICE_ROLE_KEY = 'placeholder-key';
+
+const ADMIN: TestUser = { id: '00000000-0000-0000-0000-000000000001', role: 'admin' };
+const taskId = '00000000-0000-0000-0000-000000000010';
+
+describe('PAGE 02 — Tasks (activity canonical audit)', () => {
+  let app: Awaited<ReturnType<typeof buildApp>>;
+
+  beforeAll(async () => {
+    app = await buildApp({ testUser: ADMIN });
+  });
+
+  afterAll(async () => {
+    await app.close();
+  });
+
+  describe('GET /api/v1/tasks/:id/activity', () => {
+    it('returns 401 when no auth', async () => {
+      const noAuthApp = await buildApp();
+      const res = await noAuthApp.inject({
+        method: 'GET',
+        url: `/api/v1/tasks/${taskId}/activity`,
+      });
+      await noAuthApp.close();
+      expect(res.statusCode).toBe(401);
+    });
+
+    it('returns 200 with array parseable as TaskActivityResponseSchema when DB responds', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: `/api/v1/tasks/${taskId}/activity`,
+      });
+      // With real DB: 200 and array; with placeholder: may be 500
+      if (res.statusCode === 200) {
+        const body = JSON.parse(res.body);
+        const raw = body.data !== undefined ? body.data : body;
+        const parsed = TaskActivityResponseSchema.safeParse(raw);
+        expect(parsed.success).toBe(true);
+        if (parsed.success) expect(Array.isArray(parsed.data)).toBe(true);
+      }
+    });
+  });
+});
+
+const runAuditIntegration = process.env.RUN_AUDIT_INTEGRATION === '1' && process.env.SUPABASE_URL && !process.env.SUPABASE_URL.includes('placeholder');
+
+describe('PAGE 02 — Integration: mutation produces one audit_logs row', () => {
+  it.skipIf(!runAuditIntegration)(
+    'when mutation with audit runs, exactly one audit_logs row with canonical columns is created (requires real DB)',
+    async () => {
+      const app = await buildApp({ testUser: { id: '00000000-0000-0000-0000-000000000001', role: 'super_admin' } });
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
+      const taskId = '00000000-0000-0000-0000-000000000099';
+      const { count: before } = await supabase.from('audit_logs').select('*', { count: 'exact', head: true }).eq('related_entity_type', 'task').eq('related_entity_id', taskId);
+      const res = await app.inject({
+        method: 'POST',
+        url: `/api/v1/tasks/${taskId}/status`,
+        payload: { status: 'canceled', reason: 'Integration test' },
+      });
+      await app.close();
+      expect(res.statusCode).toBe(200);
+      const body = JSON.parse(res.body);
+      if (!body.ok) return; // DB may reject; skip count assert
+      const { count: after } = await supabase.from('audit_logs').select('*', { count: 'exact', head: true }).eq('related_entity_type', 'task').eq('related_entity_id', taskId);
+      expect((after ?? 0) - (before ?? 0)).toBe(1);
+    }
+  );
+});

@@ -1,4 +1,5 @@
 import { request } from "../../../lib/api";
+import type { TaskActivityResponse } from '@sline/shared';
 import type { TaskDTO, TaskDetailsDTO, TaskStatus } from '../models/task.schema';
 
 export const tasksApi = {
@@ -20,7 +21,7 @@ export const tasksApi = {
   },
   
   getTaskActivity: async (id: string) => {
-    const res = await request<any[]>('GET', `/tasks/${id}/activity`);
+    const res = await request<TaskActivityResponse>('GET', `/tasks/${id}/activity`);
     if (!res.ok) throw new Error(res.error?.message || 'Failed to fetch activity');
     return res.data;
   },

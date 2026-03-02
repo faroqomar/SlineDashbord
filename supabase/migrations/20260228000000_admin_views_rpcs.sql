@@ -51,10 +51,11 @@ SELECT
     ) as payee_user_id
 FROM public.journal_entries je;
 
--- 3. Create Admin Process Withdrawal RPC
+-- 3. Admin Process Withdrawal RPC (legacy signature; overwritten by 20260302110000_admin_process_withdrawal_canonical.sql)
+-- Production: RPC is defined with canonical signature (p_request_id, p_decision) in later migration or in app repo.
 CREATE OR REPLACE FUNCTION public.admin_process_withdrawal(
-  p_withdrawal_id uuid,
-  p_action text, -- 'approve' or 'reject'
+  p_request_id uuid,
+  p_decision text,
   p_admin_id uuid,
   p_reason text
 ) RETURNS void
@@ -63,40 +64,20 @@ SECURITY DEFINER
 AS $$
 DECLARE
   v_withdrawal record;
-  v_user_id uuid;
-  v_amount numeric;
 BEGIN
-  -- Validate Action
-  IF p_action NOT IN ('approve', 'reject') THEN
-    RAISE EXCEPTION 'Invalid action. Must be approve or reject';
+  IF p_decision NOT IN ('approve', 'reject') THEN
+    RAISE EXCEPTION 'Invalid decision. Must be approve or reject';
   END IF;
-
-  -- Lock Row For Concurrency
-  SELECT * INTO v_withdrawal 
-  FROM public.withdrawal_requests 
-  WHERE id = p_withdrawal_id AND status = 'requested'
-  FOR UPDATE;
-
+  SELECT * INTO v_withdrawal FROM public.withdrawal_requests WHERE id = p_request_id AND status = 'requested' FOR UPDATE;
   IF NOT FOUND THEN
     RAISE EXCEPTION 'Withdrawal request not found or already processed';
   END IF;
-
-  -- 1. Update withdrawal status
-  UPDATE public.withdrawal_requests 
-  SET 
-    status = CASE WHEN p_action = 'approve' THEN 'completed' ELSE 'failed' END,
-    processed_at = now(),
-    processed_by = p_admin_id,
-    admin_notes = p_reason
-  WHERE id = p_withdrawal_id;
-
-  -- 2. Audit Trail
-  INSERT INTO public.audit_logs (
-    action, actor_user_id, related_entity_type, related_entity_id, meta
-  ) VALUES (
-    'admin.withdrawal_' || p_action, p_admin_id, 'withdrawal_request', p_withdrawal_id, 
-    jsonb_build_object('reason', p_reason, 'amount', v_withdrawal.amount)
-  );
+  UPDATE public.withdrawal_requests
+  SET status = CASE WHEN p_decision = 'approve' THEN 'completed' ELSE 'failed' END, processed_at = now(),
+      meta = COALESCE(meta, '{}'::jsonb) || jsonb_build_object('processed_by', p_admin_id, 'reason', p_reason)
+  WHERE id = p_request_id;
+  INSERT INTO public.audit_logs (action, actor_user_id, related_entity_type, related_entity_id, meta)
+  VALUES ('admin.withdrawal_' || p_decision, p_admin_id, 'withdrawal_request', p_request_id, jsonb_build_object('reason', p_reason, 'amount', v_withdrawal.amount));
 END;
 $$;
 

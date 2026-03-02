@@ -37,6 +37,7 @@ This document defines trust boundaries, RBAC, audit, and destructive-action prot
 - **Canonical table**: `public.audit_logs` (not `admin_logs`). Single source of truth for all privileged actions.
 - **Atomic requirement**: Every privileged mutation MUST produce an audit record **in the same transaction** as the mutation. Use a DB RPC that does both the mutation and the `audit_logs` insert, or a single transaction in the API that performs the mutation and insert together. **"Log after write" (non-atomic) is forbidden**—if the mutation succeeds but the audit write fails, we lose accountability.
 - **Canonical columns** (align with app repo schema): e.g. `actor_user_id`, `action`, `related_entity_type`, `related_entity_id`, `meta` (JSONB). No legacy columns like `actor_id`, `target_resource`, `target_id`, `metadata` for new code.
+- **Finance approve/reject**: The RPC `admin_process_withdrawal` is the **single** writer to `audit_logs` for these actions (one row per decision). The API does **not** wrap these calls in `withAudit`; doing so would create a double audit row. Other mutations (e.g. task force-cancel, team remove) use the API’s `withAudit` helper when no RPC performs the audit.
 
 ---
 

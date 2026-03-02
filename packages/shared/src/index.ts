@@ -8,3 +8,4 @@ export * from './schemas/support.js';
 export * from './schemas/tasks.js';
 export * from './schemas/logs.js';
 export * from './schemas/analytics.js';
+export * from './schemas/audit.js';

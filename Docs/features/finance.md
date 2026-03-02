@@ -113,9 +113,8 @@ Component → ViewModel (useXxxVM) → mutations.ts → ServiceResult<T> → toa
 2. **ViewModel** → Shows browser `confirm()`, sets `processingId` loading state.
 3. **Mutation** → `approveWithdrawal()` validates via Zod, checks `FINANCE_SUPERADMIN_ROLES`.
 4. **Rate limit** → `enforceRateLimit` (5 per 60s).
-5. **RPC call** → `admin_process_withdrawal` Supabase RPC.
-6. **Audit log** → `logAuditEvent()` records action + reason.
-7. **UI update** → `router.refresh()` triggers server re-render, toast confirms.
+5. **RPC call** → `admin_process_withdrawal` Supabase RPC. The **RPC is the single audit writer**: it updates the withdrawal and inserts exactly one row into `audit_logs` in the same transaction. The API does **not** wrap this in `withAudit` (to avoid double audit).
+6. **UI update** → `router.refresh()` triggers server re-render, toast confirms.
 
 ---
 
@@ -155,10 +154,10 @@ Component → ViewModel (useXxxVM) → mutations.ts → ServiceResult<T> → toa
 
 ### RPCs
 
-| RPC                           | Purpose                            |
-| ----------------------------- | ---------------------------------- |
-| `admin_process_withdrawal`    | Approve/reject withdrawal (atomic) |
-| `admin_process_wallet_freeze` | Freeze/unfreeze user wallet        |
+| RPC                           | Purpose                                                                 |
+| ----------------------------- | ----------------------------------------------------------------------- |
+| `admin_process_withdrawal`    | Approve/reject withdrawal; writes **one** audit_logs row (atomic). API does not add a second audit row. |
+| `admin_process_wallet_freeze` | Freeze/unfreeze user wallet                                             |
 
 ---
 

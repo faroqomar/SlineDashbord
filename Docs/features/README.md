@@ -11,3 +11,5 @@ Each feature doc should cover:
 - **Special rules**: Idempotency, audit, RBAC, or destructive-action requirements.
 
 This protocol is defined in `Docs/ADMIN_DEVELOPER_GUIDE.md` (Feature Docs Protocol).
+
+**Current feature docs**: `auth.md`, `disputes.md`, `finance.md`, `system_health.md`, `task-activity.md`, `users.md`.
