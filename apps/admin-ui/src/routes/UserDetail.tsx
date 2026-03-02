@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 
 export function UserDetailPage() {
-  const { userId } = useParams({ from: '/users/$userId' });
+  const { userId } = useParams({ from: '/users/$userId' as any });
   const queryClient = useQueryClient();
 
   const { data, isLoading } = useQuery({

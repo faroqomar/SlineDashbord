@@ -5,7 +5,7 @@ import { financeApi } from '../features/finance/services/finance_api';
 import { TransactionsTable } from '../features/finance/components/TransactionsTable';
 
 export function FinanceTransactionsPage() {
-  const search = useSearch({ from: '/finance/transactions' }) as any;
+  const search = useSearch({ from: '/finance/transactions' as any }) as any;
   const cursor = search.cursor_created_at && search.cursor_id 
     ? { created_at: String(search.cursor_created_at), journal_id: String(search.cursor_id) }
     : undefined;

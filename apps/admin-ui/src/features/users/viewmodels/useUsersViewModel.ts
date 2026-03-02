@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from '@/lib/navigation-shim';
-import { getUsers, UserDTO } from '../services/user_actions';
+import { getUsers, type UserDTO } from '../services/users_api';
 
 export function useUsersViewModel() {
   const searchParams = useSearchParams();
@@ -19,7 +19,7 @@ export function useUsersViewModel() {
     setIsLoading(true);
     setError(null);
     
-    getUsers(page, query, role).then(res => {
+    getUsers(page, query, role).then((res) => {
       if (!active) return;
       if (res.success) {
         setUsers(res.data.users);

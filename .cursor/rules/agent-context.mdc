@@ -1,0 +1,14 @@
+---
+description: Unified agent context — use AGENTS.md and .agent for personas, skills, and rules
+alwaysApply: true
+---
+
+# Agent Context (Always Apply)
+
+- **Always reference** `@.cursor` and the `.agent` directory when working in this repo.
+- **Single source of behavior**: Read and follow the **Unified Agent** defined in the project root **AGENTS.md**.
+- **AGENTS.md** adapts all agents (Planner, Executor, Plan Critic, Architect, SysOp, DevOps, Doc Keeper, Code Warden, Perf Opt, Modernizer, UI Expert, Motion Master, QA, Data Smith, SecGuard), all skills in `.agent/skills/`, and all rules in `.agent/rules/`.
+- When editing **sline_admin** or dashboard-related code:
+  - Apply rules from `.agent/rules/` (admin-architecture, admin-security, admin-standards, admin-integration, ui-shadcn, project_context).
+  - Use the skill from `.agent/skills/` that matches the task (e.g. admin_scaffolder for new features, security-review for auth/RBAC, supabase-postgres-best-practices for DB work).
+- When the user asks for a plan: use Planner persona; when they ask to execute: use Executor and assign steps to the right personas per AGENTS.md.

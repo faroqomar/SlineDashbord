@@ -37,7 +37,7 @@ export function TicketNotes({ ticket, onAddNote, onClose }: TicketNotesProps) {
 
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-4">
-          {ticket.internalNotes.map((note) => (
+          {(ticket.internalNotes ?? []).map((note: { id: string; content: string; author: string; timestamp: string }) => (
             <div key={note.id} className="p-3 bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-900/30 rounded-lg text-sm">
               <p className="text-foreground/90">{note.content}</p>
               <div className="flex items-center justify-between mt-2 pt-2 border-t border-yellow-200/50 dark:border-yellow-800/30 text-[10px] text-muted-foreground">
@@ -46,7 +46,7 @@ export function TicketNotes({ ticket, onAddNote, onClose }: TicketNotesProps) {
               </div>
             </div>
           ))}
-          {ticket.internalNotes.length === 0 && (
+          {(ticket.internalNotes ?? []).length === 0 && (
             <div className="text-center py-8 text-muted-foreground text-xs border-2 border-dashed rounded-lg">
               No internal notes yet.
             </div>

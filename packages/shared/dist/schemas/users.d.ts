@@ -24,12 +24,12 @@ export declare const SuspendUserSchema: z.ZodObject<{
     reason: z.ZodString;
     duration: z.ZodDefault<z.ZodEnum<["24h", "30d", "permanent"]>>;
 }, "strip", z.ZodTypeAny, {
-    reason: string;
     id: string;
+    reason: string;
     duration: "24h" | "30d" | "permanent";
 }, {
-    reason: string;
     id: string;
+    reason: string;
     duration?: "24h" | "30d" | "permanent" | undefined;
 }>;
 export declare const BanUserSchema: z.ZodObject<{

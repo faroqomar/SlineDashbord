@@ -1,7 +1,7 @@
 "use client";
 
 import { SupportTicketDTO } from "@/features/support/models/support.schema";
-import { TicketMessageDTO } from "@/features/support/services/support_actions";
+import type { TicketMessageDTO } from "@/features/support/services/support_api";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";

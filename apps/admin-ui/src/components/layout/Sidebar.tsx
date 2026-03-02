@@ -47,8 +47,7 @@ const navItems = [
   },
   {
     title: "System Logs",
-    // href: "/logs",
-    href: "/dashboard/logs", // Matching legacy if needed, or stick to root-based
+    href: "/logs",
     icon: FileText,
   },
   {

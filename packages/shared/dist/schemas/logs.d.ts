@@ -20,13 +20,13 @@ export declare const GetSystemLogsSchema: z.ZodObject<{
     query: z.ZodDefault<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     page: number;
-    limit: number;
     query: string;
+    limit: number;
     actionFilter: string;
 }, {
     page?: number | undefined;
-    limit?: number | undefined;
     query?: string | undefined;
+    limit?: number | undefined;
     actionFilter?: string | undefined;
 }>;
 export declare const GetLogsByTargetSchema: z.ZodObject<{

@@ -1,0 +1,34 @@
+---
+description: SLine Admin Dashboard — MVVM, security, and audit rules (from .agent/rules)
+globs: ["**/sline_admin/**", "**/admin-ui/**", "**/apps/admin-ui/**"]
+alwaysApply: false
+---
+
+# SLine Admin Rules (when editing sline_admin / admin-ui)
+
+These rules mirror and reference `.agent/rules/`. Enforce them for all Admin Dashboard code.
+
+## Architecture (MVVM)
+- **Services** (`*.service.ts`): `'use server'`, `createServiceRoleClient()`, return `ActionResult<T>`, never throw. Only layer that touches the DB.
+- **ViewModels** (`use_*.vm.ts`): `'use client'`, state + actions only; `useEffect` only for initial load; never import Supabase/DB.
+- **Views** (`*.view.tsx`): Dumb UI only; no `useEffect`, no fetch; data/actions from ViewModel or props.
+- Naming: `.model.ts`, `.schema.ts`, `.service.ts`, `.vm.ts`, `.view.tsx`.
+
+## Security
+- **Service Role**: Never in client; never in `NEXT_PUBLIC_*`; only in Server Actions / server code.
+- **Every Server Action**: (1) Zod validate input, (2) verify admin role (e.g. `verifyAdminRole()`), (3) execute, (4) return `{ success, data }` or `{ success: false, error }`.
+- **Audit**: Every state-changing call (insert/update/delete) must write to `audit_logs` in the same scope/transaction; include reason for destructive actions.
+
+## UI (Shadcn)
+- Use `components/ui/*` (Button, Dialog, Form, etc.). No raw `<button>` when a Shadcn component exists.
+- Destructive actions: `variant="destructive"` + confirmation Dialog with mandatory "Reason" for audit.
+- Forms: react-hook-form + zod; schema in `models/*.schema.ts`.
+- Lists: server-side pagination; no unbounded `select('*')`.
+
+## Never do
+- Expose Service Role to client, or put admin actions in client-side Supabase calls.
+- Rely on "UI hides the button" for security; always enforce RBAC at server.
+- Put business or DB logic in Views or ViewModels.
+- Do destructive actions without confirmation, reason, and audit.
+
+For full detail, see `.agent/rules/` and **AGENTS.md**.

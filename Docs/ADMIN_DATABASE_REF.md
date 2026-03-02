@@ -1,67 +1,52 @@
-# Admin Database Reference
+# Admin Database Reference (The Brain)
 
-This document covers the structure, types, and nuances of how the Sline Admin Dashboard interacts with the underlying Postgres Database via Supabase.
-
----
-
-## 📊 Core Administrative Tables
-
-While the Sline App has many tables, the Admin Dashboard primarily focuses on the orchestration and oversight of these entities:
-
-| Table             | Description                                                        | Admin Permissions                               |
-| ----------------- | ------------------------------------------------------------------ | ----------------------------------------------- |
-| `profiles`        | User accounts, roles, and platform status.                         | View, Ban, Unban, Verify, Change Role           |
-| `tasks`           | Marketplace jobs, budgets, and descriptions.                       | View, Escalate                                  |
-| `disputes`        | Conflict resolution contexts generated when a task goes wrong.     | View, Mediate, Resolve (Financial Split/Refund) |
-| `support_tickets` | Incoming user questions, bug reports, and complaints.              | View, Reply, Close                              |
-| `audit_logs`      | Immutable ledger of all admin actions taken inside this dashboard. | Read-Only (System Appends)                      |
-| `system_config`   | Global variables (Maintenance mode, forced app version, banners).  | Read / Update                                   |
+This document covers how the Sline Admin Dashboard interacts with the database: which objects it touches, canonical audit, and type generation. The **canonical schema** lives in the **app repo** (`sline_app/supabase/migrations`); the dashboard repo does not own production schema.
 
 ---
 
-## 🗂 Key Postgres Enums
+## DB Objects the Admin Touches
 
-Type-safety begins at the database level. Sline uses custom ENUMs heavily.
+| Object / Table     | Description | Admin usage | Evidence |
+|--------------------|-------------|------------|----------|
+| `profiles`         | User accounts, roles, platform status | View, ban/unban, suspend, moderation | API routes + RLS bypass via Service Role in api |
+| `tasks`            | Marketplace jobs | View, force-cancel, status update | apps/api routes |
+| `disputes`         | Conflict resolution | View, resolve, refund/release | apps/api routes |
+| `audit_logs`       | Immutable ledger of admin actions | **Read** (activity feeds); **Write** only via atomic RPC/transaction with mutation | Canonical; no `admin_logs` for new code |
+| `admin_users`     | Admin identity and roles (source of truth for RBAC) | Read for RBAC; manage via super_admin | To be added in app repo if missing |
+| `support_tickets`  | User support requests | View, reply, assign, status | If feature exists |
+| `system_config`    | Global flags (maintenance, banners) | Read/update | If feature exists |
+| Finance/ledger     | Withdrawals, transactions | View, approve/reject (via RPC) | apps/api finance routes |
 
-1. **`UserRole` / Active Roles**: `user`, `admin`, `super_admin`, `moderator`, `support`, `finance`.
-2. **`TaskStatus`**: `open`, `in_progress`, `in_review`, `completed`, `cancelled`, `disputed`.
-3. **`DisputeStatus`**: `open`, `investigating`, `mediation`, `resolved`, `dismissed`.
-4. **`TicketStatus`**: `open`, `in_progress`, `waiting_on_user`, `resolved`, `closed`.
-
----
-
-## 🛡 RLS Bypasses via Service Role
-
-The Admin Dashboard is built entirely on the `createAdminClient()` helper, which initiates a Supabase client using the `SUPABASE_SERVICE_ROLE_KEY`.
-
-**This intentionally BYPASSES all Row Level Security (RLS) policies.**
-
-- **Why**: Traditional RLS requires the executing request to belong to the row owner (e.g., a freelancer selecting their own tasks). Determining administrative access natively inside Postgres RLS policies is inherently slow and complex.
-- **The Result**: The Admin server actions act as a "God Mode". We rely entirely on the App-Level Application Code (`requireAdminRole` guard) to restrict viewing and mutating capabilities.
+**Missing / to be added in app migrations**: `admin_users`, `cases`, `notes`, `reports`, `approvals`, `system_config` (as needed per product). Dashboard repo may have temporary or read-only migrations for development; production truth is app-owned.
 
 ---
 
-## 🧬 Type Generation Pipeline
+## Canonical Audit Table: `audit_logs` (Not admin_logs)
 
-We maintain 100% end-to-end type safety. Instead of manually typing database payloads, we generate them directly from the live Postgres schema.
+- **Table**: `public.audit_logs`.
+- **Purpose**: Every privileged mutation must insert exactly one row here **in the same transaction** as the mutation.
+- **Canonical columns** (align with app repo): e.g. `id`, `actor_user_id`, `action`, `related_entity_type`, `related_entity_id`, `meta` (JSONB), `created_at`. Avoid legacy names (`actor_id`, `target_resource`, `target_id`, `metadata`) for new code.
+- **admin_logs**: Treated as legacy/drift. New code must not read or write `admin_logs`; migrate to `audit_logs` and atomic writes.
 
-**Command to generate types:**
+---
 
-```bash
-npx supabase gen types typescript --project-id isddrknbjsgaantjojhm > src/types/supabase.ts
-```
+## Views Needed by Admin
 
-_(Ensure you have the Supabase CLI installed and are authenticated)._
+- **Analytics**: e.g. `vw_analytics_monthly_revenue`, `vw_analytics_monthly_user_growth` (or equivalent) for dashboard KPIs.
+- **Ledger/reporting**: e.g. `vw_admin_journal_ledger` if required for finance or audit views.
 
-**Consuming the Types:**
-Whenever typing a raw data payload, use the `Database` interfaces:
+These views should live in the app repo migrations when they are canonical; the API reads them via Service Role.
 
-```typescript
-import { Database } from "@/types/supabase";
+---
 
-export type TaskRow = Database["public"]["Tables"]["tasks"]["Row"];
-export type ProfileUpdate = Database["public"]["Tables"]["profiles"]["Update"];
-```
+## Type Generation and Shared Contracts
 
-> [!TIP]
-> Never use `any` when dealing with Supabase responses! Always map the raw row data into a formatted `DTO` (Data Transfer Object) inside your Service Action before handing it off to the React View Model.
+- **DB types**: Generated from the **app repo** schema (canonical). Example: `npx supabase gen types typescript --project-id <id> > src/types/supabase.ts` in the app repo. The **dashboard API** may use these types or shared DTOs; the **admin-ui** must NOT import `@/types/supabase` or any server-side DB types—it uses only DTOs from `packages/shared` or local TS interfaces.
+- **Shared contracts**: `packages/shared` holds Zod schemas for API request/response shapes. These are the contract between admin-ui and api. DB row types stay in the API or app repo; shared exposes only safe, stable DTOs (no raw DB columns that could leak schema details).
+
+---
+
+## RLS and Service Role
+
+- **App users**: Access data through RLS. The mobile/app client uses anon or user JWT and is restricted by RLS.
+- **Admin**: The API uses the Supabase client with `SUPABASE_SERVICE_ROLE_KEY`, which bypasses RLS. Access control is enforced in application code (RBAC middleware and route handlers), not in Postgres, for admin operations.

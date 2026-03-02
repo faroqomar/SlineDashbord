@@ -5,7 +5,7 @@ import { financeApi } from '../features/finance/services/finance_api';
 import { WithdrawalsTable } from '../features/finance/components/WithdrawalsTable';
 
 export function FinanceWithdrawalsPage() {
-  const search = useSearch({ from: '/finance/withdrawals' }) as any;
+  const search = useSearch({ from: '/finance/withdrawals' as any }) as any;
   const cursor = search.cursor_created_at && search.cursor_id 
     ? { created_at: String(search.cursor_created_at), id: String(search.cursor_id) }
     : undefined;
@@ -29,7 +29,7 @@ export function FinanceWithdrawalsPage() {
         <WithdrawalsTable 
           initialData={data?.data || []} 
           nextCursor={data?.nextCursor} 
-          filters={filters} 
+          statusFilter={filters.status} 
         />
       </div>
     </div>

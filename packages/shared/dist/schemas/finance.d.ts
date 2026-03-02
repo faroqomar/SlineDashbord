@@ -3,8 +3,8 @@ export declare const ApproveWithdrawalSchema: z.ZodObject<{
     requestId: z.ZodString;
     reason: z.ZodDefault<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    requestId: string;
     reason: string;
+    requestId: string;
 }, {
     requestId: string;
     reason?: string | undefined;
@@ -14,11 +14,11 @@ export declare const RejectWithdrawalSchema: z.ZodObject<{
     requestId: z.ZodString;
     reason: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    requestId: string;
     reason: string;
+    requestId: string;
 }, {
-    requestId: string;
     reason: string;
+    requestId: string;
 }>;
 export type RejectWithdrawalInput = z.infer<typeof RejectWithdrawalSchema>;
 export declare const FreezeWalletSchema: z.ZodObject<{
@@ -192,15 +192,15 @@ export declare const WithdrawalRequestSchema: z.ZodObject<{
     created_at: z.ZodString;
 }, "strip", z.ZodTypeAny, {
     status: "requested" | "processing" | "completed" | "failed";
-    created_at: string;
     id: string;
+    created_at: string;
     user_id: string;
     amount: number;
     currency: string;
 }, {
     status: "requested" | "processing" | "completed" | "failed";
-    created_at: string;
     id: string;
+    created_at: string;
     user_id: string;
     amount: number;
     currency: string;

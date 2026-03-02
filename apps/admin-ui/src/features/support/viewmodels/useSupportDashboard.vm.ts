@@ -1,5 +1,5 @@
 import { useState, useEffect, useTransition } from "react";
-import { getTicketMessages, replyToTicket, updateTicketStatus, TicketMessageDTO } from "@/features/support/services/support_actions";
+import { getTicketMessages, replyToTicket, updateTicketStatus, type TicketMessageDTO } from "@/features/support/services/support_api";
 import { SupportTicketDTO } from "@/features/support/models/support.schema";
 import { toast } from "sonner";
 
@@ -78,7 +78,8 @@ export function useSupportDashboard(initialTickets: SupportTicketDTO[]): UseSupp
         };
         setMessages(prev => [...prev, optimisticMessage]);
 
-        startTransition(async () => {
+        startTransition(() => {
+            void (async () => {
             try {
                 const res = await replyToTicket(selectedTicket.id, content);
                 if (!res.success) throw new Error(res.error);
@@ -91,6 +92,7 @@ export function useSupportDashboard(initialTickets: SupportTicketDTO[]): UseSupp
                 toast.error("Failed to send reply");
                 setMessages(prev => prev.filter(m => m.id !== tempId));
             }
+            })();
         });
     };
 

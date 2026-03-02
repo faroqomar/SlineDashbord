@@ -1,10 +1,37 @@
 import { z } from 'zod';
-import { Database } from '@/types/supabase';
 
-// ─── Supabase Row Types ───────────────────────────────────
-export type JournalEntry = Database['public']['Tables']['journal_entries']['Row'];
-export type LedgerLine = Database['public']['Tables']['ledger_lines']['Row'];
-export type VwAdminJournalLedger = Database['public']['Views']['vw_admin_journal_ledger']['Row'];
+// ─── Local types (API/ledger contract; no Supabase DB types in SPA) ─────
+export type JournalEntry = {
+  id: string;
+  created_at: string;
+  event_type: string;
+  status: string;
+  entity_type?: string | null;
+  entity_id?: string | null;
+  meta?: Record<string, unknown> | null;
+  [key: string]: unknown;
+};
+export type LedgerLine = {
+  id: string;
+  journal_id: string;
+  ledger_account: string;
+  amount: number;
+  [key: string]: unknown;
+};
+export type VwAdminJournalLedger = {
+  journal_id: string;
+  created_at: string;
+  event_type: string;
+  status: string;
+  entity_type?: string | null;
+  entity_id?: string | null;
+  payer_user_id?: string | null;
+  payee_user_id?: string | null;
+  gross_amount: number;
+  fee_amount: number;
+  net_amount: number;
+  [key: string]: unknown;
+};
 
 // ─── Roles ────────────────────────────────────────────────
 export type FinanceRole = 'support' | 'moderator' | 'admin' | 'super_admin';

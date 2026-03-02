@@ -8,6 +8,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
+    "forbidden-imports": "bash scripts/forbidden-imports.sh",
     "test": "vitest run",
     "test:e2e": "playwright test"
   },
@@ -41,6 +42,7 @@
     "lucide-react": "^0.344.0",
     "next-themes": "^0.2.1",
     "react": "^18.2.0",
+    "react-day-picker": "^9.0.0",
     "react-dom": "^18.2.0",
     "recharts": "^2.12.2",
     "react-hook-form": "^7.51.0",

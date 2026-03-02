@@ -14,13 +14,19 @@ export function useRouter() {
   };
 }
 
-export function useSearchParams() {
-  const search = useSearch({ from: '__root__' }) as Record<string, string>;
-  
-  return {
-    get: (key: string) => search[key] || null,
-    getAll: (key: string) => (search[key] ? [search[key]] : []),
-    has: (key: string) => !!search[key],
-    toString: () => new URLSearchParams(search).toString(),
+export function useSearchParams(): URLSearchParams {
+  const search = useSearch({ from: '__root__' as any }) as Record<string, string>;
+  const params = new URLSearchParams();
+  Object.entries(search ?? {}).forEach(([k, v]) => params.set(k, String(v)));
+  return params;
+}
+
+export function useSetSearchParams(): (params: URLSearchParams) => void {
+  const navigate = useNavigate();
+  const location = useLocation();
+  return (params: URLSearchParams) => {
+    const next: Record<string, string> = {};
+    params.forEach((v, k) => { next[k] = v; });
+    navigate({ to: location.pathname as any, search: next as any, replace: true });
   };
 }

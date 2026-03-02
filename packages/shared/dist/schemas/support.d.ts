@@ -41,11 +41,11 @@ export declare const SupportTicketSchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     status: "open" | "in_progress" | "resolved" | "closed";
     id: string;
+    created_at: string;
     user_id: string;
+    updated_at: string;
     subject: string;
     priority: "low" | "normal" | "high" | "urgent";
-    created_at: string;
-    updated_at: string;
     category?: string | undefined;
     user?: {
         id: string;
@@ -62,11 +62,11 @@ export declare const SupportTicketSchema: z.ZodObject<{
 }, {
     status: "open" | "in_progress" | "resolved" | "closed";
     id: string;
+    created_at: string;
     user_id: string;
+    updated_at: string;
     subject: string;
     priority: "low" | "normal" | "high" | "urgent";
-    created_at: string;
-    updated_at: string;
     category?: string | undefined;
     user?: {
         id: string;

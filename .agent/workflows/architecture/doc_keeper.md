@@ -1,119 +1,68 @@
 ---
-description: You are `@DocKeeper`. Your mission is to create a complete, developer-grade documentation suite for the `sline_admin` (Next.js 15) project, mirroring the high standards of the `sline_app` documentation.
+description: You are `@DocKeeper`. Your mission is to create a complete, developer-grade documentation suite for the `SlineDashboard` monorepo (Vite + TanStack SPA + Fastify API), mirroring the quality of `sline_app` docs.
 ---
 
-Generate Admin Dashboard Documentation
+Generate Admin Dashboard Documentation (NEW STACK)
 
-**Goal**: You are `@DocKeeper`. Your mission is to create a complete, developer-grade documentation suite for the `sline_admin` (Next.js 15) project, mirroring the high standards of the `sline_app` documentation.
+Goal:
+Create a full documentation suite for `/Users/eros/Dev/Eros_Projects/SlineDashbord` using:
+- Frontend: Vite + React + TypeScript
+- Routing/Data: TanStack Router + TanStack Query
+- Backend: Fastify REST API (server-only service role)
+- Shared: `packages/shared` (Zod contracts + ServiceResult<T>)
+- UI: shadcn/ui + Tailwind
+- Security: RBAC, audit logs, idempotency, case-gated chat access (future)
 
-**Context**:
-This is a mission-critical Admin Dashboard for a Freelance Marketplace. It uses:
+Critical Context:
+This dashboard is the privileged admin plane for the production Flutter app (`sline_app`) and shares the same Supabase project.
+All privileged actions MUST run server-side via Fastify. The browser must never have service role access.
 
-- **Framework**: Next.js 15 (App Router, Server Actions).
-- **Backend**: Supabase (Service Role Key, RLS Bypass).
-- **UI**: Shadcn/UI + Tailwind CSS.
-- **Security**: Strict RBAC, Audit Logging, Zod Validation.
+Required Output Files (5 markdown files, exhaustive, no summary):
 
----
+1) ADMIN_DEVELOPER_GUIDE.md (The Bible)
+- Monorepo layout: apps/admin-ui, apps/api, packages/shared, legacy-source
+- SPA architecture: Route -> Feature -> ViewModel -> API client -> Fastify
+- TanStack Router patterns: typed routes, loaders/beforeLoad auth redirect
+- TanStack Query patterns: query keys, pagination, mutations, invalidation
+- API client templates: fetch wrapper with cookie auth + optional Idempotency-Key
+- Copy-paste templates for List, Detail, Mutations (Create/Update/Action)
 
-## 📂 Required Output Files
+2) ADMIN_SECURITY_MANUAL.md (The Shield)
+- Trust boundaries: admin-ui vs api vs supabase
+- Service Role key: server-only in apps/api
+- RBAC: server-side enforcement, role enum in shared schemas
+- Audit: canonical `audit_logs` usage, atomic write requirement via DB RPC
+- Forbidden imports scan (admin-ui): fail build if found
+- Destructive actions require reason + audit + idempotency
 
-Please generate the following 5 markdown files. Do not summarize; be exhaustive.
+3) ADMIN_DATABASE_REF.md (The Brain)
+- DB objects the admin touches (verified vs missing evidence)
+- Canonical audit table: `audit_logs` (not admin_logs)
+- Admin-domain missing tables to be added in app migrations: admin_users, cases, notes, reports, approvals, system_config
+- Views needed by admin: vw_admin_journal_ledger, analytics views
+- Type generation: how to generate DB types and how shared contracts relate
 
-### 1. `ADMIN_DEVELOPER_GUIDE.md` (The Bible)
+4) ADMIN_UI_KIT.md (The Face)
+- Tailwind + shadcn usage conventions
+- Layouts: Sidebar, PageHeader, tables, filters, empty states
+- Standard patterns: list pages, detail pages, action dialogs, toasts
+- Icons: lucide usage
 
-**Focus**: How to build features.
+5) ADMIN_SETUP_GUIDE.md (The Handle)
+- Prereqs: Node, pnpm/npm, Supabase CLI (optional)
+- Install: workspace commands
+- Env vars:
+  - admin-ui: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, VITE_API_BASE_URL
+  - api: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_JWT_SECRET (or token verification method), CORS allowed origins
+- Run dev: start api + ui
+- Deployment checklist: api + static ui, secrets separation
 
-- **Architecture**: Explain the "Service -> ViewModel -> View" pattern in Next.js.
-- **Server Actions**: How to write a secure action (Zod + Auth Check + DB Call + Audit).
-- **Client Components**: How to use `useViewModel` hook.
-- **State Management**: When to use React State vs URL State.
-- **Code Snippets**: Provide a "Copy-Paste" template for a standard CRUD feature (List, Detail, Create, Update).
-
-### 2. `ADMIN_SECURITY_MANUAL.md` (The Shield)
-
-**Focus**: Security protocols and strict rules.
-
-- **Service Role**: explain WHY we use it and HOW we protect it (Server-side only).
-- **RBAC**: Document the `verifyAdminRole()` function and middleware rules.
-- **Audit Logs**: Explain the mandatory `admin_logs` table (Schema: Actor, Action, Target, Metadata).
-- **Data Isolation**: Rules for not corrupting `sline_app` user data.
-- **Destructive Actions**: The "Reason Required" protocol for bans and refunds.
-
-### 3. `ADMIN_DATABASE_REF.md` (The Brain)
-
-**Focus**: Database schema specific to Admin needs.
-
-- **Tables**: List all tables the Admin touches (`profiles`, `jobs`, `admin_logs`, `disputes`).
-- **Enums**: Document `UserRole`, `JobStatus`, `DisputeStatus`.
-- **RLS Bypasses**: Explicitly list which RLS policies are bypassed by the Service Role and why.
-- **Type Generation**: Command to run (`supabase gen types`) and how to use `Database` type.
-
-### 4. `ADMIN_UI_KIT.md` (The Face)
-
-**Focus**: Design System and Components.
-
-- **Theme**: Colors (Primary, Destructive, Muted), Fonts (Inter).
-- **Components**: List available Shadcn components (`Button`, `Table`, `Dialog`, `Form`).
-- **Layouts**: Document `DashboardLayout`, `Sidebar`, `PageHeader`.
-- **Icons**: Lucide icon usage guide.
-
-### 5. `ADMIN_SETUP_GUIDE.md` (The Handle)
-
-**Focus**: Getting started for new devs.
-
-- **Prerequisites**: Node.js, npm, Supabase CLI.
-- **Installation**: `npm install`.
-- **Environment**: List all required `.env.local` variables (`NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, etc.).
-- **Running**: `npm run dev`.
-- **Deployment**: Vercel deployment checklist.
-
----
-
-## 💡 Critical "Do Not Miss" Checklist
-
-Ensure the documentation explicitly covers:
-
-1.  **"No Throw" Rule**: Server actions must return `{ success: false, error: ... }`, never throw.
-2.  **Zod Validation**: MUST be the first line of every Server Action.
-3.  **Type Safety**: No `any`. Use generated Supabase types.
-4.  **Middleware**: How `middleware.ts` protects `/admin` routes.
-5.  **Direct DB Access**: Forbidding `supabase-js` usage in Client Components.
-
-**Tone**: Authoritative, Technical, Concise. Use emojis for sections. use "Access Denied" alerts for security warnings.
-
----
-
-## 🔄 Continuous Documentation Protocol
-
-**Rule**: Every new feature implemented MUST have its own dedicated documentation file.
-
-- **Location**: `docs/features/[feature_name].md`
-- **Trigger**: When a feature reaches "v1" or "MVP" status.
-
-### Feature Documentation Template
-
-When creating a feature doc, use this structure:
-
-```markdown
-# [Feature Name]
-
-## Overview
-
-What does this feature do? Who is it for?
-
-## Architecture
-
-- **Components**: List key UI components.
-- **Actions**: List Server Actions used.
-- **Models**: Link to data models.
-
-## How It Works
-
-Step-by-step flow of the feature (e.g., "User clicks button -> Action validates -> DB updates -> UI refreshes").
-
-## Future Work
-
-- [ ] Known limitations
-- [ ] Planned enhancements
-```
+Do-Not-Miss Checklist:
+- No Throw rule: APIs return ServiceResult<T>
+- Zod validation must run before business logic (in Fastify)
+- No `any`
+- No direct DB writes from admin-ui
+- Idempotency-Key required on replay-sensitive admin routes
+- Every privileged mutation must be audit-atomic (DB RPC), not “log-after-write”
+- Feature docs protocol:
+  - Every feature gets `docs/features/<feature>.md` when v1 shipped

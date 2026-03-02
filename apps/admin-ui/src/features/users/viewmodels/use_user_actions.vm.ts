@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { suspendUser } from "@/features/users/services/user_actions";
+import { suspendUser } from "@/features/users/services/users_api";
 import { toast } from "sonner";
 
 export function useUserActionsViewModel(userId: string) {

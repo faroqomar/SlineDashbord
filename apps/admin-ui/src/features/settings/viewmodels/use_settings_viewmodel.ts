@@ -1,6 +1,6 @@
 import { useState, useTransition } from "react";
 import { SystemConfig, MaintenanceMode, AppBanner } from "../models/settings.schema";
-import { updateSystemConfig } from "../services/settings_actions";
+import { updateSystemConfig } from "../services/settings_api";
 import { toast } from "sonner";
 
 export function useSettingsViewModel(initialConfigs: SystemConfig[]) {
@@ -19,7 +19,8 @@ export function useSettingsViewModel(initialConfigs: SystemConfig[]) {
   const appVersion = getEnumValue<{ios: string, android: string}>('min_app_version', { ios: '1.0.0', android: '1.0.0' });
 
   const updateConfig = async (key: string, newValue: any) => {
-    startTransition(async () => {
+    startTransition(() => {
+      void (async () => {
       const res = await updateSystemConfig(key, newValue);
       if (res.success) {
         setConfigs(prev => prev.map(c => c.key === key ? { ...c, value: newValue } : c));
@@ -27,6 +28,7 @@ export function useSettingsViewModel(initialConfigs: SystemConfig[]) {
       } else {
         toast.error(res.error || "Update failed");
       }
+      })();
     });
   };
 

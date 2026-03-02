@@ -18,6 +18,7 @@ import { DisputeDetailPage } from './routes/DisputeDetail';
 import { SettingsPage } from './routes/Settings';
 import { TasksPage } from './routes/Tasks';
 import { TaskDetailPage } from './routes/TaskDetail';
+import { LogsPage } from './routes/Logs';
 import { request } from './lib/api';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import { ThemeProvider } from './components/theme-provider';
@@ -26,7 +27,7 @@ import './index.css';
 // Root Route
 const rootRoute = createRootRoute({
   component: () => (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem storageKey="sline-admin-theme">
       <Outlet />
     </ThemeProvider>
   ),
@@ -131,6 +132,13 @@ const taskDetailRoute = createRoute({
   component: TaskDetailPage,
 });
 
+// Logs Route (placeholder until logs API exists)
+const logsRoute = createRoute({
+  getParentRoute: () => authLayoutRoute,
+  path: '/logs',
+  component: LogsPage,
+});
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
   authLayoutRoute.addChildren([
@@ -145,6 +153,7 @@ const routeTree = rootRoute.addChildren([
     settingsRoute,
     tasksRoute,
     taskDetailRoute,
+    logsRoute,
   ]),
 ]);
 

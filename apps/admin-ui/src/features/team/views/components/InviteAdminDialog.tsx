@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Mail, Plus, Loader2 } from "lucide-react";
-import { inviteMember } from "@/features/team/services/team_actions";
+import { inviteMember } from "@/features/team/services/team_api";
 import { useRouter } from "@/lib/navigation-shim";
 
 export function InviteAdminDialog() {
@@ -36,7 +36,8 @@ export function InviteAdminDialog() {
   const handleInvite = () => {
     if (!email || !fullName) return;
     
-    startTransition(async () => {
+    startTransition(() => {
+        void (async () => {
         try {
             const res = await inviteMember(email, role, fullName);
             if (res.success) {
@@ -57,6 +58,7 @@ export function InviteAdminDialog() {
                 description: error instanceof Error ? error.message : "Unknown error"
             });
         }
+        })();
     });
   };
 

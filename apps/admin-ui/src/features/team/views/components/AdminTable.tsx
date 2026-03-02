@@ -23,7 +23,7 @@ import {
 import { MoreHorizontal, Shield, UserX, UserCheck, Mail, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { AdminUserDTO } from "@/features/team/models/team.schema";
-import { removeMember } from "@/features/team/services/team_actions";
+import { removeMember } from "@/features/team/services/team_api";
 import { useRouter } from "@/lib/navigation-shim";
 
 interface AdminTableProps {
@@ -41,7 +41,8 @@ export function AdminTable({ initialUsers, canManage }: AdminTableProps) {
     const previousUsers = [...users];
     setUsers(users.filter(u => u.id !== userToDelete));
     
-    startTransition(async () => {
+    startTransition(() => {
+        void (async () => {
         try {
             const res = await removeMember(userToDelete);
             if (res.success) {
@@ -55,6 +56,7 @@ export function AdminTable({ initialUsers, canManage }: AdminTableProps) {
             setUsers(previousUsers); // Revert
             toast.error("Failed to revoke access");
         }
+        })();
     });
   };
 

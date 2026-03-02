@@ -37,25 +37,25 @@ export declare const GetTasksSchema: z.ZodObject<{
     query: z.ZodDefault<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     page: number;
+    query: string;
     status: string;
     limit: number;
-    query: string;
 }, {
     page?: number | undefined;
+    query?: string | undefined;
     status?: string | undefined;
     limit?: number | undefined;
-    query?: string | undefined;
 }>;
 export declare const UpdateTaskStatusSchema: z.ZodObject<{
     id: z.ZodString;
     status: z.ZodEnum<["open", "assigned", "in_progress", "completed", "canceled", "review", "disputed", "under_review"]>;
     reason: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    status: "open" | "in_progress" | "assigned" | "completed" | "canceled" | "review" | "disputed" | "under_review";
+    status: "completed" | "open" | "in_progress" | "assigned" | "canceled" | "review" | "disputed" | "under_review";
     id: string;
     reason: string;
 }, {
-    status: "open" | "in_progress" | "assigned" | "completed" | "canceled" | "review" | "disputed" | "under_review";
+    status: "completed" | "open" | "in_progress" | "assigned" | "canceled" | "review" | "disputed" | "under_review";
     id: string;
     reason: string;
 }>;

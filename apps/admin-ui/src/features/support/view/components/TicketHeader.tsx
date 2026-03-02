@@ -21,9 +21,9 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
-import { getTeamMembers } from "@/features/team/services/team_actions";
+import { getTeamMembers } from "@/features/team/services/team_api";
 import { AdminUserDTO } from "@/features/team/models/team.schema";
-import { assignTicketToAdmin } from "@/features/support/services/support_actions";
+import { assignTicketToAdmin } from "@/features/support/services/support_api";
 import { toast } from "sonner";
 
 interface TicketHeaderProps {
