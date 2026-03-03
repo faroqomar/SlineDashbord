@@ -1,10 +1,12 @@
 import { useState, useCallback, useEffect } from 'react';
 import { reportsApi } from '../services/reports_api';
-import type { ReportListItem, ReportDetail, TriageAction } from '@sline/shared';
+import type { ReportListItem, ReportDetail, ReportSeverity } from '@sline/shared';
 
 export interface ReportsFilters {
   status: string;
   entity_type: string;
+  severity: string;
+  assigned_to_me: boolean;
   page: number;
   limit: number;
 }
@@ -12,6 +14,8 @@ export interface ReportsFilters {
 const DEFAULT_FILTERS: ReportsFilters = {
   status: 'all',
   entity_type: 'all',
+  severity: 'all',
+  assigned_to_me: false,
   page: 1,
   limit: 20,
 };
@@ -25,9 +29,7 @@ export function useReportsViewModel(initialFilters: Partial<ReportsFilters> = {}
 
   const [selectedReport, setSelectedReport] = useState<ReportDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
-  const [triageAction, setTriageAction] = useState<TriageAction>('dismiss');
-  const [triageReason, setTriageReason] = useState('');
-  const [closeReason, setCloseReason] = useState('');
+  const [actionReason, setActionReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -38,9 +40,11 @@ export function useReportsViewModel(initialFilters: Partial<ReportsFilters> = {}
       const params: Parameters<typeof reportsApi.list>[0] = {
         page: filters.page,
         limit: filters.limit,
+        assigned_to_me: filters.assigned_to_me || undefined,
       };
-      if (filters.status !== 'all') params.status = filters.status as 'open' | 'triaged' | 'closed';
-      if (filters.entity_type !== 'all') params.entity_type = filters.entity_type as 'task' | 'user' | 'chat';
+      if (filters.status !== 'all') params.status = filters.status as 'open' | 'triaged' | 'escalated' | 'closed';
+      if (filters.entity_type !== 'all') params.entity_type = filters.entity_type as 'task' | 'user' | 'chat' | 'booking';
+      if (filters.severity !== 'all') params.severity = filters.severity as ReportSeverity;
       const res = await reportsApi.list(params);
       setReports(res.reports);
       setTotal(res.total);
@@ -49,7 +53,7 @@ export function useReportsViewModel(initialFilters: Partial<ReportsFilters> = {}
     } finally {
       setLoading(false);
     }
-  }, [filters.page, filters.limit, filters.status, filters.entity_type]);
+  }, [filters.page, filters.limit, filters.status, filters.entity_type, filters.severity, filters.assigned_to_me]);
 
   useEffect(() => {
     loadList();
@@ -58,7 +62,12 @@ export function useReportsViewModel(initialFilters: Partial<ReportsFilters> = {}
   const changeFilters = useCallback((updates: Partial<ReportsFilters>) => {
     setFilters((prev) => {
       const next = { ...prev, ...updates };
-      if ('status' in updates || 'entity_type' in updates) next.page = 1;
+      const listAffecting =
+        'status' in updates ||
+        'entity_type' in updates ||
+        'severity' in updates ||
+        'assigned_to_me' in updates;
+      if (listAffecting) next.page = 1;
       return next;
     });
   }, []);
@@ -66,8 +75,7 @@ export function useReportsViewModel(initialFilters: Partial<ReportsFilters> = {}
   const openDetail = useCallback(async (reportId: string) => {
     setDetailLoading(true);
     setSelectedReport(null);
-    setTriageReason('');
-    setCloseReason('');
+    setActionReason('');
     setSubmitError(null);
     try {
       const detail = await reportsApi.getById(reportId);
@@ -79,38 +87,58 @@ export function useReportsViewModel(initialFilters: Partial<ReportsFilters> = {}
     }
   }, []);
 
-  const handleTriage = useCallback(async () => {
-    if (!selectedReport || !triageReason.trim()) return;
+  const handleDismiss = useCallback(async () => {
+    if (!selectedReport || !actionReason.trim()) return;
     setSubmitting(true);
     setSubmitError(null);
     try {
-      await reportsApi.triage(selectedReport.id, { action: triageAction, reason: triageReason.trim() });
+      await reportsApi.dismiss(selectedReport.id, { reason: actionReason.trim() });
       const updated = await reportsApi.getById(selectedReport.id);
       setSelectedReport(updated);
-      setTriageReason('');
+      setActionReason('');
       loadList();
     } catch (e: unknown) {
-      setSubmitError(e instanceof Error ? e.message : 'Triage failed');
+      setSubmitError(e instanceof Error ? e.message : 'Dismiss failed');
     } finally {
       setSubmitting(false);
     }
-  }, [selectedReport, triageAction, triageReason, loadList]);
+  }, [selectedReport, actionReason, loadList]);
 
-  const handleClose = useCallback(async () => {
-    if (!selectedReport || !closeReason.trim()) return;
+  const handleEscalate = useCallback(async () => {
+    if (!selectedReport || !actionReason.trim()) return null;
     setSubmitting(true);
     setSubmitError(null);
     try {
-      await reportsApi.close(selectedReport.id, { reason: closeReason.trim() });
-      setSelectedReport(null);
-      setCloseReason('');
+      const result = await reportsApi.escalate(selectedReport.id, { reason: actionReason.trim() });
+      const updated = await reportsApi.getById(selectedReport.id);
+      setSelectedReport(updated);
+      setActionReason('');
+      loadList();
+      return result.case_id;
+    } catch (e: unknown) {
+      setSubmitError(e instanceof Error ? e.message : 'Escalation failed');
+      return null;
+    } finally {
+      setSubmitting(false);
+    }
+  }, [selectedReport, actionReason, loadList]);
+
+  const handleCloseResolved = useCallback(async () => {
+    if (!selectedReport || !actionReason.trim()) return;
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      await reportsApi.close(selectedReport.id, { reason: actionReason.trim(), resolution: 'resolved' });
+      const updated = await reportsApi.getById(selectedReport.id);
+      setSelectedReport(updated);
+      setActionReason('');
       loadList();
     } catch (e: unknown) {
       setSubmitError(e instanceof Error ? e.message : 'Close failed');
     } finally {
       setSubmitting(false);
     }
-  }, [selectedReport, closeReason, loadList]);
+  }, [selectedReport, actionReason, loadList]);
 
   const closeDialog = useCallback(() => {
     setSelectedReport(null);
@@ -125,20 +153,17 @@ export function useReportsViewModel(initialFilters: Partial<ReportsFilters> = {}
     error,
     selectedReport,
     detailLoading,
-    triageAction,
-    triageReason,
-    closeReason,
+    actionReason,
+    setActionReason,
     submitting,
     submitError,
     changeFilters,
     refreshList: loadList,
     openDetail,
-    handleTriage,
-    handleClose,
+    handleDismiss,
+    handleEscalate,
+    handleCloseResolved,
     closeDialog,
-    setTriageAction,
-    setTriageReason,
-    setCloseReason,
     setSelectedReport,
   };
 }

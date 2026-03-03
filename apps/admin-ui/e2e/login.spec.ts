@@ -3,13 +3,13 @@ import { test, expect } from '@playwright/test';
 test.describe('Login Flow', () => {
   test('should show login page and allow login attempt', async ({ page }) => {
     await page.goto('/login');
-    
-    await expect(page).toHaveTitle(/SLine Admin/);
-    await expect(page.getByRole('heading', { name: 'SLine Admin Login' })).toBeVisible();
 
-    const emailInput = page.getByLabel('Email');
-    const passwordInput = page.getByLabel('Password');
-    const loginButton = page.getByRole('button', { name: 'Login' });
+    await expect(page).toHaveTitle(/SLine Admin/i);
+    await expect(page.getByRole('heading', { name: /SLine Admin Login|Login/i })).toBeVisible();
+
+    const emailInput = page.locator('input[type="email"]').first();
+    const passwordInput = page.locator('input[type="password"]').first();
+    const loginButton = page.getByRole('button', { name: /Login/i }).first();
 
     await emailInput.fill('admin@example.com');
     await passwordInput.fill('password123');

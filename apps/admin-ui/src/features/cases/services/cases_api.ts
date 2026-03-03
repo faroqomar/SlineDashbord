@@ -4,6 +4,9 @@ import type {
   AdminCaseDetail,
   AdminCaseCreateInput,
   AdminCaseAttachEntityInput,
+  AdminCaseAssignInput,
+  AdminCaseStatusInput,
+  AdminCaseNoteInput,
 } from '@sline/shared';
 
 export const casesApi = {
@@ -37,6 +40,24 @@ export const casesApi = {
   attachEntity: async (caseId: string, input: AdminCaseAttachEntityInput) => {
     const res = await request<{ id: string }>('POST', `/cases/${caseId}/entities`, input);
     if (!res.ok) throw new Error(res.error?.message ?? 'Failed to attach entity');
+    return res.data;
+  },
+
+  assignCase: async (caseId: string, input: AdminCaseAssignInput) => {
+    const res = await request<{ id: string; assignee_id?: string | null }>('POST', `/cases/${caseId}/assign`, input);
+    if (!res.ok) throw new Error(res.error?.message ?? 'Failed to assign case');
+    return res.data;
+  },
+
+  updateStatus: async (caseId: string, input: AdminCaseStatusInput) => {
+    const res = await request<{ id: string; status: string }>('POST', `/cases/${caseId}/status`, input);
+    if (!res.ok) throw new Error(res.error?.message ?? 'Failed to update status');
+    return res.data;
+  },
+
+  addNote: async (caseId: string, input: AdminCaseNoteInput) => {
+    const res = await request<{ id: string; note_id?: string }>('POST', `/cases/${caseId}/note`, input);
+    if (!res.ok) throw new Error(res.error?.message ?? 'Failed to add note');
     return res.data;
   },
 };

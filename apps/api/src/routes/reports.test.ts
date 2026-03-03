@@ -144,6 +144,59 @@ describe('PAGE 10 — Reports queue API', () => {
     });
   });
 
+  describe('POST /api/v1/reports/:reportId/dismiss', () => {
+    it('returns 401 when no auth', async () => {
+      const noAuthApp = await buildApp();
+      const res = await noAuthApp.inject({
+        method: 'POST',
+        url: `/api/v1/reports/${validReportId}/dismiss`,
+        payload: { reason: 'Duplicate report' },
+      });
+      await noAuthApp.close();
+      expect(res.statusCode).toBe(401);
+    });
+
+    it('returns 400 for invalid reportId', async () => {
+      const res = await app.inject({
+        method: 'POST',
+        url: '/api/v1/reports/not-uuid/dismiss',
+        payload: { reason: 'Duplicate report' },
+      });
+      expect(res.statusCode).toBe(400);
+    });
+  });
+
+  describe('POST /api/v1/reports/:reportId/escalate', () => {
+    it('returns 401 when no auth', async () => {
+      const noAuthApp = await buildApp();
+      const res = await noAuthApp.inject({
+        method: 'POST',
+        url: `/api/v1/reports/${validReportId}/escalate`,
+        payload: { reason: 'Needs investigation' },
+      });
+      await noAuthApp.close();
+      expect(res.statusCode).toBe(401);
+    });
+
+    it('returns 400 for invalid reportId', async () => {
+      const res = await app.inject({
+        method: 'POST',
+        url: '/api/v1/reports/invalid-id/escalate',
+        payload: { reason: 'Needs investigation' },
+      });
+      expect(res.statusCode).toBe(400);
+    });
+
+    it('returns 400 for empty reason', async () => {
+      const res = await app.inject({
+        method: 'POST',
+        url: `/api/v1/reports/${validReportId}/escalate`,
+        payload: { reason: '' },
+      });
+      expect(res.statusCode).toBe(400);
+    });
+  });
+
   describe('POST /api/v1/reports/:reportId/close', () => {
     it('returns 401 when no auth', async () => {
       const noAuthApp = await buildApp();

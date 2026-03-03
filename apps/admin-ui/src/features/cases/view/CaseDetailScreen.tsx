@@ -1,54 +1,59 @@
 import { useCaseDetailViewModel } from '../viewmodels/use_case_detail_viewmodel';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, ArrowLeft, Link2, RefreshCw } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { AlertCircle, ArrowLeft, RefreshCw } from 'lucide-react';
 import { Link, useParams } from '@tanstack/react-router';
 import { useState } from 'react';
 import type { CaseEntityType } from '@sline/shared';
-
-const ENTITY_TYPES: { value: CaseEntityType; label: string }[] = [
-  { value: 'task', label: 'Task' },
-  { value: 'user', label: 'User' },
-  { value: 'conversation', label: 'Conversation' },
-  { value: 'booking', label: 'Booking' },
-  { value: 'dispute', label: 'Dispute' },
-];
+import { CaseOverviewCard } from './CaseOverviewCard';
+import { CaseControlsCard } from './CaseControlsCard';
+import { CaseEntitiesCard } from './CaseEntitiesCard';
+import { CaseEvidenceCard } from './CaseEvidenceCard';
+import { CaseTimelineCard } from './CaseTimelineCard';
+import { CaseNotesCard } from './CaseNotesCard';
+import { CaseAttachEntityCard } from './CaseAttachEntityCard';
 
 export function CaseDetailScreen() {
   const params = useParams({ strict: false });
   const caseId = (params as { caseId?: string })?.caseId ?? '';
   const vm = useCaseDetailViewModel(caseId || undefined);
+
   const [attachType, setAttachType] = useState<CaseEntityType>('task');
   const [attachEntityId, setAttachEntityId] = useState('');
   const [attachError, setAttachError] = useState<string | null>(null);
+  const [assigneeId, setAssigneeId] = useState('');
+  const [assignReason, setAssignReason] = useState('');
+  const [status, setStatus] = useState<'open' | 'in_progress' | 'pending' | 'closed'>('open');
+  const [statusReason, setStatusReason] = useState('');
+  const [note, setNote] = useState('');
+  const [noteError, setNoteError] = useState<string | null>(null);
 
   const handleAttach = async () => {
     if (!attachEntityId.trim()) return;
     setAttachError(null);
     const ok = await vm.attachEntity({ entity_type: attachType, entity_id: attachEntityId.trim() });
-    if (ok) {
-      setAttachEntityId('');
-    } else {
-      setAttachError(vm.error ?? 'Failed to attach entity');
-    }
+    if (ok) setAttachEntityId('');
+    else setAttachError(vm.error ?? 'Failed to attach entity');
+  };
+
+  const handleAssign = async () => {
+    if (!assignReason.trim()) return;
+    const ok = await vm.assignCase({ assignee_id: assigneeId.trim() ? assigneeId.trim() : null, reason: assignReason.trim() });
+    if (ok) setAssignReason('');
+  };
+
+  const handleStatusUpdate = async () => {
+    if (!statusReason.trim()) return;
+    const ok = await vm.updateStatus({ status, reason: statusReason.trim() });
+    if (ok) setStatusReason('');
+  };
+
+  const handleAddNote = async () => {
+    if (!note.trim()) return;
+    setNoteError(null);
+    const ok = await vm.addNote({ note: note.trim(), visibility: 'internal' });
+    if (ok) setNote('');
+    else setNoteError(vm.error ?? 'Failed to add note');
   };
 
   if (!caseId) {
@@ -83,21 +88,20 @@ export function CaseDetailScreen() {
 
   const c = vm.caseDetail!;
   const entities = c.entities ?? [];
+  const evidence = c.evidence ?? [];
+  const timeline = c.timeline ?? [];
+  const notes = c.notes ?? [];
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" asChild>
-            <Link to="/cases">
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
+            <Link to="/cases"><ArrowLeft className="h-4 w-4" /></Link>
           </Button>
           <div>
             <h2 className="text-2xl font-bold tracking-tight">Case: {c.subject}</h2>
-            <p className="text-muted-foreground text-sm">
-              {c.source ?? '—'} · {c.status ?? '—'} · {c.priority ?? '—'}
-            </p>
+            <p className="text-muted-foreground text-sm">{c.source ?? '—'} · {c.status ?? '—'} · {c.priority ?? '—'}</p>
           </div>
         </div>
         {vm.refreshCase && (
@@ -108,110 +112,53 @@ export function CaseDetailScreen() {
         )}
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Details</CardTitle>
-          <CardDescription>Created {c.created_at ? new Date(c.created_at).toLocaleString() : '—'}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <p><span className="text-muted-foreground">Subject:</span> {c.subject}</p>
-          <p><span className="text-muted-foreground">Source:</span> {c.source ?? '—'}</p>
-          <p><span className="text-muted-foreground">Status:</span> {c.status ?? '—'}</p>
-          <p><span className="text-muted-foreground">Priority:</span> {c.priority ?? '—'}</p>
-        </CardContent>
-      </Card>
+      <CaseOverviewCard
+        subject={c.subject}
+        source={c.source ?? null}
+        status={c.status ?? null}
+        priority={c.priority ?? null}
+        assigneeId={c.assignee_id ?? null}
+        assigneeName={c.assignee_name ?? null}
+        slaDueAt={c.sla_due_at ?? null}
+        createdAt={c.created_at ?? null}
+      />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Attached entities</CardTitle>
-          <CardDescription>Entities linked to this case (e.g. for chat access gating).</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {entities.length === 0 ? (
-            <p className="text-muted-foreground py-4">No entities attached yet.</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Entity ID</TableHead>
-                  <TableHead>Attached</TableHead>
-                  <TableHead className="w-[120px]">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {entities.map((e) => (
-                  <TableRow key={e.id}>
-                    <TableCell>{e.entity_type}</TableCell>
-                    <TableCell className="font-mono text-xs">{e.entity_id}</TableCell>
-                    <TableCell className="text-muted-foreground text-xs">
-                      {e.created_at ? new Date(e.created_at).toLocaleString() : '—'}
-                    </TableCell>
-                    <TableCell>
-                      {e.entity_type === 'conversation' && (
-                        <Button variant="outline" size="sm" asChild>
-                          <Link
-                            to="/chat/threads/$threadId"
-                            params={{ threadId: e.entity_id }}
-                            search={{ caseId }}
-                          >
-                            View thread
-                          </Link>
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+      <CaseControlsCard
+        assigneeId={assigneeId}
+        setAssigneeId={setAssigneeId}
+        assignReason={assignReason}
+        setAssignReason={setAssignReason}
+        onAssign={handleAssign}
+        isAssigning={vm.isAssigning}
+        status={status}
+        setStatus={setStatus}
+        statusReason={statusReason}
+        setStatusReason={setStatusReason}
+        onStatusUpdate={handleStatusUpdate}
+        isUpdatingStatus={vm.isUpdatingStatus}
+      />
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Link2 className="h-4 w-4" />
-            Attach entity
-          </CardTitle>
-          <CardDescription>Link a task, user, conversation, booking, or dispute to this case.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex flex-wrap gap-4 items-end">
-            <div className="grid gap-2 min-w-[140px]">
-              <Label>Type</Label>
-              <Select value={attachType} onValueChange={(v: CaseEntityType) => setAttachType(v)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {ENTITY_TYPES.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>
-                      {t.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid gap-2 min-w-[280px]">
-              <Label>Entity ID (UUID)</Label>
-              <Input
-                value={attachEntityId}
-                onChange={(e) => setAttachEntityId(e.target.value)}
-                placeholder="00000000-0000-0000-0000-000000000000"
-              />
-            </div>
-            <Button onClick={handleAttach} disabled={!attachEntityId.trim() || vm.isAttaching}>
-              {vm.isAttaching ? 'Attaching…' : 'Attach'}
-            </Button>
-          </div>
-          {(attachError || vm.error) && (
-            <Alert variant="destructive">
-              <AlertDescription>{attachError ?? vm.error}</AlertDescription>
-            </Alert>
-          )}
-        </CardContent>
-      </Card>
+      <CaseEntitiesCard caseId={caseId} entities={entities} />
+      <CaseEvidenceCard evidence={evidence} />
+      <CaseTimelineCard timeline={timeline} />
+      <CaseNotesCard
+        note={note}
+        setNote={setNote}
+        onAddNote={handleAddNote}
+        isAddingNote={vm.isAddingNote}
+        noteError={noteError}
+        notes={notes}
+      />
+      <CaseAttachEntityCard
+        attachType={attachType}
+        setAttachType={setAttachType}
+        attachEntityId={attachEntityId}
+        setAttachEntityId={setAttachEntityId}
+        onAttach={handleAttach}
+        isAttaching={vm.isAttaching}
+        attachError={attachError}
+        vmError={vm.error}
+      />
     </div>
   );
 }

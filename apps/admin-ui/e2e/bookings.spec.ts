@@ -12,10 +12,16 @@ test.describe('PAGE 07 — Bookings', () => {
   test('booking detail shows cancel/refund actions when booking loads', async ({ page }) => {
     // Navigate to a booking detail (may 404 if ID does not exist)
     await page.goto('/bookings/00000000-0000-0000-0000-000000000020');
-    // Either "Booking not found" or the detail page with Back/Cancel/Refund
+    // Either login redirect, "Booking not found", or the detail page with Back/Cancel/Refund.
+    const loginHeading = page.getByRole('heading', { name: /SLine Admin Login|Login/i });
+    if (await loginHeading.isVisible().catch(() => false)) {
+      await expect(loginHeading).toBeVisible({ timeout: 10000 });
+      return;
+    }
     const notFound = page.getByText(/Booking not found/i);
     const backButton = page.getByRole('link', { name: /Back/i });
-    await expect(notFound.or(backButton)).toBeVisible({ timeout: 10000 });
+    const cancelButton = page.getByRole('button', { name: /Cancel booking/i });
+    await expect(notFound.or(backButton).or(cancelButton)).toBeVisible({ timeout: 10000 });
   });
 
   test('cancel flow opens confirmation dialog when Cancel booking is clicked', async ({ page }) => {

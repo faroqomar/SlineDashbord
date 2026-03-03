@@ -16,7 +16,8 @@ const TABS: { id: TabId; label: string; icon: React.ReactNode }[] = [
 ];
 
 export function UserInvestigationPage() {
-  const { userId } = useParams({ from: '/users/$userId/investigation' as '/users/$userId/investigation' });
+  const params = useParams({ strict: false });
+  const userId = (params as { userId?: string })?.userId ?? '';
   const [activeTab, setActiveTab] = useState<TabId>('profile');
 
   const {

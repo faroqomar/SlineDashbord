@@ -153,6 +153,56 @@ describe('PAGE 08 — Cases API', () => {
       expect(body.error?.code).toBe('NOT_FOUND');
     });
   });
+
+  describe('POST /api/v1/cases/:caseId/assign', () => {
+    const fakeCaseId = '00000000-0000-0000-0000-000000000099';
+
+    it('returns 401 when no auth', async () => {
+      const noAuthApp = await buildApp();
+      const res = await noAuthApp.inject({
+        method: 'POST',
+        url: `/api/v1/cases/${fakeCaseId}/assign`,
+        payload: { assignee_id: validEntityId, reason: 'Ownership update' },
+      });
+      await noAuthApp.close();
+      expect(res.statusCode).toBe(401);
+    });
+
+    it('returns 400 for invalid payload', async () => {
+      const res = await app.inject({
+        method: 'POST',
+        url: `/api/v1/cases/${fakeCaseId}/assign`,
+        payload: { assignee_id: 'not-uuid', reason: '' },
+      });
+      expect(res.statusCode).toBe(400);
+    });
+  });
+
+  describe('POST /api/v1/cases/:caseId/status', () => {
+    const fakeCaseId = '00000000-0000-0000-0000-000000000099';
+
+    it('returns 400 for invalid status payload', async () => {
+      const res = await app.inject({
+        method: 'POST',
+        url: `/api/v1/cases/${fakeCaseId}/status`,
+        payload: { status: 'invalid', reason: '' },
+      });
+      expect(res.statusCode).toBe(400);
+    });
+  });
+
+  describe('POST /api/v1/cases/:caseId/note', () => {
+    const fakeCaseId = '00000000-0000-0000-0000-000000000099';
+
+    it('returns 400 for empty note', async () => {
+      const res = await app.inject({
+        method: 'POST',
+        url: `/api/v1/cases/${fakeCaseId}/note`,
+        payload: { note: '' },
+      });
+      expect(res.statusCode).toBe(400);
+    });
+  });
 });
 
 describe('PAGE 08 — Cases integration: create case + attach entity', () => {

@@ -1,4 +1,4 @@
-import type { FastifyInstance, FastifyRequest } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 import { createClient } from '@supabase/supabase-js';
 import {
   GetSystemConfigResponseSchema,
@@ -7,12 +7,6 @@ import {
   success,
 } from '@sline/shared';
 import { requireAdminRole } from '../middleware/rbac.js';
-import type { AuthUser } from '../auth.js';
-
-/** Request after requireAdminRole: user is set. */
-interface AuthenticatedRequest extends FastifyRequest {
-  user: AuthUser;
-}
 
 const SETTINGS_READ_ROLES = ['support', 'moderator', 'admin', 'super_admin'];
 const SETTINGS_WRITE_ROLES = ['super_admin'];
@@ -71,8 +65,8 @@ export default async function settingsRoutes(fastify: FastifyInstance) {
   /**
    * PATCH /api/v1/settings/config — update one config key (super_admin only); rate limit 5/min per user; audit via RPC.
    */
-  fastify.patch('/config', { preHandler: [requireAdminRole(SETTINGS_WRITE_ROLES)] }, async (request: AuthenticatedRequest, reply) => {
-    const userId = request.user?.id;
+  fastify.patch('/config', { preHandler: [requireAdminRole(SETTINGS_WRITE_ROLES)] }, async (request, reply) => {
+    const userId = (request as any).user?.id as string | undefined;
     if (!userId) {
       return reply.status(401).send(failure('UNAUTHORIZED', 'Authentication required'));
     }
