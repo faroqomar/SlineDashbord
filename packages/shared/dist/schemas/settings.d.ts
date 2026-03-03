@@ -7,14 +7,14 @@ export declare const SystemConfigSchema: z.ZodObject<{
     updated_by: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     value: Record<string, any>;
-    key: string;
     updated_at: string;
+    key: string;
     description?: string | undefined;
     updated_by?: string | undefined;
 }, {
     value: Record<string, any>;
-    key: string;
     updated_at: string;
+    key: string;
     description?: string | undefined;
     updated_by?: string | undefined;
 }>;
@@ -44,3 +44,36 @@ export declare const AppBannerSchema: z.ZodObject<{
     text: string;
 }>;
 export type AppBanner = z.infer<typeof AppBannerSchema>;
+/** API response: list of system config rows (GET /api/v1/settings/config). */
+export declare const GetSystemConfigResponseSchema: z.ZodArray<z.ZodObject<{
+    key: z.ZodString;
+    value: z.ZodRecord<z.ZodString, z.ZodAny>;
+    description: z.ZodOptional<z.ZodString>;
+    updated_at: z.ZodString;
+    updated_by: z.ZodOptional<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    value: Record<string, any>;
+    updated_at: string;
+    key: string;
+    description?: string | undefined;
+    updated_by?: string | undefined;
+}, {
+    value: Record<string, any>;
+    updated_at: string;
+    key: string;
+    description?: string | undefined;
+    updated_by?: string | undefined;
+}>, "many">;
+export type GetSystemConfigResponse = z.infer<typeof GetSystemConfigResponseSchema>;
+/** API request body: update one config key (PATCH /api/v1/settings/config). */
+export declare const UpdateSystemConfigBodySchema: z.ZodObject<{
+    key: z.ZodString;
+    value: z.ZodRecord<z.ZodString, z.ZodUnknown>;
+}, "strip", z.ZodTypeAny, {
+    value: Record<string, unknown>;
+    key: string;
+}, {
+    value: Record<string, unknown>;
+    key: string;
+}>;
+export type UpdateSystemConfigBody = z.infer<typeof UpdateSystemConfigBodySchema>;

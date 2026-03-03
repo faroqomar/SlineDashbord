@@ -23,6 +23,14 @@ export const AuditActionEnum = z.enum([
   'admin.chat.redact',
   'admin.chat.delete_attachment',
   'admin.users.force_logout',
+  'admin.finance.tx_view_sensitive_meta',
+  'admin.approval.request',
+  'admin.approval.approve',
+  'admin.approval.reject',
+  'admin.finance.wallet_adjust',
+  'admin.users.investigation_view',
+  'admin.export.evidence_pack',
+  'admin.pii.reveal',
 ]);
 export type AuditAction = z.infer<typeof AuditActionEnum>;
 
@@ -68,3 +76,40 @@ export type TaskActivityItem = z.infer<typeof TaskActivityItemSchema>;
 /** Response shape of GET /tasks/:id/activity */
 export const TaskActivityResponseSchema = z.array(TaskActivityItemSchema);
 export type TaskActivityResponse = z.infer<typeof TaskActivityResponseSchema>;
+
+// ─── PAGE 12: Audit list/export (audit_logs table shape) ─────────────────────
+
+/** Single audit_logs row as returned by GET /finance/audit (list). */
+export const AuditLogListEntrySchema = z.object({
+  id: z.string().uuid(),
+  created_at: z.string(),
+  actor_user_id: uuidNullable,
+  action: z.string(),
+  related_entity_type: z.string().nullable(),
+  related_entity_id: uuidNullable,
+  journal_entry_id: uuidNullable.optional(),
+  meta: z.record(z.unknown()).nullable().optional(),
+});
+export type AuditLogListEntry = z.infer<typeof AuditLogListEntrySchema>;
+
+/** Query params for GET /finance/audit (paginated list). */
+export const AuditLogListFiltersSchema = z.object({
+  action: z.string().optional(),
+  actor_user_id: z.string().uuid().optional(),
+  start_date: z.string().optional(),
+  end_date: z.string().optional(),
+  limit: z.number().int().min(1).max(200).optional(),
+  cursor_created_at: z.string().optional(),
+  cursor_id: z.string().uuid().optional(),
+});
+export type AuditLogListFilters = z.infer<typeof AuditLogListFiltersSchema>;
+
+/** Query params for GET /finance/audit/export (same as list; limit max 10000). */
+export const AuditExportQuerySchema = z.object({
+  action: z.string().optional(),
+  actor_user_id: z.string().uuid().optional(),
+  start_date: z.string().optional(),
+  end_date: z.string().optional(),
+  limit: z.number().int().min(1).max(10000).optional(),
+});
+export type AuditExportQuery = z.infer<typeof AuditExportQuerySchema>;

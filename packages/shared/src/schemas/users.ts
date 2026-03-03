@@ -49,3 +49,54 @@ export type ForceLogoutInput = z.infer<typeof ForceLogoutInputSchema>;
 // Role Access Control Definitions
 export const USERS_READ_ROLES = ['support', 'moderator', 'admin', 'super_admin'];
 export const USERS_WRITE_ROLES = ['admin', 'super_admin'];
+
+// --- PAGE 15: Investigation / PII masking ---
+
+/** Profile summary with PII masked (e.g. email/phone redacted). */
+export const UserSummaryMaskedSchema = z.object({
+  id: z.string().uuid(),
+  full_name: z.string().nullable().optional(),
+  avatar_url: z.string().url().nullable().optional(),
+  account_status: z.string().optional(),
+  created_at: z.string().optional(),
+  email: z.literal('[MASKED]').optional(),
+  phone: z.literal('[MASKED]').optional(),
+});
+export type UserSummaryMasked = z.infer<typeof UserSummaryMaskedSchema>;
+
+/** User detail with PII masked (for investigation default view). */
+export const UserDetailMaskedSchema = z.object({
+  id: z.string().uuid(),
+  full_name: z.string().nullable().optional(),
+  avatar_url: z.string().url().nullable().optional(),
+  account_status: z.string().optional(),
+  moderation_reason: z.string().nullable().optional(),
+  moderated_at: z.string().nullable().optional(),
+  created_at: z.string().optional(),
+  updated_at: z.string().nullable().optional(),
+  email: z.literal('[MASKED]').optional(),
+  phone: z.literal('[MASKED]').optional(),
+});
+export type UserDetailMasked = z.infer<typeof UserDetailMaskedSchema>;
+
+/** User detail with PII revealed (only after POST reveal-pii, logged in admin_pii_access_logs). */
+export const UserDetailRevealedSchema = z.object({
+  id: z.string().uuid(),
+  full_name: z.string().nullable().optional(),
+  avatar_url: z.string().url().nullable().optional(),
+  account_status: z.string().optional(),
+  moderation_reason: z.string().nullable().optional(),
+  moderated_at: z.string().nullable().optional(),
+  created_at: z.string().optional(),
+  updated_at: z.string().nullable().optional(),
+  email: z.string().nullable().optional(),
+  phone: z.string().nullable().optional(),
+});
+export type UserDetailRevealed = z.infer<typeof UserDetailRevealedSchema>;
+
+/** Request body for POST /api/v1/users/:userId/reveal-pii. */
+export const RevealPiiInputSchema = z.object({
+  reason: z.string().min(1).max(500),
+  case_id: z.string().uuid().optional(),
+});
+export type RevealPiiInput = z.infer<typeof RevealPiiInputSchema>;

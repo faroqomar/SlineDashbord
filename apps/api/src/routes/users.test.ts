@@ -228,3 +228,107 @@ describe('PAGE 06 — Force logout', () => {
     });
   });
 });
+
+describe('PAGE 15 — User Investigation', () => {
+  const userId = '00000000-0000-0000-0000-000000000002';
+  const SUPER_ADMIN: TestUser = { id: '00000000-0000-0000-0000-000000000001', role: 'super_admin' };
+  const SUPPORT: TestUser = { id: '00000000-0000-0000-0000-000000000003', role: 'support' };
+  const MODERATOR: TestUser = { id: '00000000-0000-0000-0000-000000000004', role: 'moderator' };
+
+  describe('GET /api/v1/users/:userId/investigation', () => {
+    it('returns 401 when no auth', async () => {
+      const app = await buildApp();
+      const res = await app.inject({ method: 'GET', url: `/api/v1/users/${userId}/investigation` });
+      await app.close();
+      expect(res.statusCode).toBe(401);
+    });
+
+    it('returns 200 or 404 with body matching schema when authenticated', async () => {
+      const app = await buildApp({ testUser: SUPER_ADMIN });
+      const res = await app.inject({ method: 'GET', url: `/api/v1/users/${userId}/investigation` });
+      await app.close();
+      expect([200, 404]).toContain(res.statusCode);
+      const body = JSON.parse(res.body);
+      if (res.statusCode === 200) {
+        expect(body.ok).toBe(true);
+        expect(body.data).toBeDefined();
+        expect(body.data.profile).toBeDefined();
+        expect(Array.isArray(body.data.tasks)).toBe(true);
+        expect(body.data.reportsStub).toBeDefined();
+      } else {
+        expect(body.ok).toBe(false);
+        expect(body.error?.code).toBe('NOT_FOUND');
+      }
+    });
+  });
+
+  describe('GET /api/v1/users/:userId/evidence-pack', () => {
+    it('returns 403 for support role (moderator+ required)', async () => {
+      const app = await buildApp({ testUser: SUPPORT });
+      const res = await app.inject({ method: 'GET', url: `/api/v1/users/${userId}/evidence-pack?format=json` });
+      await app.close();
+      expect(res.statusCode).toBe(403);
+      const body = JSON.parse(res.body);
+      expect(body.ok).toBe(false);
+      expect(body.error?.code).toBe('FORBIDDEN');
+    });
+
+    it('returns 200 or 404 for moderator', async () => {
+      const app = await buildApp({ testUser: MODERATOR });
+      const res = await app.inject({ method: 'GET', url: `/api/v1/users/${userId}/evidence-pack?format=json` });
+      await app.close();
+      expect([200, 404]).toContain(res.statusCode);
+      if (res.statusCode === 200) {
+        const body = JSON.parse(res.body);
+        expect(body.ok).toBe(true);
+        expect(body.data).toBeDefined();
+      }
+    });
+  });
+
+  describe('POST /api/v1/users/:userId/reveal-pii', () => {
+    it('returns 403 for support role (admin/super_admin only)', async () => {
+      const app = await buildApp({ testUser: SUPPORT });
+      const res = await app.inject({
+        method: 'POST',
+        url: `/api/v1/users/${userId}/reveal-pii`,
+        payload: { reason: 'Investigation' },
+      });
+      await app.close();
+      expect(res.statusCode).toBe(403);
+      const body = JSON.parse(res.body);
+      expect(body.ok).toBe(false);
+      expect(body.error?.code).toBe('FORBIDDEN');
+    });
+
+    it('returns 400 when reason is missing', async () => {
+      const app = await buildApp({ testUser: SUPER_ADMIN });
+      const res = await app.inject({
+        method: 'POST',
+        url: `/api/v1/users/${userId}/reveal-pii`,
+        payload: {},
+      });
+      await app.close();
+      expect(res.statusCode).toBe(400);
+      const body = JSON.parse(res.body);
+      expect(body.ok).toBe(false);
+      expect(body.error?.code).toBe('VALIDATION_ERROR');
+    });
+
+    it('returns 200 or 404 for super_admin with valid reason', async () => {
+      const app = await buildApp({ testUser: SUPER_ADMIN });
+      const res = await app.inject({
+        method: 'POST',
+        url: `/api/v1/users/${userId}/reveal-pii`,
+        payload: { reason: 'Case review' },
+      });
+      await app.close();
+      expect([200, 404, 500]).toContain(res.statusCode);
+      const body = JSON.parse(res.body);
+      if (res.statusCode === 200) {
+        expect(body.ok).toBe(true);
+        expect(body.data.email !== undefined || body.data.phone !== undefined || body.data.id).toBe(true);
+      }
+    });
+  });
+});

@@ -46,3 +46,7 @@ Shows an activity timeline for a single task: who did what and when. Used for ac
 - `ADMIN_SECURITY_MANUAL.md` — Canonical audit, atomic write.
 - `ADMIN_DATABASE_REF.md` — `audit_logs`, `related_entity_type_enum` (includes `task`).
 - `MIGRATIONS/for_sline_app/README.md` — Copyable migrations for app repo.
+
+---
+
+*This document is part of the Admin documentation suite. Maintained per `.agent/workflows/architecture/doc_keeper.md`. See `Docs/ADMIN_DEVELOPER_GUIDE.md` for the documentation index.*

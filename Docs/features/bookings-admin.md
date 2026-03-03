@@ -53,3 +53,7 @@ All request/response shapes are defined in `packages/shared/src/schemas/bookings
 ## DB / Migrations
 
 - **20260302120000_admin_booking_rpcs.sql** (dashboard repo): Defines `admin_cancel_booking` and `admin_refund_booking`. For production with a shared DB, equivalent SQL can be added to **sline_app** so the app repo remains source of truth. See `MIGRATIONS/README.md`.
+
+---
+
+*This document is part of the Admin documentation suite. Maintained per `.agent/workflows/architecture/doc_keeper.md`. See `Docs/ADMIN_DEVELOPER_GUIDE.md` for the documentation index.*

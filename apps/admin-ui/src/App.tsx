@@ -12,7 +12,11 @@ import { UserDetailPage } from './routes/UserDetail';
 import { DashboardIndex } from './routes/DashboardIndex';
 import { FinancePage } from './routes/Finance';
 import { FinanceTransactionsPage } from './routes/FinanceTransactions';
+import { FinanceTransactionDetailPage } from './routes/FinanceTransactionDetail';
 import { FinanceWithdrawalsPage } from './routes/FinanceWithdrawals';
+import { FinanceApprovalsPage } from './routes/FinanceApprovals';
+import { FinanceAuditPage } from './routes/FinanceAudit';
+import { FinanceUsersPage, FinanceUserLookupPage } from './routes/FinanceUsers';
 import { DisputesPage } from './routes/Disputes';
 import { DisputeDetailPage } from './routes/DisputeDetail';
 import { SettingsPage } from './routes/Settings';
@@ -25,7 +29,11 @@ import { CaseDetailPage } from './routes/CaseDetail';
 import { LogsPage } from './routes/Logs';
 import { ReportsPage } from './routes/Reports';
 import { ChatThreadPage } from './routes/ChatThread';
+import { UserInvestigationPage } from './routes/UserInvestigation';
+import { SystemHealthPage } from './routes/SystemHealth';
+import { SearchPage } from './routes/Search';
 import { request } from './lib/api';
+import { getSystemConfigs } from './features/settings/services/settings_api';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import { ThemeProvider } from './components/theme-provider';
 import './index.css';
@@ -86,6 +94,13 @@ const userDetailRoute = createRoute({
   component: UserDetailPage,
 });
 
+// User Investigation (PAGE 15)
+const userInvestigationRoute = createRoute({
+  getParentRoute: () => authLayoutRoute,
+  path: '/users/$userId/investigation',
+  component: UserInvestigationPage,
+});
+
 // Finance Route
 const financeRoute = createRoute({
   getParentRoute: () => authLayoutRoute,
@@ -99,10 +114,40 @@ const financeTransactionsRoute = createRoute({
   component: FinanceTransactionsPage,
 });
 
+const financeTransactionDetailRoute = createRoute({
+  getParentRoute: () => authLayoutRoute,
+  path: '/finance/transactions/$journalId',
+  component: FinanceTransactionDetailPage,
+});
+
 const financeWithdrawalsRoute = createRoute({
   getParentRoute: () => authLayoutRoute,
   path: '/finance/withdrawals',
   component: FinanceWithdrawalsPage,
+});
+
+const financeApprovalsRoute = createRoute({
+  getParentRoute: () => authLayoutRoute,
+  path: '/finance/approvals',
+  component: FinanceApprovalsPage,
+});
+
+const financeAuditRoute = createRoute({
+  getParentRoute: () => authLayoutRoute,
+  path: '/finance/audit',
+  component: FinanceAuditPage,
+});
+
+const financeUsersIndexRoute = createRoute({
+  getParentRoute: () => authLayoutRoute,
+  path: '/finance/users',
+  component: FinanceUsersPage,
+});
+
+const financeUserLookupRoute = createRoute({
+  getParentRoute: () => authLayoutRoute,
+  path: '/finance/users/$userId',
+  component: FinanceUserLookupPage,
 });
 
 // Disputes Route
@@ -118,11 +163,23 @@ const disputeDetailRoute = createRoute({
   component: DisputeDetailPage,
 });
 
-// Settings Route
+// Settings Route (PAGE 13 — system config; loader fetches config + canManage via /auth/me)
 const settingsRoute = createRoute({
   getParentRoute: () => authLayoutRoute,
   path: '/settings',
+  loader: async () => {
+    const [meRes, configRes] = await Promise.all([
+      request<{ user: { role?: string } }>('GET', '/auth/me'),
+      getSystemConfigs(),
+    ]);
+    const configs = configRes.success ? configRes.data : [];
+    const canManage = meRes.ok && meRes.data?.user?.role === 'super_admin';
+    return { configs, canManage };
+  },
   component: SettingsPage,
+  pendingComponent: () => (
+    <div className="flex items-center justify-center min-h-[200px] text-muted-foreground">Loading settings…</div>
+  ),
 });
 
 // Tasks Route
@@ -185,15 +242,35 @@ const chatThreadRoute = createRoute({
   component: ChatThreadPage,
 });
 
+// System Health (PAGE 14 — Observability)
+const systemHealthRoute = createRoute({
+  getParentRoute: () => authLayoutRoute,
+  path: '/system-health',
+  component: SystemHealthPage,
+});
+
+// PAGE 11 — Global Search
+const searchRoute = createRoute({
+  getParentRoute: () => authLayoutRoute,
+  path: '/search',
+  component: SearchPage,
+});
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
   authLayoutRoute.addChildren([
     indexRoute, 
     usersRoute, 
     userDetailRoute, 
-    financeRoute, 
+    userInvestigationRoute,
+    financeRoute,
     financeTransactionsRoute,
+    financeTransactionDetailRoute,
     financeWithdrawalsRoute,
+    financeApprovalsRoute,
+    financeAuditRoute,
+    financeUsersIndexRoute,
+    financeUserLookupRoute,
     disputesRoute,
     disputeDetailRoute,
     settingsRoute,
@@ -206,6 +283,8 @@ const routeTree = rootRoute.addChildren([
     logsRoute,
     reportsRoute,
     chatThreadRoute,
+    systemHealthRoute,
+    searchRoute,
   ]),
 ]);
 

@@ -1,7 +1,7 @@
 # 💰 Finance & Payments Module
 
-> **Status**: v1 — Complete (Phases 0–9)
-> **Last Updated**: 2026-02-25
+> **Status**: v1 — Complete (Phases 0–9) + PAGE 12 (Transaction Detail, Audit Export, User Lookup)
+> **Last Updated**: 2026-03-03
 
 ## Overview
 
@@ -161,10 +161,73 @@ Component → ViewModel (useXxxVM) → mutations.ts → ServiceResult<T> → toa
 
 ---
 
+## PAGE 12 — Transaction Detail, Audit Export, User Lookup (Fastify API)
+
+The dashboard API (`apps/api`) exposes the following finance routes. All require authentication; audit list/export and user lookup are restricted to **admin** and **super_admin** only.
+
+### API Routes (Fastify)
+
+| Method | Path | Purpose | RBAC | Notes |
+|--------|------|---------|------|--------|
+| GET | `/api/v1/finance/transactions` | Paginated transaction list | admin, super_admin | Query validated with `TransactionListQuerySchema` (limit, cursor, filters). Invalid query → 400. |
+| GET | `/api/v1/finance/transactions/:journalId` | Single transaction detail | READ (support+); **reveal** = WRITE (admin, super_admin) | By default returns **masked** metadata. `?reveal=1` for admin/super_admin: inserts one row into `audit_logs` (action `admin.finance.tx_view_sensitive_meta`) then returns row with `meta_full`. UI shows confirmation dialog before reveal. |
+| GET | `/api/v1/finance/audit` | Paginated audit log list | admin, super_admin only | Query: `limit`, `cursor`, filters (`action`, `actor_user_id`, `start_date`, `end_date`). Cursor is `(created_at, id)`. Same query builder as export. |
+| GET | `/api/v1/finance/audit/export` | CSV export of audit logs | admin, super_admin only | Same filters as list; max `limit` 10000. Returns CSV with `Content-Disposition: attachment`. Export row set matches list for the same params (single `buildAuditQuery`). **Meta column is redacted** (action, related_entity_type, related_entity_id, journal_entry_id only) to avoid PII in exports. |
+| GET | `/api/v1/finance/users/:userId` | User wallet + timeline | admin, super_admin only | Reads `vw_wallet_balances_user` and `vw_wallet_activity_user`. Returns 501 if views are not deployed. |
+
+### UI Routes (admin-ui)
+
+| Route | Page | Purpose |
+|-------|------|--------|
+| `/finance/audit` | Finance Audit | Filters, paginated table, "Export CSV" (single-click, disabled while loading). |
+| `/finance/users` | Finance Users index | Search by User ID; submit navigates to `/finance/users/:userId`. |
+| `/finance/users/:userId` | Finance User Lookup | UserWalletCard + transaction timeline (from `vw_wallet_activity_user`). |
+| `/finance/transactions/:journalId` | Transaction Detail | Full detail; "Reveal sensitive" (with confirmation) for admin/super_admin, triggers audit then shows `meta_full`. |
+
+Transaction detail is also available via the **drawer** from the transactions list (row click); same API and reveal behavior.
+
+### ViewModels (admin-ui, PAGE 12)
+
+| ViewModel | File | Exposes | Used by |
+|-----------|------|--------|--------|
+| `useTransactionDetailVM` | `features/finance/viewmodels/useTransactionDetail.vm.ts` | `detail`, `loading`, `error`, `load(journalId, reveal?)`, `clear` | Transaction detail page and drawer |
+| `useAuditLogsVM` | `features/finance/viewmodels/useAuditLogs.vm.ts` | `data`, `nextCursor`, `filters`, `setFilters`, `load(append?)`, `exportCsv`, `loading`, `exportLoading`, `error` | Finance Audit page |
+| `useFinanceUserLookupVM` | `features/finance/viewmodels/useFinanceUserLookup.vm.ts` | `userId`, `wallet`, `timeline`, `setUserId`, `search`, `loading`, `error` | Finance User Lookup page |
+
+All call `financeApi` in `features/finance/services/finance_api.ts` only; no direct DB or RBAC logic.
+
+### Special rules (PAGE 12)
+
+- **Transaction list:** Query params validated with `TransactionListQuerySchema`; invalid (e.g. non-UUID filter) → 400.
+- **Transaction detail reveal:** UI must show a confirmation dialog before calling API with `?reveal=1`; API then inserts one `audit_logs` row and returns `meta_full`.
+- **Audit export:** CSV meta column is redacted (action, related_entity_type, related_entity_id, journal_entry_id only); full `audit_logs.meta` must not be exported (PII). See `ADMIN_SECURITY_MANUAL.md`.
+- **RBAC:** GET `/finance/audit`, `/finance/audit/export`, `/finance/users/:userId` and reveal are admin/super_admin only.
+
+### Contracts (packages/shared)
+
+- **Audit:** `AuditActionEnum` includes `'admin.finance.tx_view_sensitive_meta'`. `AuditLogListEntrySchema`, `AuditLogListFiltersSchema`, `AuditExportQuerySchema` for list/export.
+- **Finance:** `TransactionListQuerySchema` for GET `/finance/transactions` list (limit, cursor_created_at, cursor_id, event_type, status, payer_user_id, payee_user_id, entity_type, entity_id); invalid query → 400. `WalletSummarySchema` for user lookup response.
+- **Discovery:** `MIGRATIONS/PAGE_12_audit_logs_and_wallet_views_columns.md` documents expected `audit_logs` and wallet view columns (canonical DDL in sline_app repo).
+
+### API implementation (Fastify)
+
+Finance routes are split by domain under `apps/api/src/routes/`:
+
+- **Entry:** `finance.ts` — creates Supabase client and registers sub-routes.
+- **Sub-routes:** `finance/transactions.ts` (list + detail by journalId), `finance/audit.ts` (list + export, shared `buildAuditQuery`), `finance/users.ts` (GET users/:userId), `finance/withdrawals.ts` (approve, reject, GET withdrawals), `finance/wallets.ts` (freeze, metrics, adjust), `finance/approvals.ts` (PAGE 16 approval queue).
+
+All use Zod from `packages/shared`, `requireAdminRole` in preHandler, and return `ServiceResult<T>`. Audit export CSV uses a **redacted meta** column (action, related_entity_type, related_entity_id, journal_entry_id only) to avoid PII in exports.
+
+---
+
 ## Future Work
 
 - [ ] Real-time metrics via Supabase Realtime subscriptions
-- [ ] CSV export download (currently returns data, needs file generation)
+- [x] ~~CSV export download~~ — Implemented in PAGE 12 (`GET /finance/audit/export`).
 - [ ] Withdrawal batch processing
 - [ ] Advanced filters (date range, amount range)
 - [ ] Chart visualizations for revenue trends
+
+---
+
+*This document is part of the Admin documentation suite. Maintained per `.agent/workflows/architecture/doc_keeper.md`. See `Docs/ADMIN_DEVELOPER_GUIDE.md` for the documentation index.*

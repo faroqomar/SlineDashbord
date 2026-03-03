@@ -17,6 +17,13 @@ export const UnfreezeWalletSchema = z.object({
     targetUserId: uuidField,
     reason: reasonField,
 });
+/** Wallet adjust (credit/debit). Positive amount_cents = credit, negative = debit. approval_id required when |amount_cents| >= WALLET_ADJUST_DANGEROUS_MIN. */
+export const AdjustWalletInputSchema = z.object({
+    target_user_id: uuidField,
+    amount_cents: z.number().int(),
+    reason: reasonField,
+    approval_id: uuidField.optional(),
+});
 export const SoftDeleteUserSchema = z.object({
     targetUserId: uuidField,
     reason: reasonField,
@@ -77,4 +84,12 @@ export const WithdrawalRequestSchema = z.object({
     amount: z.number(),
     currency: z.string(),
     created_at: z.string(),
+});
+/** Wallet summary from vw_wallet_balances_user (PAGE 12 user lookup). */
+export const WalletSummarySchema = z.object({
+    available_balance: z.number(),
+    held_balance: z.number(),
+    pending_withdrawal_balance: z.number(),
+    currency: z.string(),
+    is_wallet_frozen: z.boolean().optional(),
 });

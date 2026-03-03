@@ -22,6 +22,11 @@ export function FinancePage() {
         </div>
         <div className="flex gap-2">
           <Button asChild variant="outline">
+            <Link to="/finance/approvals">
+              <ListChecks className="mr-2 h-4 w-4" /> Approval queue
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
             <Link to="/finance/withdrawals">
               <ListChecks className="mr-2 h-4 w-4" /> Manage Withdrawals
             </Link>

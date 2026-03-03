@@ -18,7 +18,7 @@ export function useSettingsViewModel(initialConfigs: SystemConfig[]) {
   const disableSignups = getEnumValue<{enabled: boolean}>('disable_signups', { enabled: false });
   const appVersion = getEnumValue<{ios: string, android: string}>('min_app_version', { ios: '1.0.0', android: '1.0.0' });
 
-  const updateConfig = async (key: string, newValue: any) => {
+  const updateConfig = async (key: string, newValue: Record<string, unknown>) => {
     startTransition(() => {
       void (async () => {
       const res = await updateSystemConfig(key, newValue);

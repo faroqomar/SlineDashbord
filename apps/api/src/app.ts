@@ -1,3 +1,4 @@
+import './augment-fastify.js';
 import Fastify, { type FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
@@ -14,6 +15,9 @@ import casesRoutes from './routes/cases.js';
 import dashboardRoutes from './routes/dashboard.js';
 import reportsRoutes from './routes/reports.js';
 import bookingsRoutes from './routes/bookings.js';
+import settingsRoutes from './routes/settings.js';
+import searchRoutes from './routes/search.js';
+import observabilityRoutes from './routes/observability.js';
 
 export type TestUser = { id: string; role: string };
 
@@ -56,6 +60,9 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   await server.register(bookingsRoutes, { prefix: '/api/v1/bookings' });
   await server.register(dashboardRoutes, { prefix: '/api/v1/dashboard' });
   await server.register(reportsRoutes, { prefix: '/api/v1/reports' });
+  await server.register(searchRoutes, { prefix: '/api/v1/search' });
+  await server.register(settingsRoutes, { prefix: '/api/v1/settings' });
+  await server.register(observabilityRoutes, { prefix: '/api/v1/observability' });
 
   server.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }));
 

@@ -27,6 +27,15 @@ export const UnfreezeWalletSchema = z.object({
 });
 export type UnfreezeWalletInput = z.infer<typeof UnfreezeWalletSchema>;
 
+/** Wallet adjust (credit/debit). Positive amount_cents = credit, negative = debit. approval_id required when |amount_cents| >= WALLET_ADJUST_DANGEROUS_MIN. */
+export const AdjustWalletInputSchema = z.object({
+  target_user_id: uuidField,
+  amount_cents: z.number().int(),
+  reason: reasonField,
+  approval_id: uuidField.optional(),
+});
+export type AdjustWalletInput = z.infer<typeof AdjustWalletInputSchema>;
+
 export const SoftDeleteUserSchema = z.object({
   targetUserId: uuidField,
   reason: reasonField,
@@ -71,6 +80,20 @@ export const TransactionFiltersSchema = z.object({
   limit: z.number().int().min(1).max(200).optional(),
 });
 
+/** Query params for GET /finance/transactions (list). Validates limit + cursor + filters. */
+export const TransactionListQuerySchema = z.object({
+  event_type: z.string().optional(),
+  status: z.string().optional(),
+  payer_user_id: z.string().uuid().optional(),
+  payee_user_id: z.string().uuid().optional(),
+  entity_type: z.string().optional(),
+  entity_id: z.string().uuid().optional(),
+  limit: z.number().int().min(1).max(200).optional(),
+  cursor_created_at: z.string().optional(),
+  cursor_id: z.string().uuid().optional(),
+});
+export type TransactionListQuery = z.infer<typeof TransactionListQuerySchema>;
+
 // Roles
 export type FinanceRole = 'support' | 'moderator' | 'admin' | 'super_admin';
 export const FINANCE_READ_ROLES: FinanceRole[] = ['support', 'moderator', 'admin', 'super_admin'];
@@ -105,3 +128,13 @@ export const WithdrawalRequestSchema = z.object({
   created_at: z.string(),
 });
 export type WithdrawalRequest = z.infer<typeof WithdrawalRequestSchema>;
+
+/** Wallet summary from vw_wallet_balances_user (PAGE 12 user lookup). */
+export const WalletSummarySchema = z.object({
+  available_balance: z.number(),
+  held_balance: z.number(),
+  pending_withdrawal_balance: z.number(),
+  currency: z.string(),
+  is_wallet_frozen: z.boolean().optional(),
+});
+export type WalletSummary = z.infer<typeof WalletSummarySchema>;

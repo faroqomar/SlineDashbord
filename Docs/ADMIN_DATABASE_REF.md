@@ -17,11 +17,14 @@ This document covers how the Sline Admin Dashboard interacts with the database: 
 | `audit_logs`       | Immutable ledger of admin actions | **Read** (activity feeds); **Write** only via atomic RPC/transaction with mutation | Canonical; no `admin_logs` for new code |
 | `admin_users`     | Admin identity and roles (source of truth for RBAC) | Read for RBAC; manage via super_admin | Implemented in dashboard: `supabase/migrations/20260302120000_admin_users.sql`; copy to sline_app for production (see MIGRATIONS/README.md) |
 | `support_tickets`  | User support requests | View, reply, assign, status | If feature exists |
-| `system_config`    | Global flags (maintenance, banners) | Read/update | If feature exists |
+| `system_config`    | Global flags (maintenance, banners, min_app_version) | Read/update via API (service role) | PAGE 13; migration `MIGRATIONS/for_sline_app/20260303100000_system_config.sql` |
 | Finance/ledger     | Withdrawals, transactions | View, approve/reject (via RPC) | apps/api finance routes |
 | `reports`          | User-submitted reports (task/user/chat) | List, detail, triage, close (via RPC) | apps/api routes/reports.ts; migration `20260302130000_reports_queue.sql` |
 | `report_actions`   | Triage/close history per report | Insert via RPC; read for detail | Same migration |
 | `admin_chat_access_logs` | Case-gated chat (PAGE 09) | Every thread view/grant logged | Same migration as admin_cases |
+| `admin_pii_access_logs` (PAGE 15) | PII reveal audit (User Investigation) | **Insert** only by API when admin/super_admin calls POST reveal-pii; columns: entity_type, entity_id, field_scope, viewer_admin_id, case_id, reason, created_at. API also writes `audit_logs` with action `admin.pii.reveal`. | `supabase/migrations/20260303100000_admin_pii_access_logs.sql` (dashboard repo); copy to sline_app for production. See `Docs/features/user-investigation.md`. |
+| Observability (PAGE 14) | Read-only health + error counts | **Read**: `admin_users` (RBAC + DB ping), Supabase Auth/Storage checks; optional **read** from `audit_logs` for error-rate counts (action ILIKE '%fail%') | No migration; `apps/api/src/routes/observability.ts` |
+| `admin_approvals` (PAGE 16) | Dual-approval queue for dangerous ops (wallet adjust, reversal, large refund) | Create request (idempotent), list (cursor), approve/reject (second person only), execute (requester only); RLS service_role only | `MIGRATIONS/for_sline_app/20260302150000_admin_approvals.sql`; copy to sline_app for production. See `Docs/ADMIN_APPROVALS.md`, `Docs/features/PAGE_16_approval_queue.md`. |
 
 **Schema ownership**: For production with a shared DB, apply **sline_app** migrations first. Dashboard migrations in `supabase/migrations/` can be applied via Supabase MCP or CLI; equivalent SQL can be copied to **sline_app** so the app repo remains source of truth. **admin_cases conflict**: `20260308100000_admin_cases.sql` defines the same tables with a different schema; per plan Option A we use only `20260302130000_admin_cases_and_chat_access` for those tables. See `MIGRATIONS/README.md`. Optional: `notes`, `approvals`, `system_config` as needed per product.
 
@@ -36,8 +39,16 @@ This document covers how the Sline Admin Dashboard interacts with the database: 
 | `admin_force_logout_user(p_user_id, p_admin_id, p_reason?)` | Set `profiles.force_logout_after = now()` (PAGE 06) | `admin.users.force_logout`; app: `FORCE_LOGOUT_APP_ENFORCEMENT.md` |
 | `admin_triage_report(p_report_id, p_action, p_admin_id, p_reason)` | Triage report (PAGE 10) | `admin.report.triage` or `admin.report.resolve` |
 | `admin_close_report(p_report_id, p_admin_id, p_reason)` | Close report (PAGE 10) | `admin.report.resolve` |
+| `admin_update_system_config(p_key, p_value, p_actor_user_id)` | Update one system_config row (PAGE 13); upserts + one audit row | `admin.system.update_config` |
+| **PAGE 16 — Dual approval** | | |
+| `admin_request_approval(p_operation_type, p_target_entity_type, p_target_entity_id, p_requested_by, p_idempotency_key, p_payload?, p_reason?)` | Idempotent create approval request | `admin.approval.request` |
+| `admin_approve_or_reject_approval(p_approval_id, p_actor_id, p_decision, p_reason?)` | Second person approve/reject; requester cannot approve own request | `admin.approval.approve` / `admin.approval.reject` |
+| `admin_adjust_wallet(p_approval_id, p_actor_id, p_target_user_id, p_amount_cents, p_reason, p_idempotency_key?)` | Execute wallet adjust only if approval approved, not consumed, and actor is requester; sets `consumed_at` + audit (ledger mutation TBD in app repo) | `admin.finance.wallet_adjust` |
 
-**Enum extension**: `related_entity_type_enum` is extended with `task`, `admin_user`, `profile`, `report` (and optionally `admin_case`). Migrations: `supabase/migrations/20260302100000_extend_audit_related_entity_type_enum.sql`; `reports_queue` adds `report` in its DO block.
+**PAGE 15 — User Investigation (non-RPC audit)**  
+Investigation view, evidence-pack export, and PII reveal do not use a single DB RPC. The API performs reads/inserts then calls `writeAuditLog` for: `admin.users.investigation_view` (after GET investigation), `admin.export.evidence_pack` (after GET evidence-pack), `admin.pii.reveal` (after insert into `admin_pii_access_logs`). See `apps/api/src/routes/users.ts` and `Docs/features/user-investigation.md`.
+
+**Enum extension**: `related_entity_type_enum` is extended with `task`, `admin_user`, `profile`, `report`, `system_config`, `admin_approval` (PAGE 16), and optionally `admin_case`. Migrations: `supabase/migrations/20260302100000_extend_audit_related_entity_type_enum.sql`; `reports_queue` adds `report`; `20260303100000_system_config.sql` adds `system_config`; PAGE 16 audit actions use `related_entity_type` `admin_approval` (ensure enum includes it when applying `20260302150000_admin_approvals.sql`).
 
 ---
 
@@ -53,7 +64,9 @@ This document covers how the Sline Admin Dashboard interacts with the database: 
 ## Views Needed by Admin
 
 - **Analytics**: e.g. `vw_analytics_monthly_revenue`, `vw_analytics_monthly_user_growth` (or equivalent) for dashboard KPIs.
-- **Ledger/reporting**: e.g. `vw_admin_journal_ledger` if required for finance or audit views.
+- **Ledger/reporting**: `vw_admin_journal_ledger` (finance transaction list and detail), `vw_financial_metrics_realtime` (platform metrics).
+- **Finance PAGE 12**: `vw_wallet_balances_user` and `vw_wallet_activity_user` for user lookup (GET `/api/v1/finance/users/:userId`). API returns 501 if these views are not deployed.
+- **Audit**: `audit_logs` is read for paginated list and CSV export (GET `/api/v1/finance/audit`, GET `/api/v1/finance/audit/export`). Export CSV uses a redacted meta column (no full PII). See `Docs/features/finance.md` and `ADMIN_SECURITY_MANUAL.md`.
 
 These views should live in the app repo migrations when they are canonical; the API reads them via Service Role.
 

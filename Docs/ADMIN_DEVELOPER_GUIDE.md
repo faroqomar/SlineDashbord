@@ -157,8 +157,8 @@ Feature-level docs live under `Docs/features/` (see Feature Docs Protocol below)
 
 When a feature reaches v1 (shipped), add a short feature doc under `Docs/features/<feature>.md`. Include: purpose, main routes/screens, API endpoints used, ViewModels, and any special rules (e.g. idempotency, audit). This keeps the docs in sync with the codebase as features evolve.
 
-**Current feature docs**: See `Docs/features/README.md`. Examples: `users.md` (user management + Force Logout), `bookings-admin.md` (list/detail/cancel/refund), `finance.md`, `auth.md`, `disputes.md`, and others listed there.
+**Current feature docs**: See `Docs/features/README.md`. Examples: `users.md` (user management + Force Logout), `user-investigation.md` (PAGE 15 — deep user review, PII masking/reveal, evidence-pack), `bookings-admin.md` (list/detail/cancel/refund), `finance.md`, `auth.md`, `disputes.md`, and others listed there.
 
 ---
 
-*This document is part of the Admin documentation suite. Maintained per `.agent/workflows/architecture/doc_keeper.md`.*
+*This document is the documentation index for the Admin suite. Part of the Admin documentation suite. Maintained per `.agent/workflows/architecture/doc_keeper.md`. Required deliverables: ADMIN_DEVELOPER_GUIDE, ADMIN_SECURITY_MANUAL, ADMIN_DATABASE_REF, ADMIN_UI_KIT, ADMIN_SETUP_GUIDE; feature docs under `Docs/features/`.*

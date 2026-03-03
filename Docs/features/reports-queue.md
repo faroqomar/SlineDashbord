@@ -37,3 +37,7 @@ All mutations are performed via DB RPCs that update report status, insert into `
 
 - **Shared:** `packages/shared/src/schemas/reports.ts` — ReportEntityTypeEnum, ReportStatusEnum, TriageActionEnum, list/detail/triage/close schemas.
 - **Audit:** `admin.report.triage` and `admin.report.resolve` in `packages/shared/src/schemas/audit.ts`.
+
+---
+
+*This document is part of the Admin documentation suite. Maintained per `.agent/workflows/architecture/doc_keeper.md`. See `Docs/ADMIN_DEVELOPER_GUIDE.md` for the documentation index.*

@@ -51,11 +51,11 @@ export declare const UpdateTaskStatusSchema: z.ZodObject<{
     status: z.ZodEnum<["open", "assigned", "in_progress", "completed", "canceled", "review", "disputed", "under_review"]>;
     reason: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    status: "completed" | "open" | "in_progress" | "assigned" | "canceled" | "review" | "disputed" | "under_review";
+    status: "completed" | "in_progress" | "canceled" | "open" | "assigned" | "review" | "disputed" | "under_review";
     id: string;
     reason: string;
 }, {
-    status: "completed" | "open" | "in_progress" | "assigned" | "canceled" | "review" | "disputed" | "under_review";
+    status: "completed" | "in_progress" | "canceled" | "open" | "assigned" | "review" | "disputed" | "under_review";
     id: string;
     reason: string;
 }>;

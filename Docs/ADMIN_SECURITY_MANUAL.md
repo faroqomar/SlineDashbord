@@ -64,6 +64,15 @@ Use a script (e.g. `scripts/forbidden-imports.sh`) or ESLint rule to enforce. Th
 
 **Examples**: Force Logout (PAGE 06) and Bookings Cancel/Refund (PAGE 07) follow the above: reason in request body, single audit row written inside the RPC in the same transaction. Refund supports optional `idempotency_key` in body; RPC deduplicates by key.
 
+**Dual approval (PAGE 16)**: Dangerous ops (wallet adjust above threshold, reversal, large refund) require a second admin: create approval (with `Idempotency-Key`), a *different* admin approves/rejects, then only the *requester* may execute. All request/approve/reject/execute write one audit row in the same transaction as the RPC. See `Docs/ADMIN_APPROVALS.md` and `Docs/features/PAGE_16_approval_queue.md`.
+
+---
+
+## Audit log export and PII (PAGE 12)
+
+- **Endpoint:** GET `/api/v1/finance/audit/export` (admin, super_admin only). Returns CSV of `audit_logs` rows with same filters as the list endpoint.
+- **PII rule:** The CSV **meta** column must not contain full JSON from `audit_logs.meta` (which may hold PII or sensitive payloads). The API exports a **redacted** meta object: only `action`, `related_entity_type`, `related_entity_id`, `journal_entry_id` are included in the export. See `apps/api/src/routes/finance/audit.ts` and `Docs/features/finance.md`.
+
 ---
 
 ## Force logout / session revocation (PAGE 06)
@@ -74,12 +83,30 @@ Use a script (e.g. `scripts/forbidden-imports.sh`) or ESLint rule to enforce. Th
 
 ---
 
+## PII masking and reveal (PAGE 15 — User Investigation)
+
+- **Principle**: In User Investigation, profile PII (email, phone) is **masked by default** in all GET responses. Revealing PII is a separate, privileged action.
+- **Reveal**: Only **admin** and **super_admin** may call POST `/api/v1/users/:userId/reveal-pii`. Body must include `reason` (required for audit). The API inserts a row into `admin_pii_access_logs` (entity_type, entity_id, field_scope, viewer_admin_id, case_id, reason) and writes to `audit_logs` with action `admin.pii.reveal`, then returns the revealed email/phone.
+- **No PII in GET**: GET `/api/v1/users/:userId/investigation` and GET evidence-pack return masked profile (e.g. `[MASKED]` for email/phone). Chat thread content remains case-gated (PAGE 09); investigation only returns masked conversation summaries.
+- **Feature doc**: `Docs/features/user-investigation.md`.
+
+---
+
 ## Case-gated chat access (PAGE 09)
 
 - **Principle**: Viewing chat thread content is allowed only when the thread is linked to an investigation case and the admin opens it via that case. There is no “browse all conversations” endpoint.
 - **Logging**: Every thread **view** and every **access grant** is recorded in `admin_chat_access_logs` (thread_id, case_id, viewer_admin_id, view_scope, created_at). This table is insert-only by the API; no client can bypass it.
 - **Enforcement**: GET `/api/v1/chat/threads/:threadId` requires query `case_id`; the API checks that the case exists and is linked to the thread (via a prior grant or an `admin_case_entities` row). Missing or unlinked case returns 403. POST grant also requires a valid case and logs the grant.
 - **Contracts**: Request/response shapes and RBAC are in `packages/shared` and `apps/api/src/routes/chat.ts`. **DB**: `admin_chat_access_logs` and `admin_cases` / `admin_case_entities` from migration `20260302130000_admin_cases_and_chat_access.sql`. See `Docs/ADMIN_DATABASE_REF.md` and Cases/chat feature docs.
+
+---
+
+## Observability / System Health (PAGE 14)
+
+- **Endpoint:** GET `/api/v1/observability` only; no mutations.
+- **RBAC:** Allowed roles: `support`, `moderator`, `admin`, `super_admin`. 401 unauthenticated; 403 when role not in list. Enforced in Fastify via `requireAdminRole(['support', 'moderator', 'admin', 'super_admin'])`.
+- **No audit writes:** This route is read-only (service health checks and optional read of `audit_logs` for error counts). No Idempotency-Key required.
+- **Error responses:** On 500, the API must return a generic message (e.g. "An error occurred") to the client; full error details must be logged server-side only (`fastify.log.error`) to avoid leaking internal table names, SQL, or stack traces.
 
 ---
 

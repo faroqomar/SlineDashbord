@@ -48,3 +48,7 @@ Request/response shapes: `packages/shared/src/schemas/cases.ts`. Every create an
 - **Audit**: Create uses `writeAuditLog` after insert; attach uses `withAudit`. Both write to `audit_logs` with canonical columns only. Non-atomic (handler then audit); acceptable for PAGE 08.
 - **Validation**: `caseId` path param must be a valid UUID (400 otherwise). Create body requires `subject` (min 1, max 500).
 - **Chat access**: Viewing chat thread content is case-gated in PAGE 09; cases created here are used to grant and log access.
+
+---
+
+*This document is part of the Admin documentation suite. Maintained per `.agent/workflows/architecture/doc_keeper.md`. See `Docs/ADMIN_DEVELOPER_GUIDE.md` for the documentation index.*

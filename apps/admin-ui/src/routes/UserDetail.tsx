@@ -66,6 +66,13 @@ export function UserDetailPage() {
           <h2 className="text-3xl font-bold font-inter tracking-tight">{profile.full_name}</h2>
           <p className="text-slate-400">User ID: <span className="font-mono text-xs">{auth.id}</span></p>
         </div>
+        <Link
+          to="/users/$userId/investigation"
+          params={{ userId }}
+          className="ml-auto flex items-center gap-2 px-4 py-2 glass rounded-xl text-slate-300 hover:text-white transition-all font-medium"
+        >
+          Investigation
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

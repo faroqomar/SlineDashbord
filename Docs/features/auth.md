@@ -41,3 +41,7 @@ Secure, isolated access control for Dashboard Admins. Admin identity and RBAC ar
 - **ADMIN_SECURITY_MANUAL.md** — Trust boundaries, RBAC, Service Role server-only.
 - **ADMIN_DATABASE_REF.md** — `admin_users` table and RLS.
 - **.TODO/APP_VERIFICATION_CHECKLIST_PAGE_04.md** — Verification steps for auth and GET /me.
+
+---
+
+*This document is part of the Admin documentation suite. Maintained per `.agent/workflows/architecture/doc_keeper.md`. See `Docs/ADMIN_DEVELOPER_GUIDE.md` for the documentation index.*

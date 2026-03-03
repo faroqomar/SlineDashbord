@@ -55,3 +55,7 @@ View, filter, and manage all registered users (Clients & Freelancers). Includes 
 
 - [ ] Impersonation Mode (Login as User).
 - [ ] Verification Badge manual approval flow.
+
+---
+
+*This document is part of the Admin documentation suite. Maintained per `.agent/workflows/architecture/doc_keeper.md`. See `Docs/ADMIN_DEVELOPER_GUIDE.md` for the documentation index.*

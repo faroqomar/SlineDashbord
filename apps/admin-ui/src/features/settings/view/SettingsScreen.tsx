@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useSettingsViewModel } from "../viewmodels/use_settings_viewmodel";
-import { SystemConfig } from "../models/settings.schema";
+import type { SystemConfig, AppBanner } from "../models/settings.schema";
 import { useState } from "react";
 import { Separator } from "@/components/ui/separator";
 
@@ -188,7 +188,7 @@ export function SettingsScreen({ initialConfigs, canManage }: SettingsScreenProp
                 <Label>Type & Styling</Label>
                 <Select 
                     value={vm.banner.type} 
-                    onValueChange={(val: any) => vm.updateBannerType(val)}
+                    onValueChange={(val: AppBanner['type']) => vm.updateBannerType(val)}
                     disabled={vm.isUpdating || !vm.banner.enabled}
                 >
                     <SelectTrigger>
@@ -233,7 +233,7 @@ export function SettingsScreen({ initialConfigs, canManage }: SettingsScreenProp
                 </CardHeader>
                 <CardContent className="text-xs text-muted-foreground space-y-2">
                     <p>
-                        All configuration changes are cryptographically logged in the <strong>system_audit_log</strong>.
+                        All configuration changes are cryptographically logged in the <strong>audit_logs</strong>.
                     </p>
                     <p>
                         Current IP: <span className="text-foreground font-mono">AUTHORIZED_ADMIN_SESSION</span>

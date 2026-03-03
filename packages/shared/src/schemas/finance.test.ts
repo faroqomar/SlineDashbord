@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { ApproveWithdrawalSchema, RejectWithdrawalSchema } from './finance.js';
+import { ApproveWithdrawalSchema, RejectWithdrawalSchema, WalletSummarySchema } from './finance.js';
 
 const validUuid = '00000000-0000-0000-0000-000000000001';
 
@@ -34,6 +34,28 @@ describe('finance schemas (PAGE 03 contracts)', () => {
     });
     it('rejects invalid requestId', () => {
       expect(RejectWithdrawalSchema.safeParse({ requestId: 'x', reason: 'x' }).success).toBe(false);
+    });
+  });
+
+  describe('WalletSummarySchema (PAGE 12)', () => {
+    it('parses wallet summary from vw_wallet_balances_user', () => {
+      const w = {
+        available_balance: 1000,
+        held_balance: 200,
+        pending_withdrawal_balance: 0,
+        currency: 'IQD',
+      };
+      expect(WalletSummarySchema.safeParse(w).success).toBe(true);
+    });
+    it('parses with optional is_wallet_frozen', () => {
+      const w = {
+        available_balance: 0,
+        held_balance: 0,
+        pending_withdrawal_balance: 0,
+        currency: 'IQD',
+        is_wallet_frozen: true,
+      };
+      expect(WalletSummarySchema.safeParse(w).success).toBe(true);
     });
   });
 });

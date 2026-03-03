@@ -63,3 +63,7 @@ Request/response shapes: `packages/shared/src/schemas/chat.ts` (e.g. `GrantChatA
 
 - **Cases (PAGE 08)**: `Docs/features/cases.md` — create case, attach conversation entity; cases are required for chat access.
 - **Migration**: `supabase/migrations/20260302130000_admin_cases_and_chat_access.sql` creates `admin_chat_access_logs`. See `MIGRATIONS/README.md` (PAGE 08 / PAGE 09).
+
+---
+
+*This document is part of the Admin documentation suite. Maintained per `.agent/workflows/architecture/doc_keeper.md`. See `Docs/ADMIN_DEVELOPER_GUIDE.md` for the documentation index.*

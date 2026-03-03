@@ -29,6 +29,7 @@ The Sline Admin Dashboard uses **Tailwind CSS**, **shadcn/ui**, and **Lucide** i
 - **Detail pages**: Route with `:id` → View that uses a detail ViewModel (e.g. `useUserDetailViewModel(id)`) → sections/cards. Same loading/error handling.
 - **Action dialogs**: Use Shadcn `Dialog` (or browser `confirm`) for confirmations (e.g. ban user, force logout, force-cancel task). Require reason where policy demands it; optional reason for force logout (recommended for audit). Submit via ViewModel mutation.
 - **Toasts**: Use Shadcn `Sonner` or equivalent for success/error feedback after mutations.
+- **Status / health screens**: Use status cards (e.g. overall status + per-service list), skeleton loading while fetching, and a clear error state with retry (e.g. System Health: `SystemHealthView`, `data-testid="system-health-status"` and `system-health-services` for E2E).
 
 ---
 

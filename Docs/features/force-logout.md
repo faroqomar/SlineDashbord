@@ -55,3 +55,7 @@ Allows an admin or super_admin to **revoke a user’s session** so they are forc
 - **Security**: `Docs/ADMIN_SECURITY_MANUAL.md` (Destructive Actions, Audit)
 - **Database**: `Docs/ADMIN_DATABASE_REF.md` (profiles, RPCs, audit_logs)
 - **App enforcement**: `MIGRATIONS/for_sline_app/FORCE_LOGOUT_APP_ENFORCEMENT.md`
+
+---
+
+*This document is part of the Admin documentation suite. Maintained per `.agent/workflows/architecture/doc_keeper.md`. See `Docs/ADMIN_DEVELOPER_GUIDE.md` for the documentation index.*

@@ -26,3 +26,7 @@ Manage conflicts between Clients and Freelancers. Admins act as judges to issue 
 
 - [ ] Auto-refund processing via Wallet API.
 - [ ] Email notification to parties upon resolution.
+
+---
+
+*This document is part of the Admin documentation suite. Maintained per `.agent/workflows/architecture/doc_keeper.md`. See `Docs/ADMIN_DEVELOPER_GUIDE.md` for the documentation index.*

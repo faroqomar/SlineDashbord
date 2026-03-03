@@ -7,6 +7,7 @@ export const QUERY_KEYS = {
     all: ['users'] as const,
     list: (filters: any) => ['users', 'list', filters] as const,
     detail: (id: string) => ['users', 'detail', id] as const,
+    investigation: (id: string) => ['users', 'investigation', id] as const,
   },
   finance: {
     all: ['finance'] as const,

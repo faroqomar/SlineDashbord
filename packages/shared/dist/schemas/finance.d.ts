@@ -43,6 +43,24 @@ export declare const UnfreezeWalletSchema: z.ZodObject<{
     targetUserId: string;
 }>;
 export type UnfreezeWalletInput = z.infer<typeof UnfreezeWalletSchema>;
+/** Wallet adjust (credit/debit). Positive amount_cents = credit, negative = debit. approval_id required when |amount_cents| >= WALLET_ADJUST_DANGEROUS_MIN. */
+export declare const AdjustWalletInputSchema: z.ZodObject<{
+    target_user_id: z.ZodString;
+    amount_cents: z.ZodNumber;
+    reason: z.ZodString;
+    approval_id: z.ZodOptional<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    reason: string;
+    target_user_id: string;
+    amount_cents: number;
+    approval_id?: string | undefined;
+}, {
+    reason: string;
+    target_user_id: string;
+    amount_cents: number;
+    approval_id?: string | undefined;
+}>;
+export type AdjustWalletInput = z.infer<typeof AdjustWalletInputSchema>;
 export declare const SoftDeleteUserSchema: z.ZodObject<{
     targetUserId: z.ZodString;
     reason: z.ZodString;
@@ -153,9 +171,9 @@ export declare const JournalLedgerEntrySchema: z.ZodObject<{
     meta_full: z.ZodOptional<z.ZodAny>;
 }, "strip", z.ZodTypeAny, {
     status: string;
+    created_at: string;
     event_type: string;
     journal_id: string;
-    created_at: string;
     gross_amount: number;
     fee_amount: number;
     net_amount: number;
@@ -168,9 +186,9 @@ export declare const JournalLedgerEntrySchema: z.ZodObject<{
     meta_full?: any;
 }, {
     status: string;
+    created_at: string;
     event_type: string;
     journal_id: string;
-    created_at: string;
     gross_amount: number;
     fee_amount: number;
     net_amount: number;
@@ -206,3 +224,24 @@ export declare const WithdrawalRequestSchema: z.ZodObject<{
     currency: string;
 }>;
 export type WithdrawalRequest = z.infer<typeof WithdrawalRequestSchema>;
+/** Wallet summary from vw_wallet_balances_user (PAGE 12 user lookup). */
+export declare const WalletSummarySchema: z.ZodObject<{
+    available_balance: z.ZodNumber;
+    held_balance: z.ZodNumber;
+    pending_withdrawal_balance: z.ZodNumber;
+    currency: z.ZodString;
+    is_wallet_frozen: z.ZodOptional<z.ZodBoolean>;
+}, "strip", z.ZodTypeAny, {
+    currency: string;
+    available_balance: number;
+    held_balance: number;
+    pending_withdrawal_balance: number;
+    is_wallet_frozen?: boolean | undefined;
+}, {
+    currency: string;
+    available_balance: number;
+    held_balance: number;
+    pending_withdrawal_balance: number;
+    is_wallet_frozen?: boolean | undefined;
+}>;
+export type WalletSummary = z.infer<typeof WalletSummarySchema>;

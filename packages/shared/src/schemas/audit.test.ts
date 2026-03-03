@@ -2,6 +2,9 @@ import { describe, it, expect } from 'vitest';
 import {
   AuditActionEnum,
   AuditLogRowSchema,
+  AuditLogListEntrySchema,
+  AuditLogListFiltersSchema,
+  AuditExportQuerySchema,
   TaskActivityItemSchema,
   TaskActivityResponseSchema,
   MutationAckSchema,
@@ -12,6 +15,11 @@ describe('audit schemas', () => {
     it('accepts known actions', () => {
       expect(AuditActionEnum.safeParse('admin.team.invite').success).toBe(true);
       expect(AuditActionEnum.safeParse('admin.tasks.force_cancel').success).toBe(true);
+      expect(AuditActionEnum.safeParse('admin.finance.tx_view_sensitive_meta').success).toBe(true);
+      expect(AuditActionEnum.safeParse('admin.approval.request').success).toBe(true);
+      expect(AuditActionEnum.safeParse('admin.approval.approve').success).toBe(true);
+      expect(AuditActionEnum.safeParse('admin.approval.reject').success).toBe(true);
+      expect(AuditActionEnum.safeParse('admin.finance.wallet_adjust').success).toBe(true);
     });
     it('rejects invalid strings', () => {
       expect(AuditActionEnum.safeParse('unknown.action').success).toBe(false);
@@ -90,6 +98,41 @@ describe('audit schemas', () => {
     });
     it('parses ack with requestId', () => {
       expect(MutationAckSchema.safeParse({ requestId: '00000000-0000-0000-0000-000000000001' }).success).toBe(true);
+    });
+  });
+
+  describe('AuditLogListEntrySchema (PAGE 12)', () => {
+    it('parses audit_logs row with id and created_at', () => {
+      const row = {
+        id: '00000000-0000-0000-0000-000000000001',
+        created_at: '2025-03-01T12:00:00Z',
+        actor_user_id: '00000000-0000-0000-0000-000000000002',
+        action: 'admin.finance.withdrawal_approve',
+        related_entity_type: 'withdrawal_request',
+        related_entity_id: '00000000-0000-0000-0000-000000000003',
+        journal_entry_id: null,
+        meta: {},
+      };
+      expect(AuditLogListEntrySchema.safeParse(row).success).toBe(true);
+    });
+  });
+
+  describe('AuditLogListFiltersSchema (PAGE 12)', () => {
+    it('parses empty filters', () => {
+      expect(AuditLogListFiltersSchema.safeParse({}).success).toBe(true);
+    });
+    it('parses filters with cursor', () => {
+      const f = { action: 'admin.team.invite', limit: 50, cursor_created_at: '2025-03-01T12:00:00Z', cursor_id: '00000000-0000-0000-0000-000000000001' };
+      expect(AuditLogListFiltersSchema.safeParse(f).success).toBe(true);
+    });
+  });
+
+  describe('AuditExportQuerySchema (PAGE 12)', () => {
+    it('accepts limit up to 10000', () => {
+      expect(AuditExportQuerySchema.safeParse({ limit: 10000 }).success).toBe(true);
+    });
+    it('rejects limit over 10000', () => {
+      expect(AuditExportQuerySchema.safeParse({ limit: 10001 }).success).toBe(false);
     });
   });
 });

@@ -45,15 +45,15 @@ export declare const UpdateDisputeStatusSchema: z.ZodObject<{
     resolution: z.ZodOptional<z.ZodString>;
     decision: z.ZodOptional<z.ZodEnum<["refund_client", "release_freelancer"]>>;
 }, "strip", z.ZodTypeAny, {
-    status: "open" | "in_progress" | "resolved" | "escalated";
+    status: "in_progress" | "open" | "resolved" | "escalated";
     id: string;
-    resolution?: string | undefined;
     decision?: "refund_client" | "release_freelancer" | undefined;
+    resolution?: string | undefined;
 }, {
-    status: "open" | "in_progress" | "resolved" | "escalated";
+    status: "in_progress" | "open" | "resolved" | "escalated";
     id: string;
-    resolution?: string | undefined;
     decision?: "refund_client" | "release_freelancer" | undefined;
+    resolution?: string | undefined;
 }>;
 export declare const DISPUTES_READ_ROLES: string[];
 export declare const DISPUTES_WRITE_ROLES: string[];

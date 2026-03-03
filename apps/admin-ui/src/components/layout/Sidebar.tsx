@@ -17,7 +17,9 @@ import {
   LogOut,
   CalendarCheck,
   Flag,
-  FolderOpen
+  FolderOpen,
+  Activity,
+  Search
 } from "lucide-react";
 
 interface SidebarProps {
@@ -32,6 +34,11 @@ const navItems = [
     title: "Dashboard",
     href: "/",
     icon: LayoutDashboard,
+  },
+  {
+    title: "Search",
+    href: "/search",
+    icon: Search,
   },
   {
     title: "Users",
@@ -67,6 +74,11 @@ const navItems = [
     title: "System Logs",
     href: "/logs",
     icon: FileText,
+  },
+  {
+    title: "System Health",
+    href: "/system-health",
+    icon: Activity,
   },
   {
     title: "Settings",

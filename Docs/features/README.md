@@ -13,4 +13,4 @@ Each feature doc should cover:
 
 This protocol is defined in `Docs/ADMIN_DEVELOPER_GUIDE.md` (Feature Docs Protocol) and `.agent/workflows/architecture/doc_keeper.md`.
 
-**Current feature docs**: `auth.md`, `bookings-admin.md`, `cases.md`, `chat-moderation.md`, `disputes.md`, `finance.md`, `force-logout.md`, `reports-queue.md`, `system_health.md`, `task-activity.md`, `users.md`.
+**Current feature docs**: `auth.md`, `bookings-admin.md`, `cases.md`, `chat-moderation.md`, `disputes.md`, `finance.md`, `force-logout.md`, `global-search.md`, `PAGE_16_approval_queue.md`, `reports-queue.md`, `settings-system-config.md`, `system_health.md`, `task-activity.md`, `user-investigation.md`, `users.md`.

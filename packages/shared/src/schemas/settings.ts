@@ -24,3 +24,14 @@ export const AppBannerSchema = z.object({
 });
 
 export type AppBanner = z.infer<typeof AppBannerSchema>;
+
+/** API response: list of system config rows (GET /api/v1/settings/config). */
+export const GetSystemConfigResponseSchema = z.array(SystemConfigSchema);
+export type GetSystemConfigResponse = z.infer<typeof GetSystemConfigResponseSchema>;
+
+/** API request body: update one config key (PATCH /api/v1/settings/config). */
+export const UpdateSystemConfigBodySchema = z.object({
+  key: z.string().min(1),
+  value: z.record(z.string(), z.unknown()),
+});
+export type UpdateSystemConfigBody = z.infer<typeof UpdateSystemConfigBodySchema>;

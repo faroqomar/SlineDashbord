@@ -26,7 +26,8 @@ This document outlines the operational capabilities required for the "Control Ro
     - Filter by Role (Client/Freelancer) or Status (Active/Banned).
     - Columns: Avatar, Name, Email, Role, Joined Date, Status.
 - **User Detail View (`/users/[id]`)**:
-    - **Header**: Big profile card + Quick Actions (Ban, Reset Password, Send Notification, **Force Logout**).
+    - **Header**: Big profile card + Quick Actions (Ban, Reset Password, Send Notification, **Force Logout**, **Investigation**).
+    - **Investigation (PAGE 15)**: Link to **User Investigation** (`/users/[id]/investigation`) for a full aggregated view (profile, tasks, offers, bookings, disputes, finance, reports stub, conversations). PII masked by default; reveal via POST `/api/v1/users/:userId/reveal-pii` (admin/super_admin only, logged in `admin_pii_access_logs`). Evidence-pack export: GET `/api/v1/users/:userId/evidence-pack` (moderator+, audited). Chat content remains case-gated (see Cases & Chat Moderation).
     - **Force Logout (PAGE 06)**: Revoke session for the user (sets `profiles.force_logout_after`); requires reason; audit via `admin_force_logout_user` RPC. RBAC: admin and super_admin only. See `Docs/features/users.md` and `MIGRATIONS/for_sline_app/FORCE_LOGOUT_APP_ENFORCEMENT.md`.
     - **Tabs**:
         - **Info**: Raw profile data.
@@ -47,6 +48,14 @@ This document outlines the operational capabilities required for the "Control Ro
 **"Booking lifecycle"**
 - **List**: Paginated table; filter by status (e.g. confirmed, canceled, refunded). Columns: booking id, user, amount, status, dates.
 - **Detail (`/bookings/[id]`)**: Full booking info; **Cancel** and **Refund** actions with confirmation dialog and required reason. Refund supports optional idempotency key. RBAC: moderator+ for list/cancel; admin+ for refund. Audit: one row per action via `admin_cancel_booking` / `admin_refund_booking` RPCs. See `Docs/features/bookings-admin.md`.
+
+## 3b. User Investigation (`/users/[id]/investigation`) — PAGE 15
+**"Deep User Review"**
+- **Entry**: From User Detail, click **Investigation** to open the investigation page.
+- **Tabs**: Profile (masked), Tasks, Offers, Bookings, Disputes, Finance (ledger activity), Reports (stub/link to `/reports`), Conversations (masked summaries; thread content only with case).
+- **PII**: Masked by default. **Reveal PII** (admin/super_admin only): POST `/api/v1/users/:userId/reveal-pii` with reason (and optional case_id); every reveal is logged in `admin_pii_access_logs`.
+- **Evidence pack**: Button to export JSON (or CSV) for the user; GET `/api/v1/users/:userId/evidence-pack`; RBAC moderator+; audited `admin.export.evidence_pack`; row limit 10k.
+- **Audit**: Every GET investigation view writes `admin.users.investigation_view` to `audit_logs`.
 
 ## 4c. Cases (`/cases`) — PAGE 08 & Chat Moderation — PAGE 09
 **"Investigation & case-gated chat"**
