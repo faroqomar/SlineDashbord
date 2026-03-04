@@ -10,10 +10,13 @@
     "typecheck": "tsc --noEmit",
     "forbidden-imports": "bash scripts/forbidden-imports.sh",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "chromatic": "chromatic"
   },
   "dependencies": {
-    "@sline/shared": "*",
+    "@hookform/resolvers": "^3.3.4",
     "@radix-ui/react-alert-dialog": "^1.0.5",
     "@radix-ui/react-avatar": "^1.0.4",
     "@radix-ui/react-checkbox": "^1.0.4",
@@ -28,6 +31,7 @@
     "@radix-ui/react-switch": "^1.0.3",
     "@radix-ui/react-tabs": "^1.0.4",
     "@radix-ui/react-tooltip": "^1.0.7",
+    "@sline/shared": "*",
     "@supabase/supabase-js": "^2.98.0",
     "@tailwindcss/vite": "^4.2.1",
     "@tanstack/react-query": "^5.24.1",
@@ -44,9 +48,8 @@
     "react": "^18.2.0",
     "react-day-picker": "^9.0.0",
     "react-dom": "^18.2.0",
-    "recharts": "^2.12.2",
     "react-hook-form": "^7.51.0",
-    "@hookform/resolvers": "^3.3.4",
+    "recharts": "^2.12.2",
     "sonner": "^1.4.3",
     "tailwind-merge": "^2.2.1",
     "zod": "^3.22.4"
@@ -57,8 +60,21 @@
     "@types/react-dom": "^18.2.0",
     "@vitejs/plugin-react": "^5.1.4",
     "autoprefixer": "^10.4.17",
+    "chromatic": "^15.2.0",
     "postcss": "^8.4.35",
     "tailwindcss": "^4.2.1",
-    "vite": "^6.4.1"
+    "vite": "^6.4.1",
+    "storybook": "^10.2.14",
+    "@storybook/react-vite": "^10.2.14",
+    "@chromatic-com/storybook": "^5.0.1",
+    "@storybook/addon-vitest": "^10.2.14",
+    "@storybook/addon-a11y": "^10.2.14",
+    "@storybook/addon-docs": "^10.2.14",
+    "@storybook/addon-onboarding": "^10.2.14",
+    "eslint-plugin-storybook": "^10.2.14",
+    "vitest": "^4.0.18",
+    "playwright": "^1.58.2",
+    "@vitest/browser-playwright": "^4.0.18",
+    "@vitest/coverage-v8": "^4.0.18"
   }
 }
