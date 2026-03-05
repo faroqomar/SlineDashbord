@@ -1,6 +1,6 @@
 import { z } from 'zod';
 /** Known admin audit actions. API may send other strings; this enum is for validation of canonical actions. */
-export declare const AuditActionEnum: z.ZodEnum<["admin.team.invite", "admin.team.remove_member", "admin.finance.withdrawal_approve", "admin.finance.withdrawal_reject", "admin.finance.wallet_freeze", "admin.finance.wallet_unfreeze", "admin.tasks.force_cancel", "admin.disputes.resolve", "admin.case.create", "admin.case.attach_entity", "user_ban", "user_unban", "user_suspend", "admin.report.triage", "admin.report.resolve", "admin.chat.access", "admin.chat.redact", "admin.chat.delete_attachment", "admin.users.force_logout", "admin.finance.tx_view_sensitive_meta", "admin.approval.request", "admin.approval.approve", "admin.approval.reject", "admin.finance.wallet_adjust"]>;
+export declare const AuditActionEnum: z.ZodEnum<["admin.team.invite", "admin.team.remove_member", "admin.finance.withdrawal_approve", "admin.finance.withdrawal_reject", "admin.finance.wallet_freeze", "admin.finance.wallet_unfreeze", "admin.tasks.force_cancel", "admin.disputes.resolve", "admin.case.create", "admin.case.attach_entity", "user_ban", "user_unban", "user_suspend", "admin.report.triage", "admin.report.dismiss", "admin.report.escalate", "admin.report.resolve", "admin.chat.access", "admin.chat.redact", "admin.chat.delete_attachment", "admin.case.assign", "admin.case.status_update", "admin.case.note_add", "admin.users.force_logout", "admin.finance.tx_view_sensitive_meta", "admin.approval.request", "admin.approval.approve", "admin.approval.reject", "admin.finance.wallet_adjust", "admin.users.investigation_view", "admin.export.evidence_pack", "admin.pii.reveal"]>;
 export type AuditAction = z.infer<typeof AuditActionEnum>;
 /** Canonical audit_logs row shape (actor_user_id, action, related_entity_type, related_entity_id, meta). */
 export declare const AuditLogRowSchema: z.ZodObject<{
@@ -33,12 +33,12 @@ export declare const MutationAckSchema: z.ZodObject<{
     userId: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     id?: string | undefined;
-    userId?: string | undefined;
     requestId?: string | undefined;
+    userId?: string | undefined;
 }, {
     id?: string | undefined;
-    userId?: string | undefined;
     requestId?: string | undefined;
+    userId?: string | undefined;
 }>;
 export type MutationAck = z.infer<typeof MutationAckSchema>;
 /** Actor profile subset for task activity display. */

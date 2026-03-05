@@ -8,12 +8,12 @@ export declare const AuthMeUserSchema: z.ZodObject<{
     email: z.ZodOptional<z.ZodString>;
     role: z.ZodUnion<[z.ZodEnum<["support", "moderator", "admin", "super_admin"]>, z.ZodLiteral<"authenticated">]>;
 }, "strip", z.ZodTypeAny, {
-    role: "support" | "moderator" | "admin" | "super_admin" | "authenticated";
     id: string;
+    role: "support" | "moderator" | "admin" | "super_admin" | "authenticated";
     email?: string | undefined;
 }, {
-    role: "support" | "moderator" | "admin" | "super_admin" | "authenticated";
     id: string;
+    role: "support" | "moderator" | "admin" | "super_admin" | "authenticated";
     email?: string | undefined;
 }>;
 export declare const AuthMeResponseSchema: z.ZodObject<{
@@ -24,24 +24,24 @@ export declare const AuthMeResponseSchema: z.ZodObject<{
             email: z.ZodOptional<z.ZodString>;
             role: z.ZodUnion<[z.ZodEnum<["support", "moderator", "admin", "super_admin"]>, z.ZodLiteral<"authenticated">]>;
         }, "strip", z.ZodTypeAny, {
-            role: "support" | "moderator" | "admin" | "super_admin" | "authenticated";
             id: string;
+            role: "support" | "moderator" | "admin" | "super_admin" | "authenticated";
             email?: string | undefined;
         }, {
-            role: "support" | "moderator" | "admin" | "super_admin" | "authenticated";
             id: string;
+            role: "support" | "moderator" | "admin" | "super_admin" | "authenticated";
             email?: string | undefined;
         }>;
     }, "strip", z.ZodTypeAny, {
         user: {
-            role: "support" | "moderator" | "admin" | "super_admin" | "authenticated";
             id: string;
+            role: "support" | "moderator" | "admin" | "super_admin" | "authenticated";
             email?: string | undefined;
         };
     }, {
         user: {
-            role: "support" | "moderator" | "admin" | "super_admin" | "authenticated";
             id: string;
+            role: "support" | "moderator" | "admin" | "super_admin" | "authenticated";
             email?: string | undefined;
         };
     }>;
@@ -49,8 +49,8 @@ export declare const AuthMeResponseSchema: z.ZodObject<{
     ok: true;
     data: {
         user: {
-            role: "support" | "moderator" | "admin" | "super_admin" | "authenticated";
             id: string;
+            role: "support" | "moderator" | "admin" | "super_admin" | "authenticated";
             email?: string | undefined;
         };
     };
@@ -58,8 +58,8 @@ export declare const AuthMeResponseSchema: z.ZodObject<{
     ok: true;
     data: {
         user: {
-            role: "support" | "moderator" | "admin" | "super_admin" | "authenticated";
             id: string;
+            role: "support" | "moderator" | "admin" | "super_admin" | "authenticated";
             email?: string | undefined;
         };
     };

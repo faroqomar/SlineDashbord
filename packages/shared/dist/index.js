@@ -18,3 +18,4 @@ export * from './schemas/chat.js';
 export * from './schemas/search.js';
 export * from './schemas/observability.js';
 export * from './schemas/investigation.js';
+export * from './schemas/dashboard.js';

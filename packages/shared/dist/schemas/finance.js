@@ -57,6 +57,18 @@ export const TransactionFiltersSchema = z.object({
     entity_id: z.string().optional(),
     limit: z.number().int().min(1).max(200).optional(),
 });
+/** Query params for GET /finance/transactions (list). Validates limit + cursor + filters. */
+export const TransactionListQuerySchema = z.object({
+    event_type: z.string().optional(),
+    status: z.string().optional(),
+    payer_user_id: z.string().uuid().optional(),
+    payee_user_id: z.string().uuid().optional(),
+    entity_type: z.string().optional(),
+    entity_id: z.string().uuid().optional(),
+    limit: z.number().int().min(1).max(200).optional(),
+    cursor_created_at: z.string().optional(),
+    cursor_id: z.string().uuid().optional(),
+});
 export const FINANCE_READ_ROLES = ['support', 'moderator', 'admin', 'super_admin'];
 export const FINANCE_WRITE_ROLES = ['admin', 'super_admin'];
 export const FINANCE_SUPERADMIN_ROLES = ['super_admin'];

@@ -1,43 +1,68 @@
-# Global Search (PAGE 11)
+# Global Search
 
 ## Purpose
 
-Admins can search **users**, **tasks**, **bookings**, **disputes**, and **transactions** from one place. Results link to the corresponding detail screens. Minimum 2 characters; optional type filter; read-only (no audit write for the search request).
+Provide cross-entity admin search from one screen, including live search insights KPIs and typed result navigation.
 
-## Routes / Screens
+## Route / Screen
 
-- **Search**: `apps/admin-ui/src/routes/Search.tsx` → `SearchScreen` at `/search`. Single input, optional type filters (when exposed in UI), results list with entity badge and link to detail.
+- Route: `/search`
+- Screen: `apps/admin-ui/src/features/search/view/SearchScreen.tsx`
+
+## UI Composition
+
+Search UI is modularized into feature components:
+- `SearchHeroPanel`
+- `SearchKpiGrid`
+- `SearchTypeChips`
+- `SearchResultsPanel`
+- `SearchResultRow`
+- `SearchRightRail`
+- `SearchEmptyState`
+- `SearchSkeleton`
+
+Theme tokens/vibe are defined in `apps/admin-ui/src/features/search/view/search.theme.ts`.
 
 ## API Endpoints
 
-| Method | Path | Description | RBAC |
-|--------|------|-------------|------|
-| GET | `/api/v1/search` | Global search. Query params: `q` (min 2, max 200 chars), `types` (optional comma-separated: user,task,booking,dispute,transaction), `limit` (default 20, max 50). | Any authenticated admin (support, moderator, admin, super_admin) |
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/api/v1/search` | Global entity search (`q`, `types`, `limit`) |
+| GET | `/api/v1/search/insights` | KPI metrics window (`window`, `tz`) for Search KPIs |
 
-## ViewModels / API Client
+## Entities Returned
 
-- **API client**: Uses shared `request()` from `apps/admin-ui/src/lib/api.ts` — `GET /search?q=...&types=...&limit=...`.
-- **ViewModel**: `apps/admin-ui/src/features/search/viewmodels/useGlobalSearch.vm.ts` — `query`, `setQuery`, `types`, `setTypes`, `results`, `loading`, `error`, `timedOut`, `retry`. Debounce 300ms; client timeout 10s.
+- `user`
+- `task`
+- `booking`
+- `dispute`
+- `transaction`
 
-## Contracts (packages/shared)
+## ViewModel / Models
 
-- **Request/query**: `AdminGlobalSearchQuerySchema` (q, types, limit).
-- **Response**: `AdminGlobalSearchResultSchema` — `items: AdminGlobalSearchResultItem[]` (discriminated union by `entityType`: user, task, booking, dispute, transaction). Each item has `entityType`, `id`, `title`, optional `subtitle`, `link`.
+- ViewModel: `apps/admin-ui/src/features/search/viewmodels/useGlobalSearch.vm.ts`
+- UI models:
+  - `apps/admin-ui/src/features/search/models/search-ui.model.ts`
+  - `apps/admin-ui/src/features/search/models/search-ui.mock.ts`
 
-## Special rules
+## Shared Contracts
 
-- **RBAC**: Any authenticated admin role may call search; no per-entity restriction.
-- **Audit**: Search is read-only; no `audit_logs` insert for the search request.
-- **Input safety**: Query `q` is sanitized (%, _, single quote escaped) before use in PostgREST filters.
-- **Timeout**: API timeout 8s (configurable via `SEARCH_TIMEOUT_MS`); 503 + `x-request-id` on timeout or Supabase error.
+- `packages/shared/src/schemas/search.ts`
+  - `AdminGlobalSearchQuerySchema`
+  - `AdminGlobalSearchResultSchema`
+  - `AdminSearchInsightsQuerySchema`
+  - `AdminSearchInsightsResultSchema`
 
-## DB / Migrations
+## Security / Behavior
 
-- No new migration in dashboard or app repo for PAGE 11. Search aggregates from existing tables/views: `profiles`, `tasks`, `bookings`, `disputes`, `vw_admin_journal_ledger`. See **Docs/PAGE_11_search_discovery.md** for entities, columns, and index notes. p95 gate and rollback: **Docs/runbooks/search-p95.md**.
+- Search endpoints are read-only admin endpoints.
+- No privileged mutation is executed from this feature.
+- API-side validation is Zod-first.
 
----
+## Verification
 
-*This document is part of the Admin documentation suite. Maintained per `.agent/workflows/architecture/doc_keeper.md`. See `Docs/ADMIN_DEVELOPER_GUIDE.md` for the documentation index.*
+- `npm --prefix apps/api run test -- src/routes/search.test.ts`
+- `npm --prefix apps/admin-ui run test -- src/features/search/models/search-ui.mock.test.ts`
 
 ---
 

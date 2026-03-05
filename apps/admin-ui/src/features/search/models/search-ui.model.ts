@@ -26,6 +26,7 @@ export interface SearchKpiCard {
   tone: SearchTone;
   sparkline: number[];
   isMock: boolean;
+  isStale?: boolean;
 }
 
 export interface SearchFilterChip {

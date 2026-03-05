@@ -1,5 +1,8 @@
 # SLine Admin Dashboard - Architecture & Tech Stack
 
+> Status (2026-03-05): Legacy Next.js-era reference. Keep for historical context only.
+> Current runtime architecture is Vite SPA + Fastify API; use `Docs/ADMIN_DEVELOPER_GUIDE.md` as source of truth.
+
 > **Project Name**: `sline_admin`
 > **Type**: Private Internal Tool (Next.js Web App)
 > **Connection**: Connects directly to **existing SLine Supabase Project** (`isddrknbjsgaantjojhm`)

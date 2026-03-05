@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { buildApp, type TestUser } from '../app.js';
-import { AdminGlobalSearchResultSchema } from '@sline/shared';
+import { AdminGlobalSearchResultSchema, AdminSearchInsightsResultSchema } from '@sline/shared';
 
 if (!process.env.SUPABASE_URL) process.env.SUPABASE_URL = 'https://placeholder.supabase.co';
 if (!process.env.SUPABASE_SERVICE_ROLE_KEY) process.env.SUPABASE_SERVICE_ROLE_KEY = 'placeholder-key';
@@ -9,6 +9,42 @@ if (!process.env.SUPABASE_SERVICE_ROLE_KEY) process.env.SUPABASE_SERVICE_ROLE_KE
 const ADMIN: TestUser = { id: '00000000-0000-0000-0000-000000000001', role: 'admin' };
 
 describe('PAGE 11 — Global Search API', () => {
+  describe('GET /api/v1/search/insights', () => {
+    it('returns 401 when no auth', async () => {
+      const app = await buildApp();
+      const res = await app.inject({ method: 'GET', url: '/api/v1/search/insights' });
+      await app.close();
+      expect(res.statusCode).toBe(401);
+      const body = JSON.parse(res.body);
+      expect(body.ok).toBe(false);
+      expect(body.error?.code).toBeDefined();
+    });
+
+    it('returns 400 for invalid query params', async () => {
+      const app = await buildApp({ testUser: ADMIN });
+      const res = await app.inject({ method: 'GET', url: '/api/v1/search/insights?window=7d' });
+      await app.close();
+      expect(res.statusCode).toBe(400);
+      const body = JSON.parse(res.body);
+      expect(body.ok).toBe(false);
+      expect(body.error?.code).toBe('VALIDATION_ERROR');
+    });
+
+    it('returns 200 with schema-valid insights payload when authenticated', async () => {
+      const app = await buildApp({ testUser: ADMIN });
+      const res = await app.inject({ method: 'GET', url: '/api/v1/search/insights' });
+      await app.close();
+      expect(res.statusCode).toBe(200);
+      const body = JSON.parse(res.body);
+      expect(body.ok).toBe(true);
+      const parsed = AdminSearchInsightsResultSchema.safeParse(body.data);
+      expect(parsed.success).toBe(true);
+      if (parsed.success) {
+        expect(parsed.data.windowHours).toBe(24);
+      }
+    });
+  });
+
   describe('GET /api/v1/search', () => {
     it('returns 401 when no auth', async () => {
       const app = await buildApp();

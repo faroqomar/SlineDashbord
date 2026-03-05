@@ -8,6 +8,63 @@ if (!process.env.SUPABASE_SERVICE_ROLE_KEY) process.env.SUPABASE_SERVICE_ROLE_KE
 const SUPER_ADMIN: TestUser = { id: '00000000-0000-0000-0000-000000000001', role: 'super_admin' };
 const validUserId = '00000000-0000-0000-0000-000000000002';
 
+describe('PAGE 03 — Users list', () => {
+  let app: Awaited<ReturnType<typeof buildApp>>;
+
+  beforeAll(async () => {
+    app = await buildApp({ testUser: SUPER_ADMIN });
+  });
+
+  afterAll(async () => {
+    await app.close();
+  });
+
+  it('returns 401 when no auth', async () => {
+    const noAuthApp = await buildApp();
+    const res = await noAuthApp.inject({ method: 'GET', url: '/api/v1/users?page=1' });
+    await noAuthApp.close();
+    expect(res.statusCode).toBe(401);
+  });
+
+  it('returns 400 when page is invalid', async () => {
+    const res = await app.inject({ method: 'GET', url: '/api/v1/users?page=0' });
+    expect(res.statusCode).toBe(400);
+    const body = JSON.parse(res.body);
+    expect(body.ok).toBe(false);
+    expect(body.error?.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('returns 400 when statusTab is invalid', async () => {
+    const res = await app.inject({ method: 'GET', url: '/api/v1/users?page=1&statusTab=paused' });
+    expect(res.statusCode).toBe(400);
+    const body = JSON.parse(res.body);
+    expect(body.ok).toBe(false);
+    expect(body.error?.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('returns kpiCounts + tabCounts when successful (or DATABASE_ERROR/INTERNAL_ERROR when DB unavailable)', async () => {
+    const res = await app.inject({ method: 'GET', url: '/api/v1/users?page=1' });
+    expect([200, 500]).toContain(res.statusCode);
+    const body = JSON.parse(res.body);
+
+    if (res.statusCode === 200) {
+      expect(body.ok).toBe(true);
+      expect(Array.isArray(body.data.users)).toBe(true);
+      expect(typeof body.data.totalUsers).toBe('number');
+      expect(typeof body.data.totalPages).toBe('number');
+      expect(typeof body.data.kpiCounts.activeUsers).toBe('number');
+      expect(typeof body.data.kpiCounts.inactiveUsers).toBe('number');
+      expect(typeof body.data.kpiCounts.joinedThisMonth).toBe('number');
+      expect(typeof body.data.tabCounts.all).toBe('number');
+      expect(typeof body.data.tabCounts.active).toBe('number');
+      expect(typeof body.data.tabCounts.inactive).toBe('number');
+    } else {
+      expect(body.ok).toBe(false);
+      expect(['DATABASE_ERROR', 'INTERNAL_ERROR']).toContain(body.error?.code);
+    }
+  });
+});
+
 describe('PAGE 05 — User moderation (ban / unban / suspend)', () => {
   let app: Awaited<ReturnType<typeof buildApp>>;
 

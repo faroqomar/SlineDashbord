@@ -23,8 +23,8 @@ export declare const ApprovalRequestSchema: z.ZodObject<{
     operation_type: "wallet_adjust" | "reversal" | "large_refund_override";
     target_entity_type: string;
     target_entity_id: string;
-    reason?: string | undefined;
     payload?: Record<string, unknown> | undefined;
+    reason?: string | undefined;
 }>;
 export type ApprovalRequest = z.infer<typeof ApprovalRequestSchema>;
 /** Single row from admin_approvals (API response). */
@@ -43,31 +43,31 @@ export declare const ApprovalRowSchema: z.ZodObject<{
     resolved_at: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     consumed_at: z.ZodOptional<z.ZodNullable<z.ZodString>>;
 }, "strip", z.ZodTypeAny, {
-    status: "pending" | "approved" | "rejected" | "consumed";
-    id: string;
-    idempotency_key: string;
-    created_at: string;
     operation_type: "wallet_adjust" | "reversal" | "large_refund_override";
     target_entity_type: string;
     target_entity_id: string;
+    status: "pending" | "approved" | "rejected" | "consumed";
     payload: Record<string, unknown>;
+    id: string;
     requested_by: string;
     approved_by: string | null;
+    idempotency_key: string;
+    created_at: string;
     reason?: string | null | undefined;
     resolved_at?: string | null | undefined;
     consumed_at?: string | null | undefined;
 }, {
-    status: "pending" | "approved" | "rejected" | "consumed";
-    id: string;
-    idempotency_key: string;
-    created_at: string;
     operation_type: "wallet_adjust" | "reversal" | "large_refund_override";
     target_entity_type: string;
     target_entity_id: string;
+    status: "pending" | "approved" | "rejected" | "consumed";
+    id: string;
     requested_by: string;
     approved_by: string | null;
-    reason?: string | null | undefined;
+    idempotency_key: string;
+    created_at: string;
     payload?: Record<string, unknown> | undefined;
+    reason?: string | null | undefined;
     resolved_at?: string | null | undefined;
     consumed_at?: string | null | undefined;
 }>;
@@ -95,8 +95,8 @@ export declare const ApprovalListQuerySchema: z.ZodObject<{
     cursor?: string | undefined;
 }, {
     status?: "pending" | "approved" | "rejected" | "consumed" | undefined;
-    limit?: number | undefined;
     cursor?: string | undefined;
+    limit?: number | undefined;
 }>;
 export type ApprovalListQuery = z.infer<typeof ApprovalListQuerySchema>;
 /** Response for GET /finance/approvals. */
@@ -116,47 +116,47 @@ export declare const ApprovalListResponseSchema: z.ZodObject<{
         resolved_at: z.ZodOptional<z.ZodNullable<z.ZodString>>;
         consumed_at: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     }, "strip", z.ZodTypeAny, {
-        status: "pending" | "approved" | "rejected" | "consumed";
-        id: string;
-        idempotency_key: string;
-        created_at: string;
         operation_type: "wallet_adjust" | "reversal" | "large_refund_override";
         target_entity_type: string;
         target_entity_id: string;
+        status: "pending" | "approved" | "rejected" | "consumed";
         payload: Record<string, unknown>;
+        id: string;
         requested_by: string;
         approved_by: string | null;
+        idempotency_key: string;
+        created_at: string;
         reason?: string | null | undefined;
         resolved_at?: string | null | undefined;
         consumed_at?: string | null | undefined;
     }, {
-        status: "pending" | "approved" | "rejected" | "consumed";
-        id: string;
-        idempotency_key: string;
-        created_at: string;
         operation_type: "wallet_adjust" | "reversal" | "large_refund_override";
         target_entity_type: string;
         target_entity_id: string;
+        status: "pending" | "approved" | "rejected" | "consumed";
+        id: string;
         requested_by: string;
         approved_by: string | null;
-        reason?: string | null | undefined;
+        idempotency_key: string;
+        created_at: string;
         payload?: Record<string, unknown> | undefined;
+        reason?: string | null | undefined;
         resolved_at?: string | null | undefined;
         consumed_at?: string | null | undefined;
     }>, "many">;
     next_cursor: z.ZodOptional<z.ZodNullable<z.ZodString>>;
 }, "strip", z.ZodTypeAny, {
     items: {
-        status: "pending" | "approved" | "rejected" | "consumed";
-        id: string;
-        idempotency_key: string;
-        created_at: string;
         operation_type: "wallet_adjust" | "reversal" | "large_refund_override";
         target_entity_type: string;
         target_entity_id: string;
+        status: "pending" | "approved" | "rejected" | "consumed";
         payload: Record<string, unknown>;
+        id: string;
         requested_by: string;
         approved_by: string | null;
+        idempotency_key: string;
+        created_at: string;
         reason?: string | null | undefined;
         resolved_at?: string | null | undefined;
         consumed_at?: string | null | undefined;
@@ -164,17 +164,17 @@ export declare const ApprovalListResponseSchema: z.ZodObject<{
     next_cursor?: string | null | undefined;
 }, {
     items: {
-        status: "pending" | "approved" | "rejected" | "consumed";
-        id: string;
-        idempotency_key: string;
-        created_at: string;
         operation_type: "wallet_adjust" | "reversal" | "large_refund_override";
         target_entity_type: string;
         target_entity_id: string;
+        status: "pending" | "approved" | "rejected" | "consumed";
+        id: string;
         requested_by: string;
         approved_by: string | null;
-        reason?: string | null | undefined;
+        idempotency_key: string;
+        created_at: string;
         payload?: Record<string, unknown> | undefined;
+        reason?: string | null | undefined;
         resolved_at?: string | null | undefined;
         consumed_at?: string | null | undefined;
     }[];

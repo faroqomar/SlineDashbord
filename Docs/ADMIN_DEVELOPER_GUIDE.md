@@ -48,7 +48,7 @@ We strictly follow MVVM with a clear boundary: the browser talks only to the Fas
 - **Query keys**: Use stable, hierarchical keys (e.g. `['dashboard', 'overview']`, `['users', 'list', { page, role }]`) so invalidation is predictable.
 - **Pagination**: Prefer cursor-based pagination for large lists; expose `cursor`/`nextCursor` from API and pass to `queryKey` and `queryFn`.
 - **Mutations**: Use `useMutation` with `onSuccess` → `queryClient.invalidateQueries({ queryKey: [...] })` so lists/details refresh after create/update/delete.
-- **Error handling**: Map API `ServiceResult<T>` (ok/error) to `isError` and `error` in the ViewModel; never throw from the API client wrapper—return the result.
+- **Error handling**: API routes return `ServiceResult<T>`. In admin-ui services, prefer returning the result envelope directly; some legacy feature services currently normalize failures by throwing `Error` and handling that in ViewModels.
 
 ---
 
@@ -128,7 +128,7 @@ ViewModel: `useMutation({ mutationFn: itemsApi.create, onSuccess: () => queryCli
 
 ## Do-Not-Miss Checklist
 
-- **No Throw**: APIs return `ServiceResult<T>`. ViewModels map that to state; they do not throw.
+- **No Throw (API rule)**: Fastify routes return `ServiceResult<T>` and should not throw raw errors to clients.
 - **Zod first**: In Fastify, validate every request body and path param with Zod from `packages/shared` before business logic.
 - **No `any`**: Use shared DTOs and generated types; avoid `any` in API and UI.
 - **No direct DB from admin-ui**: The SPA never imports Supabase server client or touches the database.
@@ -157,7 +157,7 @@ Feature-level docs live under `Docs/features/` (see Feature Docs Protocol below)
 
 When a feature reaches v1 (shipped), add a short feature doc under `Docs/features/<feature>.md`. Include: purpose, main routes/screens, API endpoints used, ViewModels, and any special rules (e.g. idempotency, audit). This keeps the docs in sync with the codebase as features evolve.
 
-**Current feature docs**: See `Docs/features/README.md`. Examples: `users.md` (user management + Force Logout), `user-investigation.md` (PAGE 15 — deep user review, PII masking/reveal, evidence-pack), `bookings-admin.md` (list/detail/cancel/refund), `finance.md`, `auth.md`, `disputes.md`, and others listed there.
+**Current feature docs**: See `Docs/features/README.md`. Examples include `users.md`, `user-investigation.md`, `global-search.md`, `dashboard-overview.md`, `logs.md`, `bookings-admin.md`, `finance.md`, `auth.md`, `disputes.md`, and others listed there.
 
 ---
 

@@ -1,4 +1,4 @@
-import type { AdminSearchEntityType } from '@sline/shared';
+import type { AdminSearchEntityType, AdminSearchInsightsResult } from '@sline/shared';
 import {
   REAL_SEARCH_TYPES,
   type SearchApiItem,
@@ -59,6 +59,59 @@ export const SEARCH_KPI_MOCK: SearchKpiCard[] = [
     isMock: true,
   },
 ];
+
+function formatDeltaPercent(value: number): string {
+  const rounded = Math.round(value * 10) / 10;
+  if (rounded === 0) return '0%';
+  return `${rounded > 0 ? '+' : ''}${rounded}%`;
+}
+
+export function buildSearchKpiCardsFromInsights(insights: AdminSearchInsightsResult): SearchKpiCard[] {
+  const stale = insights.stale;
+
+  return [
+    {
+      id: 'searches_today',
+      label: 'Searches Today',
+      value: `${Math.round(insights.metrics.searchesToday.value)}`,
+      delta: formatDeltaPercent(insights.metrics.searchesToday.deltaPercent),
+      tone: 'info',
+      sparkline: insights.metrics.searchesToday.sparkline,
+      isMock: false,
+      isStale: stale || insights.metrics.searchesToday.stale,
+    },
+    {
+      id: 'avg_results',
+      label: 'Avg. Results/Query',
+      value: `${Math.round(insights.metrics.avgResultsPerQuery.value * 10) / 10}`,
+      delta: formatDeltaPercent(insights.metrics.avgResultsPerQuery.deltaPercent),
+      tone: 'accent',
+      sparkline: insights.metrics.avgResultsPerQuery.sparkline,
+      isMock: false,
+      isStale: stale || insights.metrics.avgResultsPerQuery.stale,
+    },
+    {
+      id: 'instant_matches',
+      label: 'Instant Matches',
+      value: `${Math.round(insights.metrics.instantMatchRate.value)}%`,
+      delta: formatDeltaPercent(insights.metrics.instantMatchRate.deltaPercent),
+      tone: 'success',
+      sparkline: insights.metrics.instantMatchRate.sparkline,
+      isMock: false,
+      isStale: stale || insights.metrics.instantMatchRate.stale,
+    },
+    {
+      id: 'zero_results',
+      label: 'Zero Results',
+      value: `${Math.round(insights.metrics.zeroResultQueries.value)}`,
+      delta: formatDeltaPercent(insights.metrics.zeroResultQueries.deltaPercent),
+      tone: insights.metrics.zeroResultQueries.deltaPercent > 0 ? 'warning' : 'success',
+      sparkline: insights.metrics.zeroResultQueries.sparkline,
+      isMock: false,
+      isStale: stale || insights.metrics.zeroResultQueries.stale,
+    },
+  ];
+}
 
 export const SEARCH_SAVED_SEARCHES_MOCK: SearchSavedSearch[] = [
   { id: 'saved_1', title: 'Escalated disputes', resultLabel: '3 results', tone: 'warning', isMock: true },

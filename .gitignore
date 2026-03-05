@@ -2,6 +2,9 @@ node_modules
 .env*.local
 .DS_Store
 
+# Build output (do not commit generated artifacts)
+dist/
+
 # Playwright
 playwright-report/
 test-results/

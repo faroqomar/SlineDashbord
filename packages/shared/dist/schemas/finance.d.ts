@@ -82,20 +82,20 @@ export declare const ExportCSVSchema: z.ZodObject<{
     limit: z.ZodOptional<z.ZodNumber>;
 }, "strip", z.ZodTypeAny, {
     status?: string | undefined;
+    limit?: number | undefined;
+    entity_type?: string | undefined;
+    entity_id?: string | undefined;
     event_type?: string | undefined;
     payer_user_id?: string | undefined;
     payee_user_id?: string | undefined;
-    entity_type?: string | undefined;
-    entity_id?: string | undefined;
-    limit?: number | undefined;
 }, {
     status?: string | undefined;
+    limit?: number | undefined;
+    entity_type?: string | undefined;
+    entity_id?: string | undefined;
     event_type?: string | undefined;
     payer_user_id?: string | undefined;
     payee_user_id?: string | undefined;
-    entity_type?: string | undefined;
-    entity_id?: string | undefined;
-    limit?: number | undefined;
 }>;
 export type ExportCSVInput = z.infer<typeof ExportCSVSchema>;
 export declare const TransactionDetailsSchema: z.ZodObject<{
@@ -135,21 +135,54 @@ export declare const TransactionFiltersSchema: z.ZodObject<{
     limit: z.ZodOptional<z.ZodNumber>;
 }, "strip", z.ZodTypeAny, {
     status?: string | undefined;
+    limit?: number | undefined;
+    entity_type?: string | undefined;
+    entity_id?: string | undefined;
     event_type?: string | undefined;
     payer_user_id?: string | undefined;
     payee_user_id?: string | undefined;
-    entity_type?: string | undefined;
-    entity_id?: string | undefined;
-    limit?: number | undefined;
 }, {
     status?: string | undefined;
+    limit?: number | undefined;
+    entity_type?: string | undefined;
+    entity_id?: string | undefined;
     event_type?: string | undefined;
     payer_user_id?: string | undefined;
     payee_user_id?: string | undefined;
+}>;
+/** Query params for GET /finance/transactions (list). Validates limit + cursor + filters. */
+export declare const TransactionListQuerySchema: z.ZodObject<{
+    event_type: z.ZodOptional<z.ZodString>;
+    status: z.ZodOptional<z.ZodString>;
+    payer_user_id: z.ZodOptional<z.ZodString>;
+    payee_user_id: z.ZodOptional<z.ZodString>;
+    entity_type: z.ZodOptional<z.ZodString>;
+    entity_id: z.ZodOptional<z.ZodString>;
+    limit: z.ZodOptional<z.ZodNumber>;
+    cursor_created_at: z.ZodOptional<z.ZodString>;
+    cursor_id: z.ZodOptional<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    status?: string | undefined;
+    limit?: number | undefined;
+    cursor_created_at?: string | undefined;
+    cursor_id?: string | undefined;
     entity_type?: string | undefined;
     entity_id?: string | undefined;
+    event_type?: string | undefined;
+    payer_user_id?: string | undefined;
+    payee_user_id?: string | undefined;
+}, {
+    status?: string | undefined;
     limit?: number | undefined;
+    cursor_created_at?: string | undefined;
+    cursor_id?: string | undefined;
+    entity_type?: string | undefined;
+    entity_id?: string | undefined;
+    event_type?: string | undefined;
+    payer_user_id?: string | undefined;
+    payee_user_id?: string | undefined;
 }>;
+export type TransactionListQuery = z.infer<typeof TransactionListQuerySchema>;
 export type FinanceRole = 'support' | 'moderator' | 'admin' | 'super_admin';
 export declare const FINANCE_READ_ROLES: FinanceRole[];
 export declare const FINANCE_WRITE_ROLES: FinanceRole[];
@@ -177,10 +210,10 @@ export declare const JournalLedgerEntrySchema: z.ZodObject<{
     gross_amount: number;
     fee_amount: number;
     net_amount: number;
-    payer_user_id?: string | null | undefined;
-    payee_user_id?: string | null | undefined;
     entity_type?: string | null | undefined;
     entity_id?: string | null | undefined;
+    payer_user_id?: string | null | undefined;
+    payee_user_id?: string | null | undefined;
     initiator_user_id?: string | null | undefined;
     meta_masked?: any;
     meta_full?: any;
@@ -192,10 +225,10 @@ export declare const JournalLedgerEntrySchema: z.ZodObject<{
     gross_amount: number;
     fee_amount: number;
     net_amount: number;
-    payer_user_id?: string | null | undefined;
-    payee_user_id?: string | null | undefined;
     entity_type?: string | null | undefined;
     entity_id?: string | null | undefined;
+    payer_user_id?: string | null | undefined;
+    payee_user_id?: string | null | undefined;
     initiator_user_id?: string | null | undefined;
     meta_masked?: any;
     meta_full?: any;
@@ -209,19 +242,19 @@ export declare const WithdrawalRequestSchema: z.ZodObject<{
     currency: z.ZodString;
     created_at: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    status: "requested" | "processing" | "completed" | "failed";
+    status: "completed" | "requested" | "processing" | "failed";
     id: string;
     created_at: string;
+    currency: string;
     user_id: string;
     amount: number;
-    currency: string;
 }, {
-    status: "requested" | "processing" | "completed" | "failed";
+    status: "completed" | "requested" | "processing" | "failed";
     id: string;
     created_at: string;
+    currency: string;
     user_id: string;
     amount: number;
-    currency: string;
 }>;
 export type WithdrawalRequest = z.infer<typeof WithdrawalRequestSchema>;
 /** Wallet summary from vw_wallet_balances_user (PAGE 12 user lookup). */
@@ -232,16 +265,16 @@ export declare const WalletSummarySchema: z.ZodObject<{
     currency: z.ZodString;
     is_wallet_frozen: z.ZodOptional<z.ZodBoolean>;
 }, "strip", z.ZodTypeAny, {
-    currency: string;
     available_balance: number;
     held_balance: number;
     pending_withdrawal_balance: number;
+    currency: string;
     is_wallet_frozen?: boolean | undefined;
 }, {
-    currency: string;
     available_balance: number;
     held_balance: number;
     pending_withdrawal_balance: number;
+    currency: string;
     is_wallet_frozen?: boolean | undefined;
 }>;
 export type WalletSummary = z.infer<typeof WalletSummarySchema>;

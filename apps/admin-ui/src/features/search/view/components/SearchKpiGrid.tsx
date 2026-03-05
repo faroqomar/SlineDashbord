@@ -29,6 +29,15 @@ const ICON_BY_ID = {
   zero_results: AlertCircle,
 } as const;
 
+const DELTA_TEXT_CLASS: Record<SearchKpiCard['tone'], string> = {
+  info: 'text-[#5eb1fa]',
+  success: 'text-[#4ae081]',
+  warning: 'text-[#f6a823]',
+  danger: 'text-[#f04d4d]',
+  neutral: 'text-[#9e9589]',
+  accent: 'text-[#9c7df9]',
+};
+
 export function SearchKpiGrid({ items }: SearchKpiGridProps) {
   return (
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -57,9 +66,9 @@ export function SearchKpiGrid({ items }: SearchKpiGridProps) {
                 <p className="text-[33px] font-semibold leading-none text-[#e8e6e3]">{item.value}</p>
                 <div className="mt-1 flex items-center justify-between">
                   <p className="text-sm text-[#9d9588]">{item.label}</p>
-                  <p className="text-sm font-semibold text-[#4ae081]">{item.delta}</p>
+                  <p className={`text-sm font-semibold ${DELTA_TEXT_CLASS[item.tone]}`}>{item.delta}</p>
                 </div>
-                <p className="mt-1 text-[10px] text-[#7f8695]">Mock</p>
+                <p className="mt-1 text-[10px] text-[#7f8695]">{item.isMock ? 'Mock' : item.isStale ? 'Live (stale)' : 'Live'}</p>
               </div>
             </CardContent>
           </Card>

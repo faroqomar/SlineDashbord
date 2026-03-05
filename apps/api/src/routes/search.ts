@@ -3,6 +3,8 @@ import { createClient } from '@supabase/supabase-js';
 import {
   AdminGlobalSearchQuerySchema,
   AdminGlobalSearchResultSchema,
+  AdminSearchInsightsQuerySchema,
+  AdminSearchInsightsResultSchema,
   type AdminGlobalSearchResultItem,
   type AdminSearchEntityType,
   failure,
@@ -20,6 +22,9 @@ function getSearchTimeoutMs(): number {
   return Number(process.env.SEARCH_TIMEOUT_MS) || DEFAULT_SEARCH_TIMEOUT_MS;
 }
 const ALL_ENTITY_TYPES: AdminSearchEntityType[] = ['user', 'task', 'booking', 'dispute', 'transaction'];
+const SEARCH_INSIGHTS_WINDOW_HOURS = 24;
+const SEARCH_SPARKLINE_BUCKETS = 6;
+const INSTANT_MATCH_THRESHOLD_MS = 300;
 
 function isUuid(s: string): boolean {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
@@ -32,9 +37,237 @@ async function searchWithTimeout<T>(promise: Promise<T>, ms: number): Promise<T>
   return Promise.race([promise, timeout]);
 }
 
+type SearchEventInsert = {
+  adminUserId: string | null;
+  query: string;
+  types: AdminSearchEntityType[];
+  resultCount: number;
+  durationMs: number;
+  timedOut: boolean;
+};
+
+type SearchEventRow = {
+  created_at: string;
+  result_count: number;
+  duration_ms: number;
+  timed_out: boolean | null;
+};
+
+function safeRound(value: number, digits = 2): number {
+  const p = 10 ** digits;
+  return Math.round(value * p) / p;
+}
+
+function deltaPercent(current: number, previous: number): number {
+  if (previous === 0) return current === 0 ? 0 : 100;
+  return safeRound(((current - previous) / previous) * 100);
+}
+
+function zeroSparkline() {
+  return Array.from({ length: SEARCH_SPARKLINE_BUCKETS }, () => 0);
+}
+
+function toUtcDayWindow(now = new Date()) {
+  const currentStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
+  const currentEnd = new Date(currentStart.getTime() + SEARCH_INSIGHTS_WINDOW_HOURS * 60 * 60 * 1000);
+  const previousStart = new Date(currentStart.getTime() - SEARCH_INSIGHTS_WINDOW_HOURS * 60 * 60 * 1000);
+  const previousEnd = currentStart;
+
+  return { currentStart, currentEnd, previousStart, previousEnd };
+}
+
+function bucketIndexForDate(value: string, start: Date, bucketMs: number) {
+  const ts = Date.parse(value);
+  if (Number.isNaN(ts)) return -1;
+  return Math.floor((ts - start.getTime()) / bucketMs);
+}
+
+function buildSparklineCount(rows: SearchEventRow[], start: Date): number[] {
+  const result = zeroSparkline();
+  const bucketMs = (SEARCH_INSIGHTS_WINDOW_HOURS * 60 * 60 * 1000) / SEARCH_SPARKLINE_BUCKETS;
+
+  for (const row of rows) {
+    const index = bucketIndexForDate(row.created_at, start, bucketMs);
+    if (index >= 0 && index < result.length) result[index] += 1;
+  }
+  return result;
+}
+
+function buildSparklineAverage(rows: SearchEventRow[], start: Date): number[] {
+  const sums = zeroSparkline();
+  const counts = zeroSparkline();
+  const bucketMs = (SEARCH_INSIGHTS_WINDOW_HOURS * 60 * 60 * 1000) / SEARCH_SPARKLINE_BUCKETS;
+
+  for (const row of rows) {
+    const index = bucketIndexForDate(row.created_at, start, bucketMs);
+    if (index >= 0 && index < sums.length) {
+      sums[index] += Math.max(0, row.result_count || 0);
+      counts[index] += 1;
+    }
+  }
+
+  return sums.map((sum, index) => (counts[index] > 0 ? Math.round(sum / counts[index]) : 0));
+}
+
+function buildSparklineInstantRate(rows: SearchEventRow[], start: Date): number[] {
+  const matches = zeroSparkline();
+  const totals = zeroSparkline();
+  const bucketMs = (SEARCH_INSIGHTS_WINDOW_HOURS * 60 * 60 * 1000) / SEARCH_SPARKLINE_BUCKETS;
+
+  for (const row of rows) {
+    const index = bucketIndexForDate(row.created_at, start, bucketMs);
+    if (index < 0 || index >= matches.length) continue;
+    totals[index] += 1;
+    if (!row.timed_out && row.result_count > 0 && row.duration_ms <= INSTANT_MATCH_THRESHOLD_MS) {
+      matches[index] += 1;
+    }
+  }
+
+  return matches.map((count, index) => {
+    if (totals[index] === 0) return 0;
+    return Math.round((count / totals[index]) * 100);
+  });
+}
+
+function buildStaleInsights() {
+  return {
+    windowHours: 24 as const,
+    generatedAt: new Date().toISOString(),
+    stale: true,
+    metrics: {
+      searchesToday: { value: 0, deltaPercent: 0, sparkline: zeroSparkline(), stale: true },
+      avgResultsPerQuery: { value: 0, deltaPercent: 0, sparkline: zeroSparkline(), stale: true },
+      instantMatchRate: { value: 0, deltaPercent: 0, sparkline: zeroSparkline(), stale: true },
+      zeroResultQueries: { value: 0, deltaPercent: 0, sparkline: zeroSparkline(), stale: true },
+    },
+  };
+}
+
+async function insertSearchEvent(payload: SearchEventInsert): Promise<void> {
+  try {
+    await supabase.from('admin_search_events').insert({
+      admin_user_id: payload.adminUserId,
+      query_text: payload.query.slice(0, 200),
+      entity_types: payload.types,
+      result_count: Math.max(0, payload.resultCount),
+      duration_ms: Math.max(0, payload.durationMs),
+      timed_out: payload.timedOut,
+    });
+  } catch {
+    // Event logging must never break search reads.
+  }
+}
+
+async function loadSearchInsights() {
+  const { currentStart, currentEnd, previousStart, previousEnd } = toUtcDayWindow();
+
+  const [currentWindow, previousWindow] = await Promise.all([
+    supabase
+      .from('admin_search_events')
+      .select('created_at, result_count, duration_ms, timed_out')
+      .gte('created_at', currentStart.toISOString())
+      .lt('created_at', currentEnd.toISOString()),
+    supabase
+      .from('admin_search_events')
+      .select('created_at, result_count, duration_ms, timed_out')
+      .gte('created_at', previousStart.toISOString())
+      .lt('created_at', previousEnd.toISOString()),
+  ]);
+
+  if (currentWindow.error || previousWindow.error) return buildStaleInsights();
+
+  const currentRows = (currentWindow.data ?? []) as SearchEventRow[];
+  const previousRows = (previousWindow.data ?? []) as SearchEventRow[];
+
+  const currentTotal = currentRows.length;
+  const previousTotal = previousRows.length;
+
+  const currentAvgResults = currentTotal > 0
+    ? safeRound(currentRows.reduce((sum, row) => sum + Math.max(0, row.result_count || 0), 0) / currentTotal)
+    : 0;
+  const previousAvgResults = previousTotal > 0
+    ? safeRound(previousRows.reduce((sum, row) => sum + Math.max(0, row.result_count || 0), 0) / previousTotal)
+    : 0;
+
+  const currentInstantRate = currentTotal > 0
+    ? safeRound(
+        (currentRows.filter((row) => !row.timed_out && row.result_count > 0 && row.duration_ms <= INSTANT_MATCH_THRESHOLD_MS).length / currentTotal) * 100
+      )
+    : 0;
+  const previousInstantRate = previousTotal > 0
+    ? safeRound(
+        (previousRows.filter((row) => !row.timed_out && row.result_count > 0 && row.duration_ms <= INSTANT_MATCH_THRESHOLD_MS).length / previousTotal) * 100
+      )
+    : 0;
+
+  const currentZeroResults = currentRows.filter((row) => (row.result_count || 0) === 0).length;
+  const previousZeroResults = previousRows.filter((row) => (row.result_count || 0) === 0).length;
+
+  return {
+    windowHours: 24 as const,
+    generatedAt: new Date().toISOString(),
+    stale: false,
+    metrics: {
+      searchesToday: {
+        value: currentTotal,
+        deltaPercent: deltaPercent(currentTotal, previousTotal),
+        sparkline: buildSparklineCount(currentRows, currentStart),
+        stale: false,
+      },
+      avgResultsPerQuery: {
+        value: currentAvgResults,
+        deltaPercent: deltaPercent(currentAvgResults, previousAvgResults),
+        sparkline: buildSparklineAverage(currentRows, currentStart),
+        stale: false,
+      },
+      instantMatchRate: {
+        value: currentInstantRate,
+        deltaPercent: deltaPercent(currentInstantRate, previousInstantRate),
+        sparkline: buildSparklineInstantRate(currentRows, currentStart),
+        stale: false,
+      },
+      zeroResultQueries: {
+        value: currentZeroResults,
+        deltaPercent: deltaPercent(currentZeroResults, previousZeroResults),
+        sparkline: buildSparklineCount(
+          currentRows.filter((row) => (row.result_count || 0) === 0),
+          currentStart
+        ),
+        stale: false,
+      },
+    },
+  };
+}
+
 export default async function searchRoutes(fastify: FastifyInstance) {
   /** Any authenticated admin role may call GET /api/v1/search. No per-entity restriction. Read-only; no audit_logs. */
   fastify.addHook('preHandler', requireAdminRole(['support', 'moderator', 'admin', 'super_admin']));
+
+  /**
+   * GET /api/v1/search/insights?window=24h&tz=UTC
+   * Returns Search KPI insights backed by admin_search_events telemetry.
+   */
+  fastify.get('/insights', async (request, reply) => {
+    const query = request.query as Record<string, string | undefined>;
+    const parsed = AdminSearchInsightsQuerySchema.safeParse({
+      window: query.window,
+      tz: query.tz,
+    });
+    if (!parsed.success) {
+      return reply.status(400).send(failure('VALIDATION_ERROR', 'Invalid insights params', parsed.error.format()));
+    }
+
+    const insights = await loadSearchInsights();
+    const validated = AdminSearchInsightsResultSchema.safeParse(insights);
+    if (!validated.success) {
+      fastify.log?.error?.(validated.error);
+      if (request.id) reply.header('x-request-id', request.id);
+      return reply.status(503).send(failure('INTERNAL_ERROR', 'Search insights validation failed'));
+    }
+
+    if (request.id) reply.header('x-request-id', request.id);
+    return reply.send(success(validated.data));
+  });
 
   /**
    * GET /api/v1/search?q=...&types=user,task&limit=20
@@ -52,6 +285,7 @@ export default async function searchRoutes(fastify: FastifyInstance) {
     }
     const { q, types, limit } = parsed.data;
     const typesToSearch = types?.length ? types : ALL_ENTITY_TYPES;
+    const searchStartedAt = Date.now();
     // Escape for PostgREST ilike: % _ and single quote (prevent filter break/injection)
     const escaped = q
       .replace(/%/g, '\\%')
@@ -59,7 +293,6 @@ export default async function searchRoutes(fastify: FastifyInstance) {
       .replace(/'/g, "''");
 
     const runSearch = async (): Promise<AdminGlobalSearchResultItem[]> => {
-      const items: AdminGlobalSearchResultItem[] = [];
       const perType = Math.max(1, Math.ceil(limit / typesToSearch.length));
 
       const runUser = async () => {
@@ -162,10 +395,28 @@ export default async function searchRoutes(fastify: FastifyInstance) {
         fastify.log?.error?.(validated.error);
         return reply.status(503).send(failure('INTERNAL_ERROR', 'Search response validation failed'));
       }
+
+      void insertSearchEvent({
+        adminUserId: ((request as any).user?.id as string | undefined) ?? null,
+        query: q,
+        types: typesToSearch,
+        resultCount: validated.data.items.length,
+        durationMs: Date.now() - searchStartedAt,
+        timedOut: false,
+      });
+
       if (request.id) reply.header('x-request-id', request.id);
       return reply.send(success(validated.data));
     } catch (err: any) {
       fastify.log?.error?.(err);
+      void insertSearchEvent({
+        adminUserId: ((request as any).user?.id as string | undefined) ?? null,
+        query: q,
+        types: typesToSearch,
+        resultCount: 0,
+        durationMs: Date.now() - searchStartedAt,
+        timedOut: String(err?.message || '').toLowerCase().includes('timeout'),
+      });
       if (request.id) reply.header('x-request-id', request.id);
       return reply.status(503).send(failure('SERVICE_UNAVAILABLE', err?.message || 'Search failed'));
     }

@@ -1,4 +1,7 @@
 import { request } from '@/lib/api';
+import type { UsersKpiCounts, UsersStatusTab, UsersTabCounts } from '@sline/shared';
+import type { UserInvestigationResponse } from '@sline/shared';
+import type { JournalLedgerEntry, WalletSummary } from '@/features/finance/models/finance.model';
 
 export interface UserDTO {
   id: string;
@@ -16,52 +19,157 @@ export interface UserDTO {
 export interface UserDetailsDTO extends UserDTO {
   phone: string;
   bio: string;
-  rating: number;
-  spent: number;
-  earned: number;
-  job_count: number;
-  wallet_balance: number;
-  recent_activity: unknown[];
-  metadata: unknown;
+  metadata: Record<string, unknown>;
+  auth_provider: string;
+  banned_until: string | null;
 }
 
-type ListResult = { users: UserDTO[]; totalPages: number; totalUsers: number };
-type IdResult = { userId: string };
+type UserStatus = UserDTO['status'];
 
-function mapProfileToUserDTO(p: { id: string; email?: string; full_name?: string; avatar_url?: string; active_role?: string; roles?: string[]; status?: string; account_status?: string; created_at?: string; updated_at?: string }): UserDTO {
-  const status = (p.account_status ?? p.status) as 'active' | 'suspended' | 'banned' | undefined;
+const USER_STATUS_VALUES: UserStatus[] = ['active', 'suspended', 'banned'];
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function toRecord(value: unknown): Record<string, unknown> {
+  return isRecord(value) ? value : {};
+}
+
+function toStringValue(value: unknown): string | undefined {
+  return typeof value === 'string' ? value : undefined;
+}
+
+function toStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((entry): entry is string => typeof entry === 'string');
+}
+
+function normalizeUserStatus(value: unknown): UserStatus {
+  if (typeof value === 'string' && USER_STATUS_VALUES.includes(value as UserStatus)) {
+    return value as UserStatus;
+  }
+  return 'active';
+}
+
+function normalizeKpiCounts(raw: unknown): UsersKpiCounts | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const value = raw as Record<string, unknown>;
+
+  const activeUsers = Number(value.activeUsers);
+  const inactiveUsers = Number(value.inactiveUsers);
+  const joinedThisMonth = Number(value.joinedThisMonth);
+
+  if (!Number.isFinite(activeUsers) || !Number.isFinite(inactiveUsers) || !Number.isFinite(joinedThisMonth)) {
+    return undefined;
+  }
+
   return {
-    id: p.id,
-    email: p.email ?? '',
-    full_name: p.full_name ?? 'Unknown',
-    avatar_url: p.avatar_url ?? '',
-    role: p.active_role ?? (p.roles?.[0]) ?? 'user',
-    roles: p.roles ?? ['user'],
-    active_role: p.active_role ?? 'user',
-    status: status ?? 'active',
-    created_at: p.created_at ?? '',
-    last_sign_in_at: p.updated_at ?? '',
+    activeUsers: Math.max(0, Math.trunc(activeUsers)),
+    inactiveUsers: Math.max(0, Math.trunc(inactiveUsers)),
+    joinedThisMonth: Math.max(0, Math.trunc(joinedThisMonth)),
   };
 }
 
-function toLegacyResult<T>(res: { ok: true; data: T } | { ok: false; error: { message: string } }): { success: true; data: T } | { success: false; error: string } {
+function normalizeTabCounts(raw: unknown): UsersTabCounts | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const value = raw as Record<string, unknown>;
+
+  const all = Number(value.all);
+  const active = Number(value.active);
+  const inactive = Number(value.inactive);
+
+  if (!Number.isFinite(all) || !Number.isFinite(active) || !Number.isFinite(inactive)) {
+    return undefined;
+  }
+
+  return {
+    all: Math.max(0, Math.trunc(all)),
+    active: Math.max(0, Math.trunc(active)),
+    inactive: Math.max(0, Math.trunc(inactive)),
+  };
+}
+
+type ListResult = {
+  users: UserDTO[];
+  totalPages: number;
+  totalUsers: number;
+  kpiCounts?: UsersKpiCounts;
+  tabCounts?: UsersTabCounts;
+};
+type IdResult = { userId: string };
+export interface UserWalletLookupDTO {
+  wallet: WalletSummary | null;
+  timeline: { data: JournalLedgerEntry[]; nextCursor?: undefined };
+}
+
+function mapProfileToUserDTO(
+  profile: {
+    id: string;
+    email?: string;
+    full_name?: string;
+    avatar_url?: string;
+    active_role?: string;
+    roles?: string[];
+    status?: string;
+    account_status?: string;
+    created_at?: string;
+    updated_at?: string;
+  },
+): UserDTO {
+  const roles = toStringArray(profile.roles);
+  return {
+    id: profile.id,
+    email: profile.email ?? '',
+    full_name: profile.full_name ?? 'Unknown',
+    avatar_url: profile.avatar_url ?? '',
+    role: profile.active_role ?? roles[0] ?? 'user',
+    roles: roles.length > 0 ? roles : ['user'],
+    active_role: profile.active_role ?? roles[0] ?? 'user',
+    status: normalizeUserStatus(profile.account_status ?? profile.status),
+    created_at: profile.created_at ?? '',
+    last_sign_in_at: profile.updated_at ?? '',
+  };
+}
+
+function toLegacyResult<T>(
+  res: { ok: true; data: T } | { ok: false; error: { message?: string } },
+): { success: true; data: T } | { success: false; error: string } {
   if (res.ok) return { success: true, data: res.data };
-  return { success: false, error: res.error.message };
+  return { success: false, error: res.error.message ?? 'Unknown error' };
 }
 
 export async function getUsers(
   page = 1,
   query = '',
-  roleStr = 'all'
+  roleStr = 'all',
+  statusTab: UsersStatusTab = 'all',
 ): Promise<{ success: true; data: ListResult } | { success: false; error: string }> {
-  const params = new URLSearchParams({ page: String(page), query, role: roleStr });
-  const res = await request<{ users: unknown[]; totalUsers: number; totalPages: number }>(
+  const params = new URLSearchParams({ page: String(page), query, role: roleStr, statusTab });
+  const res = await request<{
+    users: unknown[];
+    totalUsers: number;
+    totalPages: number;
+    kpiCounts?: unknown;
+    tabCounts?: unknown;
+  }>(
     'GET',
     `/users?${params.toString()}`
   );
   if (!res.ok) return toLegacyResult(res);
   const users = (res.data.users ?? []).map((p: unknown) => mapProfileToUserDTO(p as Parameters<typeof mapProfileToUserDTO>[0]));
-  return { success: true, data: { users, totalPages: res.data.totalPages ?? 0, totalUsers: res.data.totalUsers ?? 0 } };
+  const kpiCounts = normalizeKpiCounts(res.data.kpiCounts);
+  const tabCounts = normalizeTabCounts(res.data.tabCounts);
+  return {
+    success: true,
+    data: {
+      users,
+      totalPages: res.data.totalPages ?? 0,
+      totalUsers: res.data.totalUsers ?? 0,
+      kpiCounts,
+      tabCounts,
+    },
+  };
 }
 
 export async function getUserDetails(id: string): Promise<{ success: true; data: UserDetailsDTO } | { success: false; error: string }> {
@@ -71,27 +179,42 @@ export async function getUserDetails(id: string): Promise<{ success: true; data:
   );
   if (!res.ok) return toLegacyResult(res);
   const { auth, profile } = res.data;
-  const profileMap = profile ?? {};
+  const profileMap = toRecord(profile);
+  const userMetadata = toRecord(auth.user_metadata);
+  const appMetadata = toRecord(auth.app_metadata);
+  const roles = toStringArray(profileMap.roles);
+  const activeRole =
+    toStringValue(profileMap.active_role) ??
+    roles[0] ??
+    toStringValue(appMetadata.role) ??
+    'user';
+  const status =
+    auth.banned_until != null && auth.banned_until !== ''
+      ? 'banned'
+      : normalizeUserStatus(profileMap.account_status ?? profileMap.status);
+
   const user: UserDetailsDTO = {
     id: auth.id,
-    email: (auth.email as string) ?? '',
-    full_name: (profileMap.full_name as string) ?? (auth.user_metadata as Record<string, unknown>)?.full_name ?? 'Unknown',
-    avatar_url: (profileMap.avatar_url as string) ?? (auth.user_metadata as Record<string, unknown>)?.avatar_url ?? '',
-    role: (profileMap.active_role as string) ?? (profileMap.roles as string[])?.[0] ?? (auth.app_metadata as Record<string, unknown>)?.role ?? 'user',
-    roles: (profileMap.roles as string[]) ?? ['user'],
-    active_role: (profileMap.active_role as string) ?? 'user',
-    status: (auth.banned_until ? 'banned' : ((profileMap.account_status ?? profileMap.status) as string) ?? 'active') as UserDetailsDTO['status'],
-    created_at: auth.created_at ?? '',
-    last_sign_in_at: auth.last_sign_in_at ?? '',
-    phone: (auth.phone as string) ?? '',
-    bio: (profileMap.bio as string) ?? '',
-    rating: (profileMap.rating as number) ?? 0,
-    spent: 0,
-    earned: 0,
-    job_count: 0,
-    wallet_balance: 0,
-    recent_activity: [],
-    metadata: auth.user_metadata ?? {},
+    email: auth.email ?? '',
+    full_name:
+      toStringValue(profileMap.full_name) ??
+      toStringValue(userMetadata.full_name) ??
+      'Unknown',
+    avatar_url:
+      toStringValue(profileMap.avatar_url) ??
+      toStringValue(userMetadata.avatar_url) ??
+      '',
+    role: activeRole,
+    roles: roles.length > 0 ? roles : [activeRole],
+    active_role: activeRole,
+    status,
+    created_at: auth.created_at ?? toStringValue(profileMap.created_at) ?? '',
+    last_sign_in_at: auth.last_sign_in_at ?? toStringValue(profileMap.updated_at) ?? '',
+    phone: auth.phone ?? toStringValue(profileMap.phone) ?? '',
+    bio: toStringValue(profileMap.bio) ?? '',
+    metadata: userMetadata,
+    auth_provider: toStringValue(appMetadata.provider) ?? 'email',
+    banned_until: auth.banned_until ?? null,
   };
   return { success: true, data: user };
 }
@@ -125,4 +248,18 @@ export async function forceLogoutUser(userId: string, reason?: string): Promise<
 /** Not implemented in API yet; returns failure. */
 export async function verifyUser(userId: string): Promise<{ success: true; data: IdResult } | { success: false; error: string }> {
   return { success: false, error: 'Verify user not implemented in API yet' };
+}
+
+export async function getUserInvestigation(userId: string): Promise<{ success: true; data: UserInvestigationResponse } | { success: false; error: string }> {
+  const res = await request<UserInvestigationResponse>('GET', `/users/${userId}/investigation`);
+  if (!res.ok) return toLegacyResult(res);
+  return { success: true, data: res.data };
+}
+
+export async function getUserWalletLookup(
+  userId: string,
+): Promise<{ success: true; data: UserWalletLookupDTO } | { success: false; error: string }> {
+  const res = await request<UserWalletLookupDTO>('GET', `/finance/users/${userId}`);
+  if (!res.ok) return toLegacyResult(res);
+  return { success: true, data: res.data };
 }

@@ -389,13 +389,13 @@ export declare const EvidencePackExportQuerySchema: z.ZodObject<{
     limit: z.ZodDefault<z.ZodNumber>;
     cursor: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    limit: number;
     format: "csv" | "json";
+    limit: number;
     cursor?: string | undefined;
 }, {
+    format?: "csv" | "json" | undefined;
     limit?: number | undefined;
     cursor?: string | undefined;
-    format?: "csv" | "json" | undefined;
 }>;
 export type EvidencePackExportQuery = z.infer<typeof EvidencePackExportQuerySchema>;
 /** Evidence-pack export response metadata (streamed body is csv/json). */

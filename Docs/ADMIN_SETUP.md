@@ -1,5 +1,8 @@
 # Admin Dashboard Setup Guide
 
+> Status (2026-03-05): Legacy bootstrap instructions for a standalone Next.js setup.
+> Use `Docs/ADMIN_SETUP_GUIDE.md` for the current monorepo (Vite admin-ui + Fastify api) setup flow.
+
 Use this guide when you are ready to create the new repository.
 
 ## 1. Initialize Project

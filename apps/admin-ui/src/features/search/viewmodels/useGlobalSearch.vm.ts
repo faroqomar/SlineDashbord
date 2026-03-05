@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { request } from '@/lib/api';
-import type { AdminGlobalSearchResultItem, AdminSearchEntityType } from '@sline/shared';
+import type { AdminGlobalSearchResultItem, AdminSearchEntityType, AdminSearchInsightsResult } from '@sline/shared';
 import {
   SEARCH_KPI_MOCK,
   SEARCH_RECENT_SEARCHES_MOCK,
@@ -8,6 +8,7 @@ import {
   SEARCH_SHORTCUT_HINTS,
   SEARCH_TIPS_MOCK,
   SEARCH_VOLUME_MOCK,
+  buildSearchKpiCardsFromInsights,
   buildSearchRowFromApiItem,
   createFilterChips,
   filterMockRows,
@@ -27,9 +28,20 @@ export function useGlobalSearchViewModel() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [timedOut, setTimedOut] = useState(false);
+  const [kpis, setKpis] = useState(SEARCH_KPI_MOCK);
   const [recentSearches, setRecentSearches] = useState(SEARCH_RECENT_SEARCHES_MOCK);
 
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const loadSearchInsights = useCallback(async () => {
+    try {
+      const result = await request<AdminSearchInsightsResult>('GET', '/search/insights?window=24h&tz=UTC');
+      if (!result.ok) return;
+      setKpis(buildSearchKpiCardsFromInsights(result.data));
+    } catch {
+      // Keep mock KPIs as fallback when insights are unavailable.
+    }
+  }, []);
 
   const runSearch = useCallback(async (q: string, typeFilter?: AdminSearchEntityType[]) => {
     if (q.length < 2) {
@@ -53,6 +65,7 @@ export function useGlobalSearchViewModel() {
 
       if (result.ok) {
         setResults(result.data.items ?? []);
+        void loadSearchInsights();
       } else {
         setError(result.error?.message ?? 'Search failed');
       }
@@ -62,7 +75,11 @@ export function useGlobalSearchViewModel() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [loadSearchInsights]);
+
+  useEffect(() => {
+    void loadSearchInsights();
+  }, [loadSearchInsights]);
 
   useEffect(() => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -203,7 +220,7 @@ export function useGlobalSearchViewModel() {
     recentSearches,
     applyRecentSearch,
     clearRecentSearches,
-    kpis: SEARCH_KPI_MOCK,
+    kpis,
     savedSearches: SEARCH_SAVED_SEARCHES_MOCK,
     searchVolume: SEARCH_VOLUME_MOCK,
     searchTips: SEARCH_TIPS_MOCK,

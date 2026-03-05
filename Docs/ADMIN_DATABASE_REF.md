@@ -67,6 +67,7 @@ Investigation view, evidence-pack export, and PII reveal do not use a single DB 
 - **Ledger/reporting**: `vw_admin_journal_ledger` (finance transaction list and detail), `vw_financial_metrics_realtime` (platform metrics).
 - **Finance PAGE 12**: `vw_wallet_balances_user` and `vw_wallet_activity_user` for user lookup (GET `/api/v1/finance/users/:userId`). API returns 501 if these views are not deployed.
 - **Audit**: `audit_logs` is read for paginated list and CSV export (GET `/api/v1/finance/audit`, GET `/api/v1/finance/audit/export`). Export CSV uses a redacted meta column (no full PII). See `Docs/features/finance.md` and `ADMIN_SECURITY_MANUAL.md`.
+- **System Logs PAGE**: `audit_logs` is also the source for `GET /api/v1/logs` with server-side filters/pagination (`action`, `actor_user_id`, date range) and profile name join lookup for actor display.
 
 These views should live in the app repo migrations when they are canonical; the API reads them via Service Role.
 

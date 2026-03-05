@@ -31,13 +31,13 @@ export declare const GetDisputesSchema: z.ZodObject<{
     status: z.ZodDefault<z.ZodString>;
     limit: z.ZodDefault<z.ZodNumber>;
 }, "strip", z.ZodTypeAny, {
-    page: number;
     status: string;
     limit: number;
+    page: number;
 }, {
-    page?: number | undefined;
     status?: string | undefined;
     limit?: number | undefined;
+    page?: number | undefined;
 }>;
 export declare const UpdateDisputeStatusSchema: z.ZodObject<{
     id: z.ZodString;
@@ -45,12 +45,12 @@ export declare const UpdateDisputeStatusSchema: z.ZodObject<{
     resolution: z.ZodOptional<z.ZodString>;
     decision: z.ZodOptional<z.ZodEnum<["refund_client", "release_freelancer"]>>;
 }, "strip", z.ZodTypeAny, {
-    status: "in_progress" | "open" | "resolved" | "escalated";
+    status: "open" | "in_progress" | "resolved" | "escalated";
     id: string;
     decision?: "refund_client" | "release_freelancer" | undefined;
     resolution?: string | undefined;
 }, {
-    status: "in_progress" | "open" | "resolved" | "escalated";
+    status: "open" | "in_progress" | "resolved" | "escalated";
     id: string;
     decision?: "refund_client" | "release_freelancer" | undefined;
     resolution?: string | undefined;

@@ -1,99 +1,87 @@
-# SLine Admin Dashboard - Feature Requirements
+# SLine Admin Dashboard - Feature Matrix (Current)
 
-This document outlines the operational capabilities required for the "Control Room".
+This file tracks current implemented/admin-facing capabilities for the Vite + TanStack + Fastify stack.
 
-## 1. Authorization & Role Guard
-- [ ] **Login Page**: Standard Supabase Email/Password login.
-- [ ] **Middleware Protection**:
-    - Redirect unauthenticated users.
-    - Check for `admin` role claim.
-- [ ] **Session Management**: maintain secure http-only cookie sessions.
+## 1) Auth and Role Guard
 
-## 2. Main Dashboard (Overview)
-**"The Pulse of SLine"**
-- **Metrics Cards**:
-    - Total Users (Clients vs Freelancers).
-    - Active Tasks (Requests this week).
-    - Revenue/Escrow Volume (Total held funds).
-    - Open Disputes/Tickets.
-- **Recent Activity Feed**:
-    - Live feed of new user signups, posted tasks, or crucial system events.
+- Implemented:
+  - Login route and session-based auth checks.
+  - Route-level auth guard via TanStack route auth context.
+  - Server-side RBAC enforcement in Fastify middleware (`requireAdminRole`).
 
-## 3. User Management (`/users`)
-**"The Phonebook"**
-- **Data Table**:
-    - Searchable by Name, Email, UUID.
-    - Filter by Role (Client/Freelancer) or Status (Active/Banned).
-    - Columns: Avatar, Name, Email, Role, Joined Date, Status.
-- **User Detail View (`/users/[id]`)**:
-    - **Header**: Big profile card + Quick Actions (Ban, Reset Password, Send Notification, **Force Logout**, **Investigation**).
-    - **Investigation (PAGE 15)**: Link to **User Investigation** (`/users/[id]/investigation`) for a full aggregated view (profile, tasks, offers, bookings, disputes, finance, reports stub, conversations). PII masked by default; reveal via POST `/api/v1/users/:userId/reveal-pii` (admin/super_admin only, logged in `admin_pii_access_logs`). Evidence-pack export: GET `/api/v1/users/:userId/evidence-pack` (moderator+, audited). Chat content remains case-gated (see Cases & Chat Moderation).
-    - **Force Logout (PAGE 06)**: Revoke session for the user (sets `profiles.force_logout_after`); requires reason; audit via `admin_force_logout_user` RPC. RBAC: admin and super_admin only. See `Docs/features/users.md` and `MIGRATIONS/for_sline_app/FORCE_LOGOUT_APP_ENFORCEMENT.md`.
-    - **Tabs**:
-        - **Info**: Raw profile data.
-        - **Activity**: History of tasks posted or bids made.
-        - **Wallet**: Current balance and transaction history.
-        - **Logs**: Previous admin actions taken on this user.
+## 2) Dashboard (`/`)
 
-## 4. Task/Work Management (`/tasks`)
-**"The Marketplace Overwatch"**
-- **Data Table**:
-    - Filter by Status (Open, In Progress, Dispute).
-    - Filter by Type (Tender vs Booking).
-- **Moderation**:
-    - Ability to flag task descriptions (e.g., offensive content).
-    - **Force Cancel**: Admin ability to cancel a task that is stuck, triggering automatic refund logic via Edge Functions.
+- Implemented:
+  - KPI cards (users, revenue, active jobs, open disputes).
+  - Platform pulse strip (reports, cases, tasks, disputes, bookings today, system status).
+  - Revenue and user growth chart sections.
+  - Recent activity feed.
+- API:
+  - `GET /api/v1/dashboard/overview`
+- Reference:
+  - `Docs/features/dashboard-overview.md`
 
-## 4b. Bookings Admin (`/bookings`) — PAGE 07
-**"Booking lifecycle"**
-- **List**: Paginated table; filter by status (e.g. confirmed, canceled, refunded). Columns: booking id, user, amount, status, dates.
-- **Detail (`/bookings/[id]`)**: Full booking info; **Cancel** and **Refund** actions with confirmation dialog and required reason. Refund supports optional idempotency key. RBAC: moderator+ for list/cancel; admin+ for refund. Audit: one row per action via `admin_cancel_booking` / `admin_refund_booking` RPCs. See `Docs/features/bookings-admin.md`.
+## 3) Users (`/users`)
 
-## 3b. User Investigation (`/users/[id]/investigation`) — PAGE 15
-**"Deep User Review"**
-- **Entry**: From User Detail, click **Investigation** to open the investigation page.
-- **Tabs**: Profile (masked), Tasks, Offers, Bookings, Disputes, Finance (ledger activity), Reports (stub/link to `/reports`), Conversations (masked summaries; thread content only with case).
-- **PII**: Masked by default. **Reveal PII** (admin/super_admin only): POST `/api/v1/users/:userId/reveal-pii` with reason (and optional case_id); every reveal is logged in `admin_pii_access_logs`.
-- **Evidence pack**: Button to export JSON (or CSV) for the user; GET `/api/v1/users/:userId/evidence-pack`; RBAC moderator+; audited `admin.export.evidence_pack`; row limit 10k.
-- **Audit**: Every GET investigation view writes `admin.users.investigation_view` to `audit_logs`.
+- Implemented:
+  - Searchable and paginated users table.
+  - Server-backed status tabs (`all`, `active`, `inactive`) with tab counts.
+  - KPI counts and invite user flow.
+  - Row actions menu with profile/investigation/moderation actions.
+- API:
+  - `GET /api/v1/users`
+  - `POST /api/v1/team/invite`
+- Reference:
+  - `Docs/features/users.md`
 
-## 4c. Cases (`/cases`) — PAGE 08 & Chat Moderation — PAGE 09
-**"Investigation & case-gated chat"**
-- **Cases**: List/create cases; case detail with attached entities (task, user, conversation, booking, dispute). RBAC: support, moderator, admin, super_admin. See `Docs/features/cases.md`.
-- **Chat Moderation (PAGE 09)**: View chat thread content only when linked to a case; open thread from case detail ("View thread"). Every view and access grant is logged in `admin_chat_access_logs`. API: GET/POST `/api/v1/chat/threads/:threadId` (GET requires `case_id`). See `Docs/features/chat-moderation.md`.
+## 4) User Profile (`/users/$userId`)
 
-## 5. Dispute Resolution Center (`/disputes`)
-**"The Courtroom"**
-*This is the most complex module.*
-- **Ticket System**:
-    - When a user reports a problem, a Ticket is created.
-- **Investigation Interface**:
-    - **Evidence View**: Ability to see the chat history linked to the specific Task/Booking (ReadOnly).
-    - **Attachments**: View files shared in the chat.
-- **Verdict Actions**:
-    - **Release Funds**: Force release escrow to Freelancer.
-    - **Refund Client**: Force return funds to Client.
-    - **Split**: (Advanced) Partial refund.
+- Implemented:
+  - Profile facts and identity sections.
+  - Moderation actions (suspend/ban/unban/force logout).
+  - Tenders/assignments block.
+  - Bookings overview block.
+  - Wallet situation block.
+- API:
+  - `GET /api/v1/users/:userId`
+  - `GET /api/v1/users/:userId/investigation`
+  - `GET /api/v1/finance/users/:userId`
+  - `POST /api/v1/users/:userId/suspend|ban|unban|force-logout`
+- Reference:
+  - `Docs/features/users.md`
+  - `Docs/features/user-investigation.md`
 
-## 6. Audit Logs (`/audit`)
-**"The Black Box"**
-- A read-only immutable list of all actions taken within this dashboard.
-- **Columns**: Admin Name, Action (e.g., "Banned User X"), Resource ID, Timestamp.
-- *Why?* To accountability. If an admin abuses power, we know who and when.
+## 5) Global Search (`/search`)
 
-## 7. Configuration & Tools
-- **Global Settings**:
-    - Toggle new registrations (Maintenance Mode).
-    - Update banner announcements.
-- **Notification Center**:
-    - Send Push Notification to All Users (System Broadcast).
-    - Send email to specific user.
+- Implemented:
+  - Cross-entity search results.
+  - KPI insights panel and modular search UI components.
+  - Entity-aware row rendering and navigation.
+- API:
+  - `GET /api/v1/search`
+  - `GET /api/v1/search/insights`
+- Reference:
+  - `Docs/features/global-search.md`
+
+## 6) Logs (`/logs`)
+
+- Implemented:
+  - Filterable and paginated logs table over canonical `audit_logs`.
+  - Filters by action, actor, from/to date.
+- API:
+  - `GET /api/v1/logs`
+- Reference:
+  - `Docs/features/logs.md`
+
+## 7) Other Admin Domains
+
+For disputes, cases, chat moderation, reports, finance, settings, bookings, and system health, see the feature docs index:
+- `Docs/features/README.md`
+
+## Notes
+
+- This matrix tracks current behavior only. Planned/future capability should be tracked in `.TODO/` plans and not presented as shipped here.
 
 ---
 
-## Development Phases
-1.  **Foundation**: Setup Next.js, Auth, and "Read-Only" views for Users/Tasks.
-2.  **Actions**: Implement Banning and Basic Moderation.
-3.  **Logs**: Implement the Audit Log system to track the actions above.
-4.  **Disputes**: The complex logic for financial intervention.
-5.  **Analytics**: Charts and graphs.
+*This document is part of the Admin documentation suite. Maintained per `.agent/workflows/architecture/doc_keeper.md`. See `Docs/ADMIN_DEVELOPER_GUIDE.md` for the documentation index.*

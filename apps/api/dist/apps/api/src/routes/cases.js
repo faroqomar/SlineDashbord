@@ -1,8 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 import { requireAdminRole } from '../middleware/rbac.js';
 import { withAudit, writeAuditLog } from '../audit.js';
-import { failure as fail, success, CASES_ROLES, AdminCaseCreateInputSchema, AdminCaseAttachEntityInputSchema, } from '@sline/shared';
+import { failure as fail, success, CASES_ROLES, CASES_WRITE_ROLES, CASES_DESTRUCTIVE_ROLES, AdminCaseCreateInputSchema, AdminCaseAttachEntityInputSchema, AdminCaseAssignInputSchema, AdminCaseStatusInputSchema, AdminCaseNoteInputSchema, } from '@sline/shared';
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function isUuid(value) {
+    return UUID_RE.test(value);
+}
 export default async function casesRoutes(fastify) {
     const roles = [...CASES_ROLES];
     fastify.get('/', { preHandler: [requireAdminRole(roles)] }, async (request, reply) => {
@@ -20,6 +24,15 @@ export default async function casesRoutes(fastify) {
             .order('created_at', { ascending: false });
         if (error)
             return reply.status(500).send(fail('DATABASE_ERROR', error.message));
+        const assigneeIds = Array.from(new Set((cases ?? []).map((row) => row.assignee_id).filter(Boolean)));
+        const assigneeMap = new Map();
+        if (assigneeIds.length > 0) {
+            const { data: assignees } = await supabase
+                .from('profiles')
+                .select('id, full_name')
+                .in('id', assigneeIds);
+            (assignees ?? []).forEach((a) => assigneeMap.set(a.id, a.full_name ?? a.id));
+        }
         const list = (cases ?? []).map((row) => ({
             id: row.id,
             subject: row.subject,
@@ -27,6 +40,7 @@ export default async function casesRoutes(fastify) {
             status: row.status,
             priority: row.priority,
             assignee_id: row.assignee_id ?? null,
+            assignee_name: row.assignee_id ? assigneeMap.get(row.assignee_id) ?? null : null,
             created_at: typeof row.created_at === 'string'
                 ? row.created_at
                 : row.created_at?.toISOString?.() ?? '',
@@ -36,15 +50,20 @@ export default async function casesRoutes(fastify) {
                     : row.updated_at?.toISOString?.()
                 : undefined,
         }));
-        const totalPages = count != null ? Math.ceil(count / limit) : 0;
+        const total = count ?? list.length;
+        const totalPages = total > 0 ? Math.ceil(total / limit) : 0;
         return success({
             cases: list,
-            count: count ?? list.length,
+            total,
+            page,
+            limit,
             totalPages,
         });
     });
     fastify.get('/:caseId', { preHandler: [requireAdminRole(roles)] }, async (request, reply) => {
         const { caseId } = request.params;
+        if (!isUuid(caseId))
+            return reply.status(400).send(fail('VALIDATION_ERROR', 'Invalid case ID format'));
         const { data: caseRow, error: caseError } = await supabase
             .from('admin_cases')
             .select('id, subject, source, status, priority, assignee_id, created_at, updated_at')
@@ -52,13 +71,59 @@ export default async function casesRoutes(fastify) {
             .single();
         if (caseError || !caseRow)
             return reply.status(404).send(fail('NOT_FOUND', 'Case not found'));
-        const { data: entities, error: entitiesError } = await supabase
+        let { data: entities, error: entitiesError } = await supabase
             .from('admin_case_entities')
-            .select('id, case_id, entity_type, entity_id, created_at')
+            .select('id, case_id, entity_type, entity_id, created_at, meta')
             .eq('case_id', caseId)
             .order('created_at', { ascending: false });
+        if (entitiesError && entitiesError.message.includes('meta')) {
+            const fallback = await supabase
+                .from('admin_case_entities')
+                .select('id, case_id, entity_type, entity_id, created_at')
+                .eq('case_id', caseId)
+                .order('created_at', { ascending: false });
+            entities = fallback.data;
+            entitiesError = fallback.error;
+        }
         if (entitiesError)
             return reply.status(500).send(fail('DATABASE_ERROR', entitiesError.message));
+        const reportEntityIds = (entities ?? [])
+            .filter((e) => e.entity_type === 'report')
+            .map((e) => e.entity_id);
+        let evidence = [];
+        if (reportEntityIds.length > 0) {
+            const { data: reportEvidence } = await supabase
+                .from('reports')
+                .select('id, entity_type, entity_id, status, severity, reason, created_at')
+                .in('id', reportEntityIds);
+            evidence = (reportEvidence ?? []).map((r) => ({
+                id: r.id,
+                case_id: caseId,
+                evidence_type: 'report',
+                entity_type: 'report',
+                entity_id: r.id,
+                title: r.reason ?? `Report ${String(r.id).slice(0, 8)}`,
+                created_at: r.created_at,
+                meta: {
+                    reported_entity_type: r.entity_type,
+                    reported_entity_id: r.entity_id,
+                    status: r.status,
+                    severity: r.severity ?? null,
+                },
+            }));
+        }
+        const { data: notesData, error: notesError } = await supabase
+            .from('admin_case_notes')
+            .select('id, case_id, admin_user_id, note, visibility, created_at, updated_at')
+            .eq('case_id', caseId)
+            .order('created_at', { ascending: true });
+        const notes = notesError ? [] : (notesData ?? []);
+        const { data: timelineData, error: timelineError } = await supabase
+            .from('admin_case_timeline')
+            .select('id, case_id, event, actor_user_id, reason, meta, created_at')
+            .eq('case_id', caseId)
+            .order('created_at', { ascending: true });
+        const timeline = timelineError ? [] : (timelineData ?? []);
         const detail = {
             id: caseRow.id,
             subject: caseRow.subject,
@@ -82,7 +147,11 @@ export default async function casesRoutes(fastify) {
                 created_at: typeof e.created_at === 'string'
                     ? e.created_at
                     : e.created_at?.toISOString?.() ?? '',
+                meta: e.meta ?? {},
             })),
+            evidence,
+            notes,
+            timeline,
         };
         return success(detail);
     });
@@ -125,8 +194,10 @@ export default async function casesRoutes(fastify) {
         };
         return reply.status(201).send(success(payload));
     });
-    fastify.post('/:caseId/entities', { preHandler: [requireAdminRole(roles)] }, async (request, reply) => {
+    fastify.post('/:caseId/entities', { preHandler: [requireAdminRole(CASES_WRITE_ROLES)] }, async (request, reply) => {
         const { caseId } = request.params;
+        if (!isUuid(caseId))
+            return reply.status(400).send(fail('VALIDATION_ERROR', 'Invalid case ID format'));
         const parsed = AdminCaseAttachEntityInputSchema.safeParse(request.body);
         if (!parsed.success)
             return reply.status(400).send(fail('VALIDATION_ERROR', parsed.error.message));
@@ -153,5 +224,86 @@ export default async function casesRoutes(fastify) {
                 return reply.status(500).send(fail('DATABASE_ERROR', 'Insert did not return row'));
             return success({ id: inserted.id });
         });
+    });
+    fastify.post('/:caseId/assign', { preHandler: [requireAdminRole(CASES_WRITE_ROLES)] }, async (request, reply) => {
+        const { caseId } = request.params;
+        if (!isUuid(caseId)) {
+            return reply.status(400).send(fail('VALIDATION_ERROR', 'Invalid case ID format'));
+        }
+        const parsed = AdminCaseAssignInputSchema.safeParse(request.body);
+        if (!parsed.success) {
+            return reply.status(400).send(fail('VALIDATION_ERROR', parsed.error.message));
+        }
+        const adminId = request.user?.id;
+        if (!adminId)
+            return reply.status(401).send(fail('UNAUTHORIZED', 'Not authenticated'));
+        const { error } = await supabase.rpc('admin_case_assign', {
+            p_case_id: caseId,
+            p_admin_id: adminId,
+            p_assignee_id: parsed.data.assignee_id,
+            p_reason: parsed.data.reason,
+        });
+        if (error) {
+            if (error.message?.includes('not found'))
+                return reply.status(404).send(fail('NOT_FOUND', error.message));
+            if (error.message?.includes('Invalid'))
+                return reply.status(400).send(fail('VALIDATION_ERROR', error.message));
+            return reply.status(500).send(fail('DATABASE_ERROR', error.message));
+        }
+        return reply.send(success({ id: caseId, assignee_id: parsed.data.assignee_id }));
+    });
+    fastify.post('/:caseId/status', { preHandler: [requireAdminRole(CASES_WRITE_ROLES)] }, async (request, reply) => {
+        const { caseId } = request.params;
+        if (!isUuid(caseId)) {
+            return reply.status(400).send(fail('VALIDATION_ERROR', 'Invalid case ID format'));
+        }
+        const parsed = AdminCaseStatusInputSchema.safeParse(request.body);
+        if (!parsed.success) {
+            return reply.status(400).send(fail('VALIDATION_ERROR', parsed.error.message));
+        }
+        const adminId = request.user?.id;
+        if (!adminId)
+            return reply.status(401).send(fail('UNAUTHORIZED', 'Not authenticated'));
+        const { error } = await supabase.rpc('admin_case_update_status', {
+            p_case_id: caseId,
+            p_admin_id: adminId,
+            p_status: parsed.data.status,
+            p_reason: parsed.data.reason,
+        });
+        if (error) {
+            if (error.message?.includes('not found'))
+                return reply.status(404).send(fail('NOT_FOUND', error.message));
+            if (error.message?.includes('Invalid'))
+                return reply.status(400).send(fail('VALIDATION_ERROR', error.message));
+            return reply.status(500).send(fail('DATABASE_ERROR', error.message));
+        }
+        return reply.send(success({ id: caseId, status: parsed.data.status }));
+    });
+    fastify.post('/:caseId/note', { preHandler: [requireAdminRole(CASES_DESTRUCTIVE_ROLES)] }, async (request, reply) => {
+        const { caseId } = request.params;
+        if (!isUuid(caseId)) {
+            return reply.status(400).send(fail('VALIDATION_ERROR', 'Invalid case ID format'));
+        }
+        const parsed = AdminCaseNoteInputSchema.safeParse(request.body);
+        if (!parsed.success) {
+            return reply.status(400).send(fail('VALIDATION_ERROR', parsed.error.message));
+        }
+        const adminId = request.user?.id;
+        if (!adminId)
+            return reply.status(401).send(fail('UNAUTHORIZED', 'Not authenticated'));
+        const { data: noteId, error } = await supabase.rpc('admin_case_add_note', {
+            p_case_id: caseId,
+            p_admin_id: adminId,
+            p_note: parsed.data.note,
+            p_visibility: parsed.data.visibility,
+        });
+        if (error) {
+            if (error.message?.includes('not found'))
+                return reply.status(404).send(fail('NOT_FOUND', error.message));
+            if (error.message?.includes('Invalid') || error.message?.includes('required'))
+                return reply.status(400).send(fail('VALIDATION_ERROR', error.message));
+            return reply.status(500).send(fail('DATABASE_ERROR', error.message));
+        }
+        return reply.status(201).send(success({ id: caseId, note_id: noteId }));
     });
 }

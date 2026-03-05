@@ -1,16 +1,39 @@
 # Feature documentation
 
-When a feature reaches **v1 (shipped)**, add a markdown file here: `Docs/features/<feature>.md`.
+When a feature reaches v1 (shipped), add a markdown file under `Docs/features/<feature>.md`.
 
-Each feature doc should cover:
+Each feature document should include:
+- Purpose
+- Routes / screens
+- API endpoints
+- ViewModels / state ownership
+- Security / special rules (RBAC, idempotency, audit)
+- DB / contracts references
 
-- **Purpose**: What the feature does and for whom.
-- **Routes / screens**: Which TanStack routes and main views.
-- **API**: Endpoints used (e.g. `GET /api/v1/users`, `POST /api/v1/users/:id/ban`).
-- **ViewModels**: Hooks and state exposed to the UI.
-- **Special rules**: Idempotency, audit, RBAC, or destructive-action requirements.
-- **DB / Migrations** (when relevant): Migration file(s) and RPCs used; cross-reference `Docs/ADMIN_DATABASE_REF.md` and `MIGRATIONS/README.md`.
+## Current feature docs
 
-This protocol is defined in `Docs/ADMIN_DEVELOPER_GUIDE.md` (Feature Docs Protocol) and `.agent/workflows/architecture/doc_keeper.md`.
+- `auth.md`
+- `bookings-admin.md`
+- `cases.md`
+- `chat-moderation.md`
+- `dashboard-overview.md`
+- `disputes.md`
+- `finance.md`
+- `force-logout.md`
+- `global-search.md`
+- `logs.md`
+- `PAGE_16_approval_queue.md`
+- `reports-queue.md`
+- `settings-system-config.md`
+- `system_health.md`
+- `task-activity.md`
+- `user-investigation.md`
+- `users.md`
 
-**Current feature docs**: `auth.md`, `bookings-admin.md`, `cases.md`, `chat-moderation.md`, `disputes.md`, `finance.md`, `force-logout.md`, `global-search.md`, `PAGE_16_approval_queue.md`, `reports-queue.md`, `settings-system-config.md`, `system_health.md`, `task-activity.md`, `user-investigation.md`, `users.md`.
+This protocol is defined by:
+- `.agent/workflows/architecture/doc_keeper.md`
+- `Docs/ADMIN_DEVELOPER_GUIDE.md` (Feature Docs Protocol)
+
+---
+
+*This document is part of the Admin documentation suite. Maintained per `.agent/workflows/architecture/doc_keeper.md`. See `Docs/ADMIN_DEVELOPER_GUIDE.md` for the documentation index.*

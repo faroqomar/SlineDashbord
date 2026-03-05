@@ -9,15 +9,110 @@ export declare const GetUsersSchema: z.ZodObject<{
     page: z.ZodDefault<z.ZodNumber>;
     query: z.ZodDefault<z.ZodString>;
     role: z.ZodDefault<z.ZodString>;
+    statusTab: z.ZodDefault<z.ZodEnum<["all", "active", "inactive"]>>;
 }, "strip", z.ZodTypeAny, {
     page: number;
     query: string;
     role: string;
+    statusTab: "active" | "all" | "inactive";
 }, {
     page?: number | undefined;
     query?: string | undefined;
     role?: string | undefined;
+    statusTab?: "active" | "all" | "inactive" | undefined;
 }>;
+export type UsersStatusTab = z.infer<typeof GetUsersSchema>['statusTab'];
+/** KPI aggregates used by Users page cards. */
+export declare const UsersKpiCountsSchema: z.ZodObject<{
+    activeUsers: z.ZodNumber;
+    inactiveUsers: z.ZodNumber;
+    joinedThisMonth: z.ZodNumber;
+}, "strip", z.ZodTypeAny, {
+    activeUsers: number;
+    inactiveUsers: number;
+    joinedThisMonth: number;
+}, {
+    activeUsers: number;
+    inactiveUsers: number;
+    joinedThisMonth: number;
+}>;
+export type UsersKpiCounts = z.infer<typeof UsersKpiCountsSchema>;
+/** Global counts used by Users status tabs. */
+export declare const UsersTabCountsSchema: z.ZodObject<{
+    all: z.ZodNumber;
+    active: z.ZodNumber;
+    inactive: z.ZodNumber;
+}, "strip", z.ZodTypeAny, {
+    active: number;
+    all: number;
+    inactive: number;
+}, {
+    active: number;
+    all: number;
+    inactive: number;
+}>;
+export type UsersTabCounts = z.infer<typeof UsersTabCountsSchema>;
+/** Response shape for GET /users list endpoint. */
+export declare const GetUsersResultSchema: z.ZodObject<{
+    users: z.ZodArray<z.ZodUnknown, "many">;
+    totalUsers: z.ZodNumber;
+    totalPages: z.ZodNumber;
+    kpiCounts: z.ZodObject<{
+        activeUsers: z.ZodNumber;
+        inactiveUsers: z.ZodNumber;
+        joinedThisMonth: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        activeUsers: number;
+        inactiveUsers: number;
+        joinedThisMonth: number;
+    }, {
+        activeUsers: number;
+        inactiveUsers: number;
+        joinedThisMonth: number;
+    }>;
+    tabCounts: z.ZodObject<{
+        all: z.ZodNumber;
+        active: z.ZodNumber;
+        inactive: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        active: number;
+        all: number;
+        inactive: number;
+    }, {
+        active: number;
+        all: number;
+        inactive: number;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    users: unknown[];
+    totalUsers: number;
+    totalPages: number;
+    kpiCounts: {
+        activeUsers: number;
+        inactiveUsers: number;
+        joinedThisMonth: number;
+    };
+    tabCounts: {
+        active: number;
+        all: number;
+        inactive: number;
+    };
+}, {
+    users: unknown[];
+    totalUsers: number;
+    totalPages: number;
+    kpiCounts: {
+        activeUsers: number;
+        inactiveUsers: number;
+        joinedThisMonth: number;
+    };
+    tabCounts: {
+        active: number;
+        all: number;
+        inactive: number;
+    };
+}>;
+export type GetUsersResult = z.infer<typeof GetUsersResultSchema>;
 export declare const GetUserDetailsSchema: z.ZodObject<{
     id: z.ZodString;
 }, "strip", z.ZodTypeAny, {

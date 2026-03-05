@@ -4,6 +4,7 @@ export const GetUsersSchema = z.object({
   page: z.number().int().positive().default(1),
   query: z.string().default(''),
   role: z.string().default('all'),
+  statusTab: z.enum(['all', 'active', 'inactive']).default('all'),
 });
 
 export const GetUserDetailsSchema = z.object({

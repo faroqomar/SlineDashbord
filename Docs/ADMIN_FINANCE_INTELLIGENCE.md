@@ -1,5 +1,8 @@
 # 🧭 Admin Dashboard Intelligence Report: Payments & Wallet Monitoring
 
+> Status (2026-03-05): Strategic finance reference; some implementation notes mention legacy Next.js patterns.
+> Current execution model is Fastify REST + shared contracts as documented in `Docs/ADMIN_DEVELOPER_GUIDE.md`.
+
 ## A) Feature Overview
 
 - **Feature Name**: Payments & Wallet Monitoring Module

@@ -48,14 +48,14 @@ export declare const AdminSearchUserItemSchema: z.ZodObject<{
     link: z.ZodString;
 }, "strip", z.ZodTypeAny, {
     id: string;
-    entityType: "user";
     title: string;
+    entityType: "user";
     link: string;
     subtitle?: string | undefined;
 }, {
     id: string;
-    entityType: "user";
     title: string;
+    entityType: "user";
     link: string;
     subtitle?: string | undefined;
 }>;
@@ -69,14 +69,14 @@ export declare const AdminSearchTaskItemSchema: z.ZodObject<{
     link: z.ZodString;
 }, "strip", z.ZodTypeAny, {
     id: string;
-    entityType: "task";
     title: string;
+    entityType: "task";
     link: string;
     subtitle?: string | undefined;
 }, {
     id: string;
-    entityType: "task";
     title: string;
+    entityType: "task";
     link: string;
     subtitle?: string | undefined;
 }>;
@@ -90,14 +90,14 @@ export declare const AdminSearchBookingItemSchema: z.ZodObject<{
     link: z.ZodString;
 }, "strip", z.ZodTypeAny, {
     id: string;
-    entityType: "booking";
     title: string;
+    entityType: "booking";
     link: string;
     subtitle?: string | undefined;
 }, {
     id: string;
-    entityType: "booking";
     title: string;
+    entityType: "booking";
     link: string;
     subtitle?: string | undefined;
 }>;
@@ -111,14 +111,14 @@ export declare const AdminSearchDisputeItemSchema: z.ZodObject<{
     link: z.ZodString;
 }, "strip", z.ZodTypeAny, {
     id: string;
-    entityType: "dispute";
     title: string;
+    entityType: "dispute";
     link: string;
     subtitle?: string | undefined;
 }, {
     id: string;
-    entityType: "dispute";
     title: string;
+    entityType: "dispute";
     link: string;
     subtitle?: string | undefined;
 }>;
@@ -132,14 +132,14 @@ export declare const AdminSearchTransactionItemSchema: z.ZodObject<{
     link: z.ZodString;
 }, "strip", z.ZodTypeAny, {
     id: string;
-    entityType: "transaction";
     title: string;
+    entityType: "transaction";
     link: string;
     subtitle?: string | undefined;
 }, {
     id: string;
-    entityType: "transaction";
     title: string;
+    entityType: "transaction";
     link: string;
     subtitle?: string | undefined;
 }>;
@@ -153,14 +153,14 @@ export declare const AdminGlobalSearchResultItemSchema: z.ZodDiscriminatedUnion<
     link: z.ZodString;
 }, "strip", z.ZodTypeAny, {
     id: string;
-    entityType: "user";
     title: string;
+    entityType: "user";
     link: string;
     subtitle?: string | undefined;
 }, {
     id: string;
-    entityType: "user";
     title: string;
+    entityType: "user";
     link: string;
     subtitle?: string | undefined;
 }>, z.ZodObject<{
@@ -171,14 +171,14 @@ export declare const AdminGlobalSearchResultItemSchema: z.ZodDiscriminatedUnion<
     link: z.ZodString;
 }, "strip", z.ZodTypeAny, {
     id: string;
-    entityType: "task";
     title: string;
+    entityType: "task";
     link: string;
     subtitle?: string | undefined;
 }, {
     id: string;
-    entityType: "task";
     title: string;
+    entityType: "task";
     link: string;
     subtitle?: string | undefined;
 }>, z.ZodObject<{
@@ -189,14 +189,14 @@ export declare const AdminGlobalSearchResultItemSchema: z.ZodDiscriminatedUnion<
     link: z.ZodString;
 }, "strip", z.ZodTypeAny, {
     id: string;
-    entityType: "booking";
     title: string;
+    entityType: "booking";
     link: string;
     subtitle?: string | undefined;
 }, {
     id: string;
-    entityType: "booking";
     title: string;
+    entityType: "booking";
     link: string;
     subtitle?: string | undefined;
 }>, z.ZodObject<{
@@ -207,14 +207,14 @@ export declare const AdminGlobalSearchResultItemSchema: z.ZodDiscriminatedUnion<
     link: z.ZodString;
 }, "strip", z.ZodTypeAny, {
     id: string;
-    entityType: "dispute";
     title: string;
+    entityType: "dispute";
     link: string;
     subtitle?: string | undefined;
 }, {
     id: string;
-    entityType: "dispute";
     title: string;
+    entityType: "dispute";
     link: string;
     subtitle?: string | undefined;
 }>, z.ZodObject<{
@@ -225,14 +225,14 @@ export declare const AdminGlobalSearchResultItemSchema: z.ZodDiscriminatedUnion<
     link: z.ZodString;
 }, "strip", z.ZodTypeAny, {
     id: string;
-    entityType: "transaction";
     title: string;
+    entityType: "transaction";
     link: string;
     subtitle?: string | undefined;
 }, {
     id: string;
-    entityType: "transaction";
     title: string;
+    entityType: "transaction";
     link: string;
     subtitle?: string | undefined;
 }>]>;
@@ -247,14 +247,14 @@ export declare const AdminGlobalSearchResultSchema: z.ZodObject<{
         link: z.ZodString;
     }, "strip", z.ZodTypeAny, {
         id: string;
-        entityType: "user";
         title: string;
+        entityType: "user";
         link: string;
         subtitle?: string | undefined;
     }, {
         id: string;
-        entityType: "user";
         title: string;
+        entityType: "user";
         link: string;
         subtitle?: string | undefined;
     }>, z.ZodObject<{
@@ -265,14 +265,14 @@ export declare const AdminGlobalSearchResultSchema: z.ZodObject<{
         link: z.ZodString;
     }, "strip", z.ZodTypeAny, {
         id: string;
-        entityType: "task";
         title: string;
+        entityType: "task";
         link: string;
         subtitle?: string | undefined;
     }, {
         id: string;
-        entityType: "task";
         title: string;
+        entityType: "task";
         link: string;
         subtitle?: string | undefined;
     }>, z.ZodObject<{
@@ -283,14 +283,14 @@ export declare const AdminGlobalSearchResultSchema: z.ZodObject<{
         link: z.ZodString;
     }, "strip", z.ZodTypeAny, {
         id: string;
-        entityType: "booking";
         title: string;
+        entityType: "booking";
         link: string;
         subtitle?: string | undefined;
     }, {
         id: string;
-        entityType: "booking";
         title: string;
+        entityType: "booking";
         link: string;
         subtitle?: string | undefined;
     }>, z.ZodObject<{
@@ -301,14 +301,14 @@ export declare const AdminGlobalSearchResultSchema: z.ZodObject<{
         link: z.ZodString;
     }, "strip", z.ZodTypeAny, {
         id: string;
-        entityType: "dispute";
         title: string;
+        entityType: "dispute";
         link: string;
         subtitle?: string | undefined;
     }, {
         id: string;
-        entityType: "dispute";
         title: string;
+        entityType: "dispute";
         link: string;
         subtitle?: string | undefined;
     }>, z.ZodObject<{
@@ -319,80 +319,293 @@ export declare const AdminGlobalSearchResultSchema: z.ZodObject<{
         link: z.ZodString;
     }, "strip", z.ZodTypeAny, {
         id: string;
-        entityType: "transaction";
         title: string;
+        entityType: "transaction";
         link: string;
         subtitle?: string | undefined;
     }, {
         id: string;
-        entityType: "transaction";
         title: string;
+        entityType: "transaction";
         link: string;
         subtitle?: string | undefined;
     }>]>, "many">;
 }, "strip", z.ZodTypeAny, {
     items: ({
         id: string;
+        title: string;
         entityType: "user";
-        title: string;
         link: string;
         subtitle?: string | undefined;
     } | {
         id: string;
+        title: string;
         entityType: "task";
-        title: string;
         link: string;
         subtitle?: string | undefined;
     } | {
         id: string;
+        title: string;
         entityType: "booking";
-        title: string;
         link: string;
         subtitle?: string | undefined;
     } | {
         id: string;
+        title: string;
         entityType: "dispute";
-        title: string;
         link: string;
         subtitle?: string | undefined;
     } | {
         id: string;
-        entityType: "transaction";
         title: string;
+        entityType: "transaction";
         link: string;
         subtitle?: string | undefined;
     })[];
 }, {
     items: ({
         id: string;
+        title: string;
         entityType: "user";
-        title: string;
         link: string;
         subtitle?: string | undefined;
     } | {
         id: string;
+        title: string;
         entityType: "task";
-        title: string;
         link: string;
         subtitle?: string | undefined;
     } | {
         id: string;
+        title: string;
         entityType: "booking";
-        title: string;
         link: string;
         subtitle?: string | undefined;
     } | {
         id: string;
+        title: string;
         entityType: "dispute";
-        title: string;
         link: string;
         subtitle?: string | undefined;
     } | {
         id: string;
-        entityType: "transaction";
         title: string;
+        entityType: "transaction";
         link: string;
         subtitle?: string | undefined;
     })[];
 }>;
 export type AdminGlobalSearchResult = z.infer<typeof AdminGlobalSearchResultSchema>;
+/** Query params for GET /api/v1/search/insights. */
+export declare const AdminSearchInsightsQuerySchema: z.ZodObject<{
+    window: z.ZodDefault<z.ZodOptional<z.ZodLiteral<"24h">>>;
+    tz: z.ZodDefault<z.ZodOptional<z.ZodLiteral<"UTC">>>;
+}, "strip", z.ZodTypeAny, {
+    window: "24h";
+    tz: "UTC";
+}, {
+    window?: "24h" | undefined;
+    tz?: "UTC" | undefined;
+}>;
+export type AdminSearchInsightsQuery = z.infer<typeof AdminSearchInsightsQuerySchema>;
+/** Metric payload used in Search KPI insights cards. */
+export declare const AdminSearchKpiMetricSchema: z.ZodObject<{
+    value: z.ZodNumber;
+    deltaPercent: z.ZodNumber;
+    sparkline: z.ZodArray<z.ZodNumber, "many">;
+    stale: z.ZodDefault<z.ZodBoolean>;
+}, "strip", z.ZodTypeAny, {
+    value: number;
+    deltaPercent: number;
+    stale: boolean;
+    sparkline: number[];
+}, {
+    value: number;
+    deltaPercent: number;
+    sparkline: number[];
+    stale?: boolean | undefined;
+}>;
+export type AdminSearchKpiMetric = z.infer<typeof AdminSearchKpiMetricSchema>;
+/** Response for GET /api/v1/search/insights. */
+export declare const AdminSearchInsightsResultSchema: z.ZodObject<{
+    windowHours: z.ZodLiteral<24>;
+    generatedAt: z.ZodString;
+    stale: z.ZodDefault<z.ZodBoolean>;
+    metrics: z.ZodObject<{
+        searchesToday: z.ZodObject<{
+            value: z.ZodNumber;
+            deltaPercent: z.ZodNumber;
+            sparkline: z.ZodArray<z.ZodNumber, "many">;
+            stale: z.ZodDefault<z.ZodBoolean>;
+        }, "strip", z.ZodTypeAny, {
+            value: number;
+            deltaPercent: number;
+            stale: boolean;
+            sparkline: number[];
+        }, {
+            value: number;
+            deltaPercent: number;
+            sparkline: number[];
+            stale?: boolean | undefined;
+        }>;
+        avgResultsPerQuery: z.ZodObject<{
+            value: z.ZodNumber;
+            deltaPercent: z.ZodNumber;
+            sparkline: z.ZodArray<z.ZodNumber, "many">;
+            stale: z.ZodDefault<z.ZodBoolean>;
+        }, "strip", z.ZodTypeAny, {
+            value: number;
+            deltaPercent: number;
+            stale: boolean;
+            sparkline: number[];
+        }, {
+            value: number;
+            deltaPercent: number;
+            sparkline: number[];
+            stale?: boolean | undefined;
+        }>;
+        instantMatchRate: z.ZodObject<{
+            value: z.ZodNumber;
+            deltaPercent: z.ZodNumber;
+            sparkline: z.ZodArray<z.ZodNumber, "many">;
+            stale: z.ZodDefault<z.ZodBoolean>;
+        }, "strip", z.ZodTypeAny, {
+            value: number;
+            deltaPercent: number;
+            stale: boolean;
+            sparkline: number[];
+        }, {
+            value: number;
+            deltaPercent: number;
+            sparkline: number[];
+            stale?: boolean | undefined;
+        }>;
+        zeroResultQueries: z.ZodObject<{
+            value: z.ZodNumber;
+            deltaPercent: z.ZodNumber;
+            sparkline: z.ZodArray<z.ZodNumber, "many">;
+            stale: z.ZodDefault<z.ZodBoolean>;
+        }, "strip", z.ZodTypeAny, {
+            value: number;
+            deltaPercent: number;
+            stale: boolean;
+            sparkline: number[];
+        }, {
+            value: number;
+            deltaPercent: number;
+            sparkline: number[];
+            stale?: boolean | undefined;
+        }>;
+    }, "strip", z.ZodTypeAny, {
+        searchesToday: {
+            value: number;
+            deltaPercent: number;
+            stale: boolean;
+            sparkline: number[];
+        };
+        avgResultsPerQuery: {
+            value: number;
+            deltaPercent: number;
+            stale: boolean;
+            sparkline: number[];
+        };
+        instantMatchRate: {
+            value: number;
+            deltaPercent: number;
+            stale: boolean;
+            sparkline: number[];
+        };
+        zeroResultQueries: {
+            value: number;
+            deltaPercent: number;
+            stale: boolean;
+            sparkline: number[];
+        };
+    }, {
+        searchesToday: {
+            value: number;
+            deltaPercent: number;
+            sparkline: number[];
+            stale?: boolean | undefined;
+        };
+        avgResultsPerQuery: {
+            value: number;
+            deltaPercent: number;
+            sparkline: number[];
+            stale?: boolean | undefined;
+        };
+        instantMatchRate: {
+            value: number;
+            deltaPercent: number;
+            sparkline: number[];
+            stale?: boolean | undefined;
+        };
+        zeroResultQueries: {
+            value: number;
+            deltaPercent: number;
+            sparkline: number[];
+            stale?: boolean | undefined;
+        };
+    }>;
+}, "strip", z.ZodTypeAny, {
+    windowHours: 24;
+    generatedAt: string;
+    stale: boolean;
+    metrics: {
+        searchesToday: {
+            value: number;
+            deltaPercent: number;
+            stale: boolean;
+            sparkline: number[];
+        };
+        avgResultsPerQuery: {
+            value: number;
+            deltaPercent: number;
+            stale: boolean;
+            sparkline: number[];
+        };
+        instantMatchRate: {
+            value: number;
+            deltaPercent: number;
+            stale: boolean;
+            sparkline: number[];
+        };
+        zeroResultQueries: {
+            value: number;
+            deltaPercent: number;
+            stale: boolean;
+            sparkline: number[];
+        };
+    };
+}, {
+    windowHours: 24;
+    generatedAt: string;
+    metrics: {
+        searchesToday: {
+            value: number;
+            deltaPercent: number;
+            sparkline: number[];
+            stale?: boolean | undefined;
+        };
+        avgResultsPerQuery: {
+            value: number;
+            deltaPercent: number;
+            sparkline: number[];
+            stale?: boolean | undefined;
+        };
+        instantMatchRate: {
+            value: number;
+            deltaPercent: number;
+            sparkline: number[];
+            stale?: boolean | undefined;
+        };
+        zeroResultQueries: {
+            value: number;
+            deltaPercent: number;
+            sparkline: number[];
+            stale?: boolean | undefined;
+        };
+    };
+    stale?: boolean | undefined;
+}>;
+export type AdminSearchInsightsResult = z.infer<typeof AdminSearchInsightsResultSchema>;

@@ -15,3 +15,10 @@ export const AppBannerSchema = z.object({
     text: z.string(),
     type: z.enum(['info', 'warning', 'error', 'success']),
 });
+/** API response: list of system config rows (GET /api/v1/settings/config). */
+export const GetSystemConfigResponseSchema = z.array(SystemConfigSchema);
+/** API request body: update one config key (PATCH /api/v1/settings/config). */
+export const UpdateSystemConfigBodySchema = z.object({
+    key: z.string().min(1),
+    value: z.record(z.string(), z.unknown()),
+});

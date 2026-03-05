@@ -1,7 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
+import { z } from 'zod';
 import { GrantChatAccessInputSchema, ChatThreadAccessReceiptSchema, ChatThreadResponseSchema, failure, success, } from '@sline/shared';
 import { requireAdminRole } from '../middleware/rbac.js';
 const CHAT_ADMIN_ROLES = ['support', 'moderator', 'admin', 'super_admin'];
+const UuidSchema = z.string().uuid();
+function validateThreadId(threadId) {
+    const result = UuidSchema.safeParse(threadId);
+    return result.success ? { ok: true, threadId: result.data } : { ok: false, status: 400 };
+}
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 /** Case is "linked" to thread if there is at least one access log row or case has this thread as attached entity. */
 async function isCaseLinkedToThread(caseId, threadId) {
@@ -39,7 +45,12 @@ export default async function chatRoutes(fastify) {
      * Grant access to a thread for a case. Requires case_id in body. Logs to admin_chat_access_logs (view_scope = 'grant').
      */
     fastify.post('/threads/:threadId/access', { preHandler: [requireAdminRole(CHAT_ADMIN_ROLES)] }, async (request, reply) => {
-        const { threadId } = request.params;
+        const { threadId: rawThreadId } = request.params;
+        const threadIdValidation = validateThreadId(rawThreadId);
+        if (!threadIdValidation.ok) {
+            return reply.status(400).send(failure('VALIDATION_ERROR', 'Invalid threadId', { threadId: rawThreadId }));
+        }
+        const { threadId } = threadIdValidation;
         const body = request.body;
         const validation = GrantChatAccessInputSchema.safeParse({
             caseId: body.caseId ?? body.case_id,
@@ -79,12 +90,20 @@ export default async function chatRoutes(fastify) {
         return reply.send(success(parsed.success ? parsed.data : receipt));
     });
     /**
-     * GET /api/v1/chat/threads/:threadId?case_id=...
+     * GET /api/v1/chat/threads/:threadId?case_id=...&limit=...
      * Return thread messages only when case_id is present and case is linked to thread. Logs every view to admin_chat_access_logs.
+     * Optional query: limit (1–500, default 500) to cap message count for large threads.
      */
     fastify.get('/threads/:threadId', { preHandler: [requireAdminRole(CHAT_ADMIN_ROLES)] }, async (request, reply) => {
-        const { threadId } = request.params;
+        const { threadId: rawThreadId } = request.params;
+        const threadIdValidation = validateThreadId(rawThreadId);
+        if (!threadIdValidation.ok) {
+            return reply.status(400).send(failure('VALIDATION_ERROR', 'Invalid threadId', { threadId: rawThreadId }));
+        }
+        const { threadId } = threadIdValidation;
         const caseId = request.query.case_id;
+        const limitParam = request.query.limit;
+        const limit = limitParam != null ? Math.min(500, Math.max(1, parseInt(limitParam, 10) || 500)) : 500;
         if (!caseId) {
             return reply
                 .status(403)
@@ -131,7 +150,8 @@ export default async function chatRoutes(fastify) {
             .from('messages')
             .select('id, body, sender_id, created_at, attachments, meta')
             .eq('conversation_id', threadId)
-            .order('created_at', { ascending: true });
+            .order('created_at', { ascending: true })
+            .limit(limit);
         if (msgError) {
             return reply.status(500).send(failure('DATABASE_ERROR', msgError.message));
         }

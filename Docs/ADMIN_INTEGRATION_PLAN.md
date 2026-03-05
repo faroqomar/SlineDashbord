@@ -1,5 +1,8 @@
 # SLine Admin Dashboard Integration Plan (Rules + Guardrails for AI)
 
+> Status (2026-03-05): Contains legacy Next.js wording in some sections.
+> For current stack decisions, prioritize: `Docs/ADMIN_DEVELOPER_GUIDE.md`, `Docs/ADMIN_SECURITY_MANUAL.md`, and feature docs under `Docs/features/`.
+
 ## Purpose
 
 Build an Admin Dashboard that controls SLine safely without mixing concerns between:

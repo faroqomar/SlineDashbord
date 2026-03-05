@@ -36,28 +36,28 @@ export declare const GetTasksSchema: z.ZodObject<{
     limit: z.ZodDefault<z.ZodNumber>;
     query: z.ZodDefault<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    page: number;
-    query: string;
     status: string;
     limit: number;
+    page: number;
+    query: string;
 }, {
-    page?: number | undefined;
-    query?: string | undefined;
     status?: string | undefined;
     limit?: number | undefined;
+    page?: number | undefined;
+    query?: string | undefined;
 }>;
 export declare const UpdateTaskStatusSchema: z.ZodObject<{
     id: z.ZodString;
     status: z.ZodEnum<["open", "assigned", "in_progress", "completed", "canceled", "review", "disputed", "under_review"]>;
     reason: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    status: "completed" | "in_progress" | "canceled" | "open" | "assigned" | "review" | "disputed" | "under_review";
-    id: string;
+    status: "open" | "in_progress" | "canceled" | "completed" | "assigned" | "review" | "disputed" | "under_review";
     reason: string;
+    id: string;
 }, {
-    status: "completed" | "in_progress" | "canceled" | "open" | "assigned" | "review" | "disputed" | "under_review";
-    id: string;
+    status: "open" | "in_progress" | "canceled" | "completed" | "assigned" | "review" | "disputed" | "under_review";
     reason: string;
+    id: string;
 }>;
 export declare const TASKS_READ_ROLES: string[];
 export declare const TASKS_WRITE_ROLES: string[];

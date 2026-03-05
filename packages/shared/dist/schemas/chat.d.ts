@@ -18,13 +18,13 @@ export declare const ChatThreadAccessReceiptSchema: z.ZodObject<{
     grantedAt: z.ZodString;
     expiresAt: z.ZodOptional<z.ZodNullable<z.ZodString>>;
 }, "strip", z.ZodTypeAny, {
-    threadId: string;
     caseId: string;
+    threadId: string;
     grantedAt: string;
     expiresAt?: string | null | undefined;
 }, {
-    threadId: string;
     caseId: string;
+    threadId: string;
     grantedAt: string;
     expiresAt?: string | null | undefined;
 }>;

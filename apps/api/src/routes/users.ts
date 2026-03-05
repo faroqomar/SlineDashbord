@@ -5,6 +5,8 @@ import {
   BanUserSchema,
   UnbanUserSchema,
   SuspendUserSchema,
+  GetUsersSchema,
+  GetUsersResultSchema,
   ForceLogoutInputSchema,
   RevealPiiInputSchema,
   failure,
@@ -29,6 +31,10 @@ const supabase = createClient(
 /** Role matrix PAGE 15: investigation + conversations = support+; evidence-pack = moderator+; reveal = admin, super_admin. */
 const INVESTIGATION_READ_ROLES = ['support', 'moderator', 'admin', 'super_admin'];
 const EVIDENCE_PACK_ROLES = ['moderator', 'admin', 'super_admin'];
+const ACTIVE_STATUS_FILTER =
+  'account_status.eq.active,and(account_status.is.null,status.eq.active),and(account_status.is.null,status.is.null)';
+const INACTIVE_STATUS_FILTER =
+  'account_status.eq.suspended,account_status.eq.banned,and(account_status.is.null,status.eq.suspended),and(account_status.is.null,status.eq.banned)';
 
 function maskProfile(profile: Record<string, unknown> | null): Record<string, unknown> {
   if (!profile) return { id: '' };
@@ -39,6 +45,22 @@ function maskProfile(profile: Record<string, unknown> | null): Record<string, un
   };
 }
 
+function applyUsersSearchFilter<T>(builder: T, query: string): T {
+  if (!query) return builder;
+  return (builder as any).or(`full_name.ilike.%${query}%,email.ilike.%${query}%`);
+}
+
+function applyUsersRoleFilter<T>(builder: T, role: string): T {
+  if (role === 'all') return builder;
+  return (builder as any).eq('role', role);
+}
+
+function applyUsersStatusTabFilter<T>(builder: T, statusTab: 'all' | 'active' | 'inactive'): T {
+  if (statusTab === 'active') return (builder as any).or(ACTIVE_STATUS_FILTER);
+  if (statusTab === 'inactive') return (builder as any).or(INACTIVE_STATUS_FILTER);
+  return builder;
+}
+
 export default async function userRoutes(fastify: FastifyInstance) {
   fastify.addHook('preHandler', requireAdminRole(['support', 'moderator', 'admin', 'super_admin']));
 
@@ -46,34 +68,117 @@ export default async function userRoutes(fastify: FastifyInstance) {
    * List users
    */
   fastify.get('/', async (request, reply) => {
-    const { page = '1', query = '', role = 'all' } = request.query as any;
+    const rawQuery = (request.query as Record<string, unknown>) ?? {};
+    const parsedQuery = GetUsersSchema.safeParse({
+      page: Number(rawQuery.page ?? 1),
+      query: typeof rawQuery.query === 'string' ? rawQuery.query : '',
+      role: typeof rawQuery.role === 'string' ? rawQuery.role : 'all',
+      statusTab: typeof rawQuery.statusTab === 'string' ? rawQuery.statusTab : 'all',
+    });
+    if (!parsedQuery.success) {
+      return reply.status(400).send(failure('VALIDATION_ERROR', 'Invalid input', parsedQuery.error.format()));
+    }
+
+    const { page, query, role, statusTab } = parsedQuery.data;
     const PAGE_SIZE = 10;
-    const from = (parseInt(page) - 1) * PAGE_SIZE;
+    const from = (page - 1) * PAGE_SIZE;
     const to = from + PAGE_SIZE - 1;
 
-    let queryBuilder = supabase
+    const monthStartUtc = new Date();
+    monthStartUtc.setUTCDate(1);
+    monthStartUtc.setUTCHours(0, 0, 0, 0);
+    const nextMonthStartUtc = new Date(monthStartUtc);
+    nextMonthStartUtc.setUTCMonth(nextMonthStartUtc.getUTCMonth() + 1);
+
+    let listQuery = supabase
       .from('profiles')
       .select('*', { count: 'exact' });
 
-    if (query) {
-      queryBuilder = queryBuilder.or(`full_name.ilike.%${query}%,email.ilike.%${query}%`);
+    listQuery = applyUsersSearchFilter(listQuery, query);
+    listQuery = applyUsersRoleFilter(listQuery, role);
+    listQuery = applyUsersStatusTabFilter(listQuery, statusTab);
+
+    let activeUsersQuery = supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
+      .or(ACTIVE_STATUS_FILTER);
+
+    let inactiveUsersQuery = supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
+      .or(INACTIVE_STATUS_FILTER);
+
+    let joinedThisMonthQuery = supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', monthStartUtc.toISOString())
+      .lt('created_at', nextMonthStartUtc.toISOString());
+
+    activeUsersQuery = applyUsersRoleFilter(activeUsersQuery, role);
+    inactiveUsersQuery = applyUsersRoleFilter(inactiveUsersQuery, role);
+    joinedThisMonthQuery = applyUsersRoleFilter(joinedThisMonthQuery, role);
+
+    let allTabCountQuery = supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true });
+    allTabCountQuery = applyUsersSearchFilter(allTabCountQuery, query);
+    allTabCountQuery = applyUsersRoleFilter(allTabCountQuery, role);
+
+    let activeTabCountQuery = supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true });
+    activeTabCountQuery = applyUsersSearchFilter(activeTabCountQuery, query);
+    activeTabCountQuery = applyUsersRoleFilter(activeTabCountQuery, role);
+    activeTabCountQuery = applyUsersStatusTabFilter(activeTabCountQuery, 'active');
+
+    let inactiveTabCountQuery = supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true });
+    inactiveTabCountQuery = applyUsersSearchFilter(inactiveTabCountQuery, query);
+    inactiveTabCountQuery = applyUsersRoleFilter(inactiveTabCountQuery, role);
+    inactiveTabCountQuery = applyUsersStatusTabFilter(inactiveTabCountQuery, 'inactive');
+
+    const [listRes, activeUsersRes, inactiveUsersRes, joinedThisMonthRes, allTabCountRes, activeTabCountRes, inactiveTabCountRes] = await Promise.all([
+      listQuery.range(from, to).order('created_at', { ascending: false }),
+      activeUsersQuery,
+      inactiveUsersQuery,
+      joinedThisMonthQuery,
+      allTabCountQuery,
+      activeTabCountQuery,
+      inactiveTabCountQuery,
+    ]);
+
+    if (listRes.error) return reply.status(500).send(failure('DATABASE_ERROR', listRes.error.message));
+    if (activeUsersRes.error) return reply.status(500).send(failure('DATABASE_ERROR', activeUsersRes.error.message));
+    if (inactiveUsersRes.error) return reply.status(500).send(failure('DATABASE_ERROR', inactiveUsersRes.error.message));
+    if (joinedThisMonthRes.error) return reply.status(500).send(failure('DATABASE_ERROR', joinedThisMonthRes.error.message));
+    if (allTabCountRes.error) return reply.status(500).send(failure('DATABASE_ERROR', allTabCountRes.error.message));
+    if (activeTabCountRes.error) return reply.status(500).send(failure('DATABASE_ERROR', activeTabCountRes.error.message));
+    if (inactiveTabCountRes.error) return reply.status(500).send(failure('DATABASE_ERROR', inactiveTabCountRes.error.message));
+
+    const payload = {
+      users: listRes.data,
+      totalUsers: listRes.count || 0,
+      totalPages: Math.ceil((listRes.count || 0) / PAGE_SIZE),
+      kpiCounts: {
+        activeUsers: activeUsersRes.count || 0,
+        inactiveUsers: inactiveUsersRes.count || 0,
+        joinedThisMonth: joinedThisMonthRes.count || 0,
+      },
+      tabCounts: {
+        all: allTabCountRes.count || 0,
+        active: activeTabCountRes.count || 0,
+        inactive: inactiveTabCountRes.count || 0,
+      },
+    };
+
+    const parsedPayload = GetUsersResultSchema.safeParse(payload);
+    if (!parsedPayload.success) {
+      fastify.log.warn({ err: parsedPayload.error }, 'Invalid users list payload');
+      return reply.status(500).send(failure('INTERNAL_ERROR', 'Invalid users payload'));
     }
 
-    if (role !== 'all') {
-      queryBuilder = queryBuilder.eq('role', role);
-    }
-
-    const { data: profiles, error, count } = await queryBuilder
-      .range(from, to)
-      .order('created_at', { ascending: false });
-
-    if (error) return failure('DATABASE_ERROR', error.message);
-
-    return success({
-      users: profiles,
-      totalUsers: count || 0,
-      totalPages: Math.ceil((count || 0) / PAGE_SIZE)
-    });
+    return success(parsedPayload.data);
   });
 
   /**
@@ -88,20 +193,68 @@ export default async function userRoutes(fastify: FastifyInstance) {
     if (!adminId) return reply.status(401).send(failure('UNAUTHORIZED', 'Admin user required'));
 
     const [profileRes, tasksRes, bookingsRes, disputesRes, ledgerRes] = await Promise.all([
-      supabase.from('profiles').select('id, full_name, avatar_url, account_status, moderation_reason, moderated_at, created_at, updated_at').eq('id', userId).maybeSingle(),
-      supabase.from('tasks').select('id, title, status, created_at').or(`owner_id.eq.${userId},assigned_freelancer_id.eq.${userId}`).order('created_at', { ascending: false }).limit(30),
-      supabase.from('bookings').select('id, status, created_at').or(`client_id.eq.${userId},provider_id.eq.${userId}`).order('created_at', { ascending: false }).limit(30),
+      supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
+      supabase
+        .from('tasks')
+        .select('id, title, status, task_type, owner_id, assigned_freelancer_id, created_at')
+        .or(`owner_id.eq.${userId},assigned_freelancer_id.eq.${userId}`)
+        .order('created_at', { ascending: false })
+        .limit(100),
+      supabase
+        .from('bookings')
+        .select('id, task_id, client_id, provider_id, status, created_at')
+        .or(`client_id.eq.${userId},provider_id.eq.${userId}`)
+        .order('created_at', { ascending: false })
+        .limit(100),
       supabase.from('disputes').select('id, status, created_at').eq('initiator_id', userId).order('created_at', { ascending: false }).limit(30),
       supabase.from('vw_admin_journal_ledger').select('journal_id, amount_cents, entity_type, entity_id, created_at').eq('entity_id', userId).order('created_at', { ascending: false }).limit(50),
     ]);
 
-    const profile = profileRes.data;
-    if (!profile) return reply.status(404).send(failure('NOT_FOUND', 'User not found'));
+    if (profileRes.error) {
+      fastify.log.warn(
+        { err: profileRes.error },
+        'users investigation: profile lookup failed; returning minimal profile fallback',
+      );
+    }
 
-    const tasks = (tasksRes.data ?? []).map((t: any) => ({ id: t.id, title: t.title ?? null, status: t.status, created_at: t.created_at }));
-    const bookings = (bookingsRes.data ?? []).map((b: any) => ({ id: b.id, status: b.status, created_at: b.created_at }));
-    const disputes = (disputesRes.data ?? []).map((d: any) => ({ id: d.id, status: d.status, created_at: d.created_at }));
-    const ledgerRows = Array.isArray(ledgerRes.data) ? ledgerRes.data : (ledgerRes.data ? [ledgerRes.data] : []);
+    const profile =
+      profileRes.data && typeof profileRes.data === 'object'
+        ? (profileRes.data as Record<string, unknown>)
+        : ({ id: userId } as Record<string, unknown>);
+
+    if (tasksRes.error) {
+      fastify.log.warn({ err: tasksRes.error }, 'users investigation: tasks query failed; returning empty array');
+    }
+    if (bookingsRes.error) {
+      fastify.log.warn({ err: bookingsRes.error }, 'users investigation: bookings query failed; returning empty array');
+    }
+    if (disputesRes.error) {
+      fastify.log.warn({ err: disputesRes.error }, 'users investigation: disputes query failed; returning empty array');
+    }
+    if (ledgerRes.error) {
+      fastify.log.warn({ err: ledgerRes.error }, 'users investigation: ledger query failed; returning empty array');
+    }
+
+    const tasks = ((tasksRes.error ? [] : tasksRes.data) ?? []).map((t: any) => ({
+      id: t.id,
+      title: t.title ?? null,
+      status: t.status,
+      task_type: t.task_type ?? undefined,
+      owner_id: t.owner_id ?? undefined,
+      assigned_freelancer_id: t.assigned_freelancer_id ?? null,
+      created_at: t.created_at,
+    }));
+    const bookings = ((bookingsRes.error ? [] : bookingsRes.data) ?? []).map((b: any) => ({
+      id: b.id,
+      task_id: b.task_id ?? null,
+      client_id: b.client_id ?? undefined,
+      provider_id: b.provider_id ?? undefined,
+      status: b.status,
+      created_at: b.created_at,
+    }));
+    const disputes = ((disputesRes.error ? [] : disputesRes.data) ?? []).map((d: any) => ({ id: d.id, status: d.status, created_at: d.created_at }));
+    const safeLedgerData = ledgerRes.error ? [] : ledgerRes.data;
+    const ledgerRows = Array.isArray(safeLedgerData) ? safeLedgerData : (safeLedgerData ? [safeLedgerData] : []);
     const ledgerActivity = ledgerRows.map((r: any) => ({
       id: r.journal_id ?? r.id,
       amount_cents: r.amount_cents,

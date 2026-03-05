@@ -1,22 +1,37 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams, useSetSearchParams } from '@/lib/navigation-shim';
 import { getUsers, type UserDTO } from '../services/users_api';
+import type { UsersKpiCounts, UsersTabCounts } from '@sline/shared';
 
 export type UsersTabKey = 'all' | 'active' | 'inactive';
 
-const INACTIVE_STATUSES: UserDTO['status'][] = ['suspended', 'banned'];
+const DEFAULT_TAB_COUNTS: UsersTabCounts = {
+  all: 0,
+  active: 0,
+  inactive: 0,
+};
 
 function parsePage(rawPage: string | null): number {
-  const value = Number(rawPage ?? '1');
+  const value = Number(normalizeSearchParam(rawPage) || '1');
   if (!Number.isFinite(value)) return 1;
   return Math.max(1, Math.trunc(value));
 }
 
 function parseTab(rawTab: string | null): UsersTabKey {
-  if (rawTab === 'active' || rawTab === 'inactive') {
-    return rawTab;
+  const value = normalizeSearchParam(rawTab);
+  if (value === 'active' || value === 'inactive') {
+    return value;
   }
   return 'all';
+}
+
+function normalizeSearchParam(rawValue: string | null): string {
+  if (!rawValue) return '';
+  const trimmed = rawValue.trim();
+  if (trimmed.length >= 2 && trimmed.startsWith('"') && trimmed.endsWith('"')) {
+    return trimmed.slice(1, -1);
+  }
+  return trimmed;
 }
 
 export function useUsersViewModel() {
@@ -24,12 +39,14 @@ export function useUsersViewModel() {
   const setSearchParams = useSetSearchParams();
 
   const page = parsePage(searchParams.get('page'));
-  const query = searchParams.get('query') || '';
+  const query = normalizeSearchParam(searchParams.get('query'));
   const tab = parseTab(searchParams.get('tab'));
 
   const [users, setUsers] = useState<UserDTO[]>([]);
   const [totalPages, setTotalPages] = useState(0);
   const [totalUsers, setTotalUsers] = useState(0);
+  const [kpiCounts, setKpiCounts] = useState<UsersKpiCounts | undefined>(undefined);
+  const [tabCounts, setTabCounts] = useState<UsersTabCounts>(DEFAULT_TAB_COUNTS);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,37 +55,33 @@ export function useUsersViewModel() {
     setIsLoading(true);
     setError(null);
 
-    getUsers(page, query, 'all').then((res) => {
+    getUsers(page, query, 'all', tab).then((res) => {
       if (!active) return;
       if (res.success) {
         setUsers(res.data.users);
         setTotalPages(res.data.totalPages);
         setTotalUsers(res.data.totalUsers);
+        setKpiCounts(res.data.kpiCounts);
+        setTabCounts(
+          res.data.tabCounts ?? {
+            all: res.data.totalUsers,
+            active: 0,
+            inactive: 0,
+          },
+        );
       } else {
         setError(res.error);
         setUsers([]);
+        setTotalPages(0);
+        setTotalUsers(0);
+        setKpiCounts(undefined);
+        setTabCounts(DEFAULT_TAB_COUNTS);
       }
       setIsLoading(false);
     });
 
     return () => { active = false; };
-  }, [page, query]);
-
-  const activeUsersOnPage = useMemo(
-    () => users.filter((user) => user.status === 'active').length,
-    [users],
-  );
-
-  const inactiveUsersOnPage = useMemo(
-    () => users.filter((user) => INACTIVE_STATUSES.includes(user.status)).length,
-    [users],
-  );
-
-  const filteredUsers = useMemo(() => {
-    if (tab === 'all') return users;
-    if (tab === 'active') return users.filter((user) => user.status === 'active');
-    return users.filter((user) => INACTIVE_STATUSES.includes(user.status));
-  }, [users, tab]);
+  }, [page, query, tab]);
 
   const updateSearchParams = (updater: (params: URLSearchParams) => void) => {
     const next = new URLSearchParams(searchParams);
@@ -103,14 +116,14 @@ export function useUsersViewModel() {
     page,
     query,
     tab,
-    users: filteredUsers,
+    users,
     allUsers: users,
     totalPages,
     totalUsers,
+    kpiCounts,
+    tabCounts,
     isLoading,
     error,
-    activeUsersOnPage,
-    inactiveUsersOnPage,
     setQuery,
     setTab,
     setPage,

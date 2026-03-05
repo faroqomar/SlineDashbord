@@ -6,15 +6,15 @@ export declare const SystemConfigSchema: z.ZodObject<{
     updated_at: z.ZodString;
     updated_by: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
+    key: string;
     value: Record<string, any>;
     updated_at: string;
-    key: string;
     description?: string | undefined;
     updated_by?: string | undefined;
 }, {
+    key: string;
     value: Record<string, any>;
     updated_at: string;
-    key: string;
     description?: string | undefined;
     updated_by?: string | undefined;
 }>;
@@ -35,11 +35,11 @@ export declare const AppBannerSchema: z.ZodObject<{
     text: z.ZodString;
     type: z.ZodEnum<["info", "warning", "error", "success"]>;
 }, "strip", z.ZodTypeAny, {
-    type: "info" | "warning" | "error" | "success";
+    type: "success" | "error" | "warning" | "info";
     enabled: boolean;
     text: string;
 }, {
-    type: "info" | "warning" | "error" | "success";
+    type: "success" | "error" | "warning" | "info";
     enabled: boolean;
     text: string;
 }>;
@@ -52,15 +52,15 @@ export declare const GetSystemConfigResponseSchema: z.ZodArray<z.ZodObject<{
     updated_at: z.ZodString;
     updated_by: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
+    key: string;
     value: Record<string, any>;
     updated_at: string;
-    key: string;
     description?: string | undefined;
     updated_by?: string | undefined;
 }, {
+    key: string;
     value: Record<string, any>;
     updated_at: string;
-    key: string;
     description?: string | undefined;
     updated_by?: string | undefined;
 }>, "many">;
@@ -70,10 +70,10 @@ export declare const UpdateSystemConfigBodySchema: z.ZodObject<{
     key: z.ZodString;
     value: z.ZodRecord<z.ZodString, z.ZodUnknown>;
 }, "strip", z.ZodTypeAny, {
-    value: Record<string, unknown>;
     key: string;
+    value: Record<string, unknown>;
 }, {
-    value: Record<string, unknown>;
     key: string;
+    value: Record<string, unknown>;
 }>;
 export type UpdateSystemConfigBody = z.infer<typeof UpdateSystemConfigBodySchema>;

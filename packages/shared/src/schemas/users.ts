@@ -12,7 +12,35 @@ export const GetUsersSchema = z.object({
   page: z.number().int().positive().default(1),
   query: z.string().default(''),
   role: z.string().default('all'),
+  statusTab: z.enum(['all', 'active', 'inactive']).default('all'),
 });
+export type UsersStatusTab = z.infer<typeof GetUsersSchema>['statusTab'];
+
+/** KPI aggregates used by Users page cards. */
+export const UsersKpiCountsSchema = z.object({
+  activeUsers: z.number().int().nonnegative(),
+  inactiveUsers: z.number().int().nonnegative(),
+  joinedThisMonth: z.number().int().nonnegative(),
+});
+export type UsersKpiCounts = z.infer<typeof UsersKpiCountsSchema>;
+
+/** Global counts used by Users status tabs. */
+export const UsersTabCountsSchema = z.object({
+  all: z.number().int().nonnegative(),
+  active: z.number().int().nonnegative(),
+  inactive: z.number().int().nonnegative(),
+});
+export type UsersTabCounts = z.infer<typeof UsersTabCountsSchema>;
+
+/** Response shape for GET /users list endpoint. */
+export const GetUsersResultSchema = z.object({
+  users: z.array(z.unknown()),
+  totalUsers: z.number().int().nonnegative(),
+  totalPages: z.number().int().nonnegative(),
+  kpiCounts: UsersKpiCountsSchema,
+  tabCounts: UsersTabCountsSchema,
+});
+export type GetUsersResult = z.infer<typeof GetUsersResultSchema>;
 
 export const GetUserDetailsSchema = z.object({
   id: z.string().uuid("Invalid User ID"),

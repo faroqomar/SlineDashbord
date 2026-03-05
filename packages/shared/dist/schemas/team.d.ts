@@ -14,12 +14,12 @@ export declare const InviteMemberSchema: z.ZodObject<{
     role: z.ZodEnum<["support", "moderator", "admin", "super_admin"]>;
     fullName: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    role: "support" | "moderator" | "admin" | "super_admin";
     email: string;
+    role: "support" | "moderator" | "admin" | "super_admin";
     fullName: string;
 }, {
-    role: "support" | "moderator" | "admin" | "super_admin";
     email: string;
+    role: "support" | "moderator" | "admin" | "super_admin";
     fullName: string;
 }>;
 export declare const UpdateRoleSchema: z.ZodObject<{

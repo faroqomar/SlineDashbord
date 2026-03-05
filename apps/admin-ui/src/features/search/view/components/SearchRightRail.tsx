@@ -81,13 +81,18 @@ export function SearchRightRail({
             <Clock3 className="h-[13px] w-[13px] text-[#cecac4]" />
             <p className="text-xs font-semibold text-[#cecac4]">Recent Searches</p>
           </div>
-          <Button
-            variant="ghost"
-            onClick={onClearRecentSearches}
-            className="h-6 px-1 text-[10px] text-[#b1aaa0] hover:bg-[#181a26]"
-          >
-            Clear all
-          </Button>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="h-4 border-[#3e4957] bg-[#181a26] px-1.5 text-[9px] text-[#afa89d]">
+              Mock
+            </Badge>
+            <Button
+              variant="ghost"
+              onClick={onClearRecentSearches}
+              className="h-6 px-1 text-[10px] text-[#b1aaa0] hover:bg-[#181a26]"
+            >
+              Clear all
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="p-0">
           {recentSearches.map((recent) => (

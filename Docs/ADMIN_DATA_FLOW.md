@@ -1,5 +1,8 @@
 # Admin Dashboard - Supabase Control & Data Flow
 
+> Status (2026-03-05): Legacy Server Actions/Next.js examples retained for historical context.
+> Current implementation uses admin-ui -> Fastify REST (`/api/v1/*`) with shared `ServiceResult` contracts.
+
 This document explains **exactly how** we control the database and the flow of data.
 
 ## 1. The "Two-Brain" Concept
