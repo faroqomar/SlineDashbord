@@ -104,3 +104,33 @@ export const AdminGlobalSearchResultSchema = z.object({
   items: z.array(AdminGlobalSearchResultItemSchema),
 });
 export type AdminGlobalSearchResult = z.infer<typeof AdminGlobalSearchResultSchema>;
+
+/** Query params for GET /api/v1/search/insights. */
+export const AdminSearchInsightsQuerySchema = z.object({
+  window: z.literal('24h').optional().default('24h'),
+  tz: z.literal('UTC').optional().default('UTC'),
+});
+export type AdminSearchInsightsQuery = z.infer<typeof AdminSearchInsightsQuerySchema>;
+
+/** Metric payload used in Search KPI insights cards. */
+export const AdminSearchKpiMetricSchema = z.object({
+  value: z.number().nonnegative(),
+  deltaPercent: z.number(),
+  sparkline: z.array(z.number().int().nonnegative()).length(6),
+  stale: z.boolean().default(false),
+});
+export type AdminSearchKpiMetric = z.infer<typeof AdminSearchKpiMetricSchema>;
+
+/** Response for GET /api/v1/search/insights. */
+export const AdminSearchInsightsResultSchema = z.object({
+  windowHours: z.literal(24),
+  generatedAt: z.string().datetime(),
+  stale: z.boolean().default(false),
+  metrics: z.object({
+    searchesToday: AdminSearchKpiMetricSchema,
+    avgResultsPerQuery: AdminSearchKpiMetricSchema,
+    instantMatchRate: AdminSearchKpiMetricSchema,
+    zeroResultQueries: AdminSearchKpiMetricSchema,
+  }),
+});
+export type AdminSearchInsightsResult = z.infer<typeof AdminSearchInsightsResultSchema>;

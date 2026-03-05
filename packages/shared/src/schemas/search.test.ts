@@ -3,6 +3,8 @@ import {
   AdminGlobalSearchRequestSchema,
   AdminGlobalSearchQuerySchema,
   AdminGlobalSearchResultSchema,
+  AdminSearchInsightsQuerySchema,
+  AdminSearchInsightsResultSchema,
   AdminSearchEntityTypeEnum,
 } from './search.js';
 
@@ -104,5 +106,60 @@ describe('AdminSearchEntityTypeEnum', () => {
 
   it('rejects invalid type', () => {
     expect(AdminSearchEntityTypeEnum.safeParse('other').success).toBe(false);
+  });
+});
+
+describe('AdminSearchInsightsQuerySchema', () => {
+  it('applies defaults when query params are missing', () => {
+    const r = AdminSearchInsightsQuerySchema.safeParse({});
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.window).toBe('24h');
+      expect(r.data.tz).toBe('UTC');
+    }
+  });
+
+  it('rejects unsupported window/tz values', () => {
+    expect(AdminSearchInsightsQuerySchema.safeParse({ window: '7d', tz: 'UTC' }).success).toBe(false);
+    expect(AdminSearchInsightsQuerySchema.safeParse({ window: '24h', tz: 'Europe/Istanbul' }).success).toBe(false);
+  });
+});
+
+describe('AdminSearchInsightsResultSchema', () => {
+  const validMetric = {
+    value: 12,
+    deltaPercent: 5.4,
+    sparkline: [1, 2, 3, 4, 5, 6],
+    stale: false,
+  };
+
+  it('parses valid insights payload', () => {
+    const r = AdminSearchInsightsResultSchema.safeParse({
+      windowHours: 24,
+      generatedAt: '2026-03-05T00:00:00.000Z',
+      stale: false,
+      metrics: {
+        searchesToday: validMetric,
+        avgResultsPerQuery: validMetric,
+        instantMatchRate: validMetric,
+        zeroResultQueries: validMetric,
+      },
+    });
+    expect(r.success).toBe(true);
+  });
+
+  it('rejects metric sparkline lengths other than 6', () => {
+    const r = AdminSearchInsightsResultSchema.safeParse({
+      windowHours: 24,
+      generatedAt: '2026-03-05T00:00:00.000Z',
+      stale: false,
+      metrics: {
+        searchesToday: { ...validMetric, sparkline: [1, 2, 3] },
+        avgResultsPerQuery: validMetric,
+        instantMatchRate: validMetric,
+        zeroResultQueries: validMetric,
+      },
+    });
+    expect(r.success).toBe(false);
   });
 });

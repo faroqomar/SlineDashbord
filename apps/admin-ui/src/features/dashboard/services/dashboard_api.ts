@@ -7,6 +7,34 @@ export interface DashboardStats {
   activeJobs: number;
 }
 
+export type DashboardSystemStatus = 'operational' | 'degraded' | 'down';
+export type DashboardTrendDirection = 'up' | 'down' | 'flat';
+
+export interface DashboardPulse {
+  openReports: number;
+  openCases: number;
+  activeTasks: number;
+  openDisputes: number;
+  bookingsToday: number;
+  systemStatus: DashboardSystemStatus;
+  updatedAt: string;
+  timezone: 'UTC';
+}
+
+export interface DashboardKpiTrend {
+  direction: DashboardTrendDirection;
+  deltaPercent: number;
+  label: string;
+}
+
+export interface DashboardKpiTrends {
+  activeUsers: DashboardKpiTrend;
+  platformRevenue: DashboardKpiTrend;
+  activeJobs: DashboardKpiTrend;
+  openDisputes: DashboardKpiTrend;
+  comparisonWindow: string;
+}
+
 export interface DashboardActivity {
   id: string;
   user: {
@@ -27,6 +55,8 @@ export interface ChartData {
 
 export interface DashboardOverview {
   stats: DashboardStats;
+  pulse: DashboardPulse;
+  kpiTrends: DashboardKpiTrends;
   recentActivity: DashboardActivity[];
   revenueHistory: ChartData[];
   userGrowth: ChartData[];

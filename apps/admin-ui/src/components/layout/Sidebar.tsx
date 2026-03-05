@@ -19,7 +19,8 @@ import {
   Flag,
   FolderOpen,
   Activity,
-  Search
+  Search,
+  ListTodo,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -59,6 +60,11 @@ const navItems = [
     title: "Cases",
     href: "/cases",
     icon: FolderOpen,
+  },
+  {
+    title: "Tasks Queue",
+    href: "/tasks",
+    icon: ListTodo,
   },
   {
     title: "Finance",

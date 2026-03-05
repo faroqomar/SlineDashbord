@@ -18,6 +18,7 @@ import bookingsRoutes from './routes/bookings.js';
 import settingsRoutes from './routes/settings.js';
 import searchRoutes from './routes/search.js';
 import observabilityRoutes from './routes/observability.js';
+import logsRoutes from './routes/logs.js';
 
 export type TestUser = { id: string; role: string };
 
@@ -63,6 +64,7 @@ export async function buildApp(options: BuildAppOptions = {}): Promise<FastifyIn
   await server.register(searchRoutes, { prefix: '/api/v1/search' });
   await server.register(settingsRoutes, { prefix: '/api/v1/settings' });
   await server.register(observabilityRoutes, { prefix: '/api/v1/observability' });
+  await server.register(logsRoutes, { prefix: '/api/v1/logs' });
 
   server.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }));
 

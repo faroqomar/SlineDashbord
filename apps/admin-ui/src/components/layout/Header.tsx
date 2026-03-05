@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useLocation, Link } from "@tanstack/react-router";
+import { useLocation, Link, useNavigate } from "@tanstack/react-router";
 import { useTheme } from "next-themes";
 import {
   Breadcrumb,
@@ -23,10 +23,19 @@ import { Input } from "@/components/ui/input";
 export function Header({ userEmail, onLogout }: { userEmail?: string; onLogout?: () => void }) {
   const { setTheme, theme } = useTheme();
   const location = useLocation();
+  const navigate = useNavigate();
   const pathname = location.pathname;
+  const [searchQuery, setSearchQuery] = React.useState('');
 
   // Simple breadcrumb logic based on pathname
   const segments = pathname.split('/').filter(Boolean);
+
+  const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const query = searchQuery.trim();
+    if (!query) return;
+    navigate({ to: '/search' as any });
+  };
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur-xl">
@@ -54,14 +63,16 @@ export function Header({ userEmail, onLogout }: { userEmail?: string; onLogout?:
         </Breadcrumb>
 
         <div className="ml-auto flex items-center gap-4">
-          <div className="relative hidden md:block">
+          <form className="relative hidden md:block" onSubmit={handleSearchSubmit}>
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input 
               type="search" 
               placeholder="Search..." 
-              className="w-64 pl-8 rounded-full bg-secondary border-none focus-visible:ring-1" 
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              className="w-64 pl-8 rounded-full bg-secondary border-none focus-visible:ring-1"
             />
-          </div>
+          </form>
 
           <Button variant="ghost" size="icon" className="rounded-full">
             <Bell className="h-5 w-5" />

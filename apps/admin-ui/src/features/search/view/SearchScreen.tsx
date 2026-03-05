@@ -1,125 +1,91 @@
-import React from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { useGlobalSearchViewModel } from '../viewmodels/useGlobalSearch.vm';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Search as SearchIcon, AlertCircle, Loader2 } from 'lucide-react';
-import type { AdminSearchEntityType } from '@sline/shared';
-
-const ENTITY_LABELS: Record<AdminSearchEntityType, string> = {
-  user: 'User',
-  task: 'Task',
-  booking: 'Booking',
-  dispute: 'Dispute',
-  transaction: 'Transaction',
-};
+import { Button } from '@/components/ui/button';
+import { SearchHeroPanel } from './components/SearchHeroPanel';
+import { SearchKpiGrid } from './components/SearchKpiGrid';
+import { SearchTypeChips } from './components/SearchTypeChips';
+import { SearchResultsPanel } from './components/SearchResultsPanel';
+import { SearchRightRail } from './components/SearchRightRail';
+import { SearchSkeleton } from './components/SearchSkeleton';
+import { useGlobalSearchViewModel } from '../viewmodels/useGlobalSearch.vm';
+import type { SearchResultRow } from '../models/search-ui.model';
 
 export function SearchScreen() {
   const vm = useGlobalSearchViewModel();
   const navigate = useNavigate();
 
+  const handleOpenRow = (row: SearchResultRow) => {
+    if (!row.link || row.isMock) return;
+    navigate({ to: row.link });
+  };
+
+  const showResultsSkeleton = vm.loading && vm.query.trim().length >= 2 && vm.activeFilter !== 'report' && vm.activeFilter !== 'case';
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-          <SearchIcon className="h-8 w-8 text-primary" />
-          Global Search
-        </h2>
-        <p className="text-muted-foreground">
-          Search users, tasks, bookings, disputes, and transactions. Type at least 2 characters.
-        </p>
-      </div>
+    <div className="space-y-4 pb-8">
+      <SearchHeroPanel
+        query={vm.query}
+        onQueryChange={vm.setQuery}
+        onSubmit={vm.submitSearch}
+        onClear={vm.clearSearch}
+        shortcutHints={vm.shortcutHints}
+      />
 
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg">Search</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Input
-            placeholder="Search by name, email, title, or ID..."
-            value={vm.query}
-            onChange={(e) => vm.setQuery(e.target.value)}
-            className="max-w-xl"
-            autoFocus
-          />
-          {vm.query.length > 0 && vm.query.length < 2 && (
-            <p className="text-sm text-muted-foreground">Enter at least 2 characters to search.</p>
-          )}
-        </CardContent>
-      </Card>
-
-      {vm.timedOut && (
-        <Alert variant="destructive">
+      {vm.timedOut ? (
+        <Alert className="border-[#7f7668] bg-[#2a1414] text-[#f3c2c2]">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Search timed out</AlertTitle>
-          <AlertDescription>
-            The search took too long. You can try again with a more specific query.
-            <Button variant="outline" size="sm" className="ml-2" onClick={vm.retry}>
+          <AlertDescription className="flex items-center justify-between gap-4">
+            <span>The search took too long. Try a more specific query.</span>
+            <Button variant="outline" size="sm" onClick={vm.retry} className="border-[#7f7668] bg-[#0e0f13]">
               Retry
             </Button>
           </AlertDescription>
         </Alert>
-      )}
+      ) : null}
 
-      {vm.error && (
-        <Alert variant="destructive">
+      {vm.error ? (
+        <Alert className="border-[#7f7668] bg-[#2a1414] text-[#f3c2c2]">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Something went wrong</AlertTitle>
-          <AlertDescription>
-            {vm.error}
-            <Button variant="outline" size="sm" className="ml-2" onClick={vm.retry}>
+          <AlertTitle>Search failed</AlertTitle>
+          <AlertDescription className="flex items-center justify-between gap-4">
+            <span>{vm.error}</span>
+            <Button variant="outline" size="sm" onClick={vm.retry} className="border-[#7f7668] bg-[#0e0f13]">
               Retry
             </Button>
           </AlertDescription>
         </Alert>
-      )}
+      ) : null}
 
-      {vm.loading && (
-        <div className="flex items-center gap-2 text-muted-foreground py-8">
-          <Loader2 className="h-5 w-5 animate-spin" />
-          <span>Searching...</span>
+      <SearchKpiGrid items={vm.kpis} />
+
+      <SearchTypeChips chips={vm.chips} activeFilter={vm.activeFilter} onChange={vm.setActiveFilter} />
+
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_284px] xl:items-start">
+        <div>
+          {showResultsSkeleton ? (
+            <SearchSkeleton rowCount={8} />
+          ) : (
+            <SearchResultsPanel
+              rows={vm.resultRows}
+              query={vm.query}
+              onOpen={handleOpenRow}
+              onClearQuery={vm.clearSearch}
+            />
+          )}
         </div>
-      )}
 
-      {!vm.loading && vm.query.length >= 2 && vm.results.length === 0 && !vm.error && (
-        <Card>
-          <CardContent className="py-10 text-center text-muted-foreground">
-            No results found for &quot;{vm.query}&quot;
-          </CardContent>
-        </Card>
-      )}
-
-      {!vm.loading && vm.results.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Results ({vm.results.length})</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-2">
-              {vm.results.map((item) => (
-                <li key={`${item.entityType}-${item.id}`}>
-                  <button
-                    type="button"
-                    onClick={() => navigate({ to: item.link })}
-                    className="w-full flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/50 transition-colors text-left"
-                  >
-                    <Badge variant="secondary">{ENTITY_LABELS[item.entityType]}</Badge>
-                    <span className="font-medium truncate flex-1">{item.title}</span>
-                    {item.subtitle && (
-                      <span className="text-sm text-muted-foreground truncate max-w-[200px]">
-                        {item.subtitle}
-                      </span>
-                    )}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      )}
+        <SearchRightRail
+          savedSearches={vm.savedSearches}
+          recentSearches={vm.recentSearches}
+          onApplySavedSearch={vm.applySavedSearch}
+          onApplyRecentSearch={vm.applyRecentSearch}
+          onClearRecentSearches={vm.clearRecentSearches}
+          volumeData={vm.searchVolume}
+          tips={vm.searchTips}
+        />
+      </div>
     </div>
   );
 }
