@@ -37,13 +37,13 @@ export declare const GetTasksSchema: z.ZodObject<{
     query: z.ZodDefault<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     status: string;
-    limit: number;
     page: number;
+    limit: number;
     query: string;
 }, {
     status?: string | undefined;
-    limit?: number | undefined;
     page?: number | undefined;
+    limit?: number | undefined;
     query?: string | undefined;
 }>;
 export declare const UpdateTaskStatusSchema: z.ZodObject<{
@@ -51,13 +51,172 @@ export declare const UpdateTaskStatusSchema: z.ZodObject<{
     status: z.ZodEnum<["open", "assigned", "in_progress", "completed", "canceled", "review", "disputed", "under_review"]>;
     reason: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    status: "open" | "in_progress" | "canceled" | "completed" | "assigned" | "review" | "disputed" | "under_review";
+    status: "completed" | "in_progress" | "canceled" | "open" | "assigned" | "review" | "disputed" | "under_review";
     reason: string;
     id: string;
 }, {
-    status: "open" | "in_progress" | "canceled" | "completed" | "assigned" | "review" | "disputed" | "under_review";
+    status: "completed" | "in_progress" | "canceled" | "open" | "assigned" | "review" | "disputed" | "under_review";
     reason: string;
     id: string;
 }>;
+export declare const TaskQueueAnalyticsDaySchema: z.ZodObject<{
+    date: z.ZodString;
+    posted_count: z.ZodNumber;
+    completed_count: z.ZodNumber;
+}, "strip", z.ZodTypeAny, {
+    date: string;
+    posted_count: number;
+    completed_count: number;
+}, {
+    date: string;
+    posted_count: number;
+    completed_count: number;
+}>;
+export type TaskQueueAnalyticsDay = z.infer<typeof TaskQueueAnalyticsDaySchema>;
+export declare const TaskQueueAnalyticsDataSchema: z.ZodObject<{
+    range: z.ZodLiteral<"7d">;
+    days: z.ZodArray<z.ZodObject<{
+        date: z.ZodString;
+        posted_count: z.ZodNumber;
+        completed_count: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        date: string;
+        posted_count: number;
+        completed_count: number;
+    }, {
+        date: string;
+        posted_count: number;
+        completed_count: number;
+    }>, "many">;
+    totals: z.ZodObject<{
+        posted: z.ZodNumber;
+        completed: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        completed: number;
+        posted: number;
+    }, {
+        completed: number;
+        posted: number;
+    }>;
+    generated_at: z.ZodString;
+    is_stale: z.ZodOptional<z.ZodBoolean>;
+}, "strip", z.ZodTypeAny, {
+    generated_at: string;
+    range: "7d";
+    days: {
+        date: string;
+        posted_count: number;
+        completed_count: number;
+    }[];
+    totals: {
+        completed: number;
+        posted: number;
+    };
+    is_stale?: boolean | undefined;
+}, {
+    generated_at: string;
+    range: "7d";
+    days: {
+        date: string;
+        posted_count: number;
+        completed_count: number;
+    }[];
+    totals: {
+        completed: number;
+        posted: number;
+    };
+    is_stale?: boolean | undefined;
+}>;
+export type TaskQueueAnalyticsData = z.infer<typeof TaskQueueAnalyticsDataSchema>;
+export declare const TaskQueueAnalyticsResponseSchema: z.ZodObject<{
+    ok: z.ZodLiteral<true>;
+    data: z.ZodObject<{
+        range: z.ZodLiteral<"7d">;
+        days: z.ZodArray<z.ZodObject<{
+            date: z.ZodString;
+            posted_count: z.ZodNumber;
+            completed_count: z.ZodNumber;
+        }, "strip", z.ZodTypeAny, {
+            date: string;
+            posted_count: number;
+            completed_count: number;
+        }, {
+            date: string;
+            posted_count: number;
+            completed_count: number;
+        }>, "many">;
+        totals: z.ZodObject<{
+            posted: z.ZodNumber;
+            completed: z.ZodNumber;
+        }, "strip", z.ZodTypeAny, {
+            completed: number;
+            posted: number;
+        }, {
+            completed: number;
+            posted: number;
+        }>;
+        generated_at: z.ZodString;
+        is_stale: z.ZodOptional<z.ZodBoolean>;
+    }, "strip", z.ZodTypeAny, {
+        generated_at: string;
+        range: "7d";
+        days: {
+            date: string;
+            posted_count: number;
+            completed_count: number;
+        }[];
+        totals: {
+            completed: number;
+            posted: number;
+        };
+        is_stale?: boolean | undefined;
+    }, {
+        generated_at: string;
+        range: "7d";
+        days: {
+            date: string;
+            posted_count: number;
+            completed_count: number;
+        }[];
+        totals: {
+            completed: number;
+            posted: number;
+        };
+        is_stale?: boolean | undefined;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    ok: true;
+    data: {
+        generated_at: string;
+        range: "7d";
+        days: {
+            date: string;
+            posted_count: number;
+            completed_count: number;
+        }[];
+        totals: {
+            completed: number;
+            posted: number;
+        };
+        is_stale?: boolean | undefined;
+    };
+}, {
+    ok: true;
+    data: {
+        generated_at: string;
+        range: "7d";
+        days: {
+            date: string;
+            posted_count: number;
+            completed_count: number;
+        }[];
+        totals: {
+            completed: number;
+            posted: number;
+        };
+        is_stale?: boolean | undefined;
+    };
+}>;
+export type TaskQueueAnalyticsResponse = z.infer<typeof TaskQueueAnalyticsResponseSchema>;
 export declare const TASKS_READ_ROLES: string[];
 export declare const TASKS_WRITE_ROLES: string[];

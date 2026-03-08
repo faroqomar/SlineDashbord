@@ -1,12 +1,13 @@
 import 'dotenv/config';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { buildApp, type TestUser } from '../app.js';
-import { TaskActivityResponseSchema } from '@sline/shared';
+import { TaskActivityResponseSchema, TaskQueueAnalyticsResponseSchema } from '@sline/shared';
 
 if (!process.env.SUPABASE_URL) process.env.SUPABASE_URL = 'https://placeholder.supabase.co';
 if (!process.env.SUPABASE_SERVICE_ROLE_KEY) process.env.SUPABASE_SERVICE_ROLE_KEY = 'placeholder-key';
 
 const ADMIN: TestUser = { id: '00000000-0000-0000-0000-000000000001', role: 'admin' };
+const NON_ADMIN: TestUser = { id: '00000000-0000-0000-0000-000000000002', role: 'authenticated' };
 const taskId = '00000000-0000-0000-0000-000000000010';
 
 describe('PAGE 02 — Tasks (activity canonical audit)', () => {
@@ -43,6 +44,49 @@ describe('PAGE 02 — Tasks (activity canonical audit)', () => {
         const parsed = TaskActivityResponseSchema.safeParse(raw);
         expect(parsed.success).toBe(true);
         if (parsed.success) expect(Array.isArray(parsed.data)).toBe(true);
+      }
+    });
+  });
+
+  describe('GET /api/v1/tasks/queue-analytics', () => {
+    it('returns 401 when no auth', async () => {
+      const noAuthApp = await buildApp();
+      const res = await noAuthApp.inject({
+        method: 'GET',
+        url: '/api/v1/tasks/queue-analytics?range=7d',
+      });
+      await noAuthApp.close();
+      expect(res.statusCode).toBe(401);
+    });
+
+    it('returns 403 when user has no admin role', async () => {
+      const nonAdminApp = await buildApp({ testUser: NON_ADMIN });
+      const res = await nonAdminApp.inject({
+        method: 'GET',
+        url: '/api/v1/tasks/queue-analytics?range=7d',
+      });
+      await nonAdminApp.close();
+      expect(res.statusCode).toBe(403);
+    });
+
+    it('returns 200 parseable as TaskQueueAnalyticsResponseSchema (or 500 when datasource is unavailable)', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/api/v1/tasks/queue-analytics?range=7d',
+      });
+
+      expect([200, 500]).toContain(res.statusCode);
+      const body = JSON.parse(res.body);
+
+      if (res.statusCode === 200) {
+        const parsed = TaskQueueAnalyticsResponseSchema.safeParse(body);
+        expect(parsed.success).toBe(true);
+        if (parsed.success) {
+          expect(parsed.data.data.days).toHaveLength(7);
+          expect(parsed.data.data.range).toBe('7d');
+        }
+      } else {
+        expect(body.ok).toBe(false);
       }
     });
   });

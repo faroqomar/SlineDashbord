@@ -6,7 +6,15 @@ if (!process.env.SUPABASE_URL) process.env.SUPABASE_URL = 'https://placeholder.s
 if (!process.env.SUPABASE_SERVICE_ROLE_KEY) process.env.SUPABASE_SERVICE_ROLE_KEY = 'placeholder-key';
 
 const MODERATOR: TestUser = { id: '00000000-0000-0000-0000-000000000001', role: 'moderator' };
+const SUPPORT: TestUser = { id: '00000000-0000-0000-0000-000000000002', role: 'support' };
 const validReportId = '00000000-0000-0000-0000-000000000010';
+const validCreatePayload = {
+  entity_type: 'task',
+  entity_id: '00000000-0000-0000-0000-000000000011',
+  reason: 'Manual moderation report for abusive behavior',
+  category: 'abuse',
+  severity: 'high',
+};
 
 describe('PAGE 10 — Reports queue API', () => {
   let app: Awaited<ReturnType<typeof buildApp>>;
@@ -48,6 +56,134 @@ describe('PAGE 10 — Reports queue API', () => {
       expect([200, 500]).toContain(res.statusCode);
       const body = JSON.parse(res.body);
       if (res.statusCode === 200) expect(body.ok).toBe(true);
+    });
+
+    it('accepts q search query param (200 or 500)', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/api/v1/reports?q=report%20123',
+      });
+      expect([200, 500]).toContain(res.statusCode);
+      const body = JSON.parse(res.body);
+      if (res.statusCode === 200) expect(body.ok).toBe(true);
+    });
+
+    it('rejects invalid q characters', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/api/v1/reports?q=report,123',
+      });
+      expect(res.statusCode).toBe(400);
+      const body = JSON.parse(res.body);
+      expect(body.ok).toBe(false);
+      expect(body.error?.code).toBe('VALIDATION_ERROR');
+    });
+  });
+
+  describe('GET /api/v1/reports/trends', () => {
+    it('returns 401 when no auth', async () => {
+      const noAuthApp = await buildApp();
+      const res = await noAuthApp.inject({ method: 'GET', url: '/api/v1/reports/trends' });
+      await noAuthApp.close();
+      expect(res.statusCode).toBe(401);
+    });
+
+    it('returns 400 for unsupported window', async () => {
+      const res = await app.inject({ method: 'GET', url: '/api/v1/reports/trends?window=30d' });
+      expect(res.statusCode).toBe(400);
+    });
+
+    it('returns 200 with trend payload or 500 when DB is unavailable', async () => {
+      const res = await app.inject({ method: 'GET', url: '/api/v1/reports/trends?window=7d' });
+      expect([200, 500]).toContain(res.statusCode);
+      const body = JSON.parse(res.body);
+      if (res.statusCode === 200) {
+        expect(body.ok).toBe(true);
+        expect(body.data?.window).toBe('7d');
+        expect(Array.isArray(body.data?.points)).toBe(true);
+      }
+    });
+  });
+
+  describe('GET /api/v1/reports/kpis', () => {
+    it('returns 401 when no auth', async () => {
+      const noAuthApp = await buildApp();
+      const res = await noAuthApp.inject({ method: 'GET', url: '/api/v1/reports/kpis' });
+      await noAuthApp.close();
+      expect(res.statusCode).toBe(401);
+    });
+
+    it('returns 400 for unsupported window', async () => {
+      const res = await app.inject({ method: 'GET', url: '/api/v1/reports/kpis?window=30d' });
+      expect(res.statusCode).toBe(400);
+    });
+
+    it('returns 200 with KPI payload or 500 when DB is unavailable', async () => {
+      const res = await app.inject({ method: 'GET', url: '/api/v1/reports/kpis?window=7d' });
+      expect([200, 500]).toContain(res.statusCode);
+      const body = JSON.parse(res.body);
+      if (res.statusCode === 200) {
+        expect(body.ok).toBe(true);
+        expect(body.data?.window).toBe('7d');
+        expect(Array.isArray(body.data?.cards)).toBe(true);
+      }
+    });
+  });
+
+  describe('POST /api/v1/reports', () => {
+    it('returns 401 when no auth', async () => {
+      const noAuthApp = await buildApp();
+      const res = await noAuthApp.inject({
+        method: 'POST',
+        url: '/api/v1/reports',
+        payload: validCreatePayload,
+      });
+      await noAuthApp.close();
+      expect(res.statusCode).toBe(401);
+    });
+
+    it('returns 403 for role without reports write permission', async () => {
+      const supportApp = await buildApp({ testUser: SUPPORT });
+      const res = await supportApp.inject({
+        method: 'POST',
+        url: '/api/v1/reports',
+        payload: validCreatePayload,
+      });
+      await supportApp.close();
+      expect(res.statusCode).toBe(403);
+    });
+
+    it('returns 400 for invalid create payload', async () => {
+      const res = await app.inject({
+        method: 'POST',
+        url: '/api/v1/reports',
+        payload: {
+          ...validCreatePayload,
+          reason: '',
+        },
+      });
+      expect(res.statusCode).toBe(400);
+      const body = JSON.parse(res.body);
+      expect(body.ok).toBe(false);
+      expect(body.error?.code).toBe('VALIDATION_ERROR');
+    });
+
+    it('returns 201, 404, or 500 for valid payload depending on DB state', async () => {
+      const res = await app.inject({
+        method: 'POST',
+        url: '/api/v1/reports',
+        payload: validCreatePayload,
+      });
+
+      expect([201, 404, 500]).toContain(res.statusCode);
+      const body = JSON.parse(res.body);
+      if (res.statusCode === 201) {
+        expect(body.ok).toBe(true);
+        expect(typeof body.data?.id).toBe('string');
+        expect(body.data?.status).toBe('open');
+      } else {
+        expect(body.ok).toBe(false);
+      }
     });
   });
 

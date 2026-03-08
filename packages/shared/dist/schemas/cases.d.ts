@@ -33,6 +33,8 @@ export declare const AdminCaseSchema: z.ZodObject<{
     source: z.ZodOptional<z.ZodString>;
     status: z.ZodOptional<z.ZodUnion<[z.ZodEnum<["open", "in_progress", "pending", "closed"]>, z.ZodString]>>;
     priority: z.ZodOptional<z.ZodUnion<[z.ZodEnum<["low", "medium", "high", "urgent"]>, z.ZodString]>>;
+    case_code: z.ZodOptional<z.ZodString>;
+    links_count: z.ZodOptional<z.ZodNumber>;
     created_at: z.ZodString;
     updated_at: z.ZodOptional<z.ZodString>;
     assignee_id: z.ZodOptional<z.ZodNullable<z.ZodString>>;
@@ -42,12 +44,14 @@ export declare const AdminCaseSchema: z.ZodObject<{
     tags: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
 }, "strip", z.ZodTypeAny, {
     id: string;
-    created_at: string;
     subject: string;
+    created_at: string;
     status?: string | undefined;
     priority?: string | undefined;
     source?: string | undefined;
     assignee_id?: string | null | undefined;
+    case_code?: string | undefined;
+    links_count?: number | undefined;
     updated_at?: string | undefined;
     assignee_name?: string | null | undefined;
     severity?: "low" | "medium" | "high" | "critical" | null | undefined;
@@ -55,12 +59,14 @@ export declare const AdminCaseSchema: z.ZodObject<{
     tags?: string[] | undefined;
 }, {
     id: string;
-    created_at: string;
     subject: string;
+    created_at: string;
     status?: string | undefined;
     priority?: string | undefined;
     source?: string | undefined;
     assignee_id?: string | null | undefined;
+    case_code?: string | undefined;
+    links_count?: number | undefined;
     updated_at?: string | undefined;
     assignee_name?: string | null | undefined;
     severity?: "low" | "medium" | "high" | "critical" | null | undefined;
@@ -76,17 +82,17 @@ export declare const AdminCaseCreateInputSchema: z.ZodObject<{
     assignee_id: z.ZodOptional<z.ZodString>;
     idempotency_key: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    subject: string;
     priority: "low" | "medium" | "high" | "urgent";
     source: string;
-    idempotency_key?: string | undefined;
+    subject: string;
     assignee_id?: string | undefined;
+    idempotency_key?: string | undefined;
 }, {
     subject: string;
-    idempotency_key?: string | undefined;
     priority?: "low" | "medium" | "high" | "urgent" | undefined;
     source?: string | undefined;
     assignee_id?: string | undefined;
+    idempotency_key?: string | undefined;
 }>;
 export type AdminCaseCreateInput = z.infer<typeof AdminCaseCreateInputSchema>;
 /** Attach entity to case input. */
@@ -101,6 +107,33 @@ export declare const AdminCaseAttachEntityInputSchema: z.ZodObject<{
     entity_id: string;
 }>;
 export type AdminCaseAttachEntityInput = z.infer<typeof AdminCaseAttachEntityInputSchema>;
+/** Safe query contract for server-side list filtering/sorting. */
+export declare const AdminCasesListQuerySchema: z.ZodObject<{
+    page: z.ZodDefault<z.ZodNumber>;
+    limit: z.ZodDefault<z.ZodNumber>;
+    q: z.ZodOptional<z.ZodString>;
+    status: z.ZodDefault<z.ZodEnum<["all", "open", "in_progress", "escalated", "closed"]>>;
+    priority: z.ZodDefault<z.ZodEnum<["all", "low", "medium", "high", "critical"]>>;
+    source: z.ZodDefault<z.ZodString>;
+    sort: z.ZodDefault<z.ZodEnum<["created_desc", "created_asc"]>>;
+}, "strip", z.ZodTypeAny, {
+    sort: "created_desc" | "created_asc";
+    status: "open" | "in_progress" | "closed" | "all" | "escalated";
+    page: number;
+    limit: number;
+    priority: "all" | "low" | "medium" | "high" | "critical";
+    source: string;
+    q?: string | undefined;
+}, {
+    sort?: "created_desc" | "created_asc" | undefined;
+    status?: "open" | "in_progress" | "closed" | "all" | "escalated" | undefined;
+    page?: number | undefined;
+    limit?: number | undefined;
+    q?: string | undefined;
+    priority?: "all" | "low" | "medium" | "high" | "critical" | undefined;
+    source?: string | undefined;
+}>;
+export type AdminCasesListQuery = z.infer<typeof AdminCasesListQuerySchema>;
 /** List response for GET /cases */
 export declare const AdminCaseListResponseSchema: z.ZodObject<{
     cases: z.ZodArray<z.ZodObject<{
@@ -109,6 +142,8 @@ export declare const AdminCaseListResponseSchema: z.ZodObject<{
         source: z.ZodOptional<z.ZodString>;
         status: z.ZodOptional<z.ZodUnion<[z.ZodEnum<["open", "in_progress", "pending", "closed"]>, z.ZodString]>>;
         priority: z.ZodOptional<z.ZodUnion<[z.ZodEnum<["low", "medium", "high", "urgent"]>, z.ZodString]>>;
+        case_code: z.ZodOptional<z.ZodString>;
+        links_count: z.ZodOptional<z.ZodNumber>;
         created_at: z.ZodString;
         updated_at: z.ZodOptional<z.ZodString>;
         assignee_id: z.ZodOptional<z.ZodNullable<z.ZodString>>;
@@ -118,12 +153,14 @@ export declare const AdminCaseListResponseSchema: z.ZodObject<{
         tags: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
     }, "strip", z.ZodTypeAny, {
         id: string;
-        created_at: string;
         subject: string;
+        created_at: string;
         status?: string | undefined;
         priority?: string | undefined;
         source?: string | undefined;
         assignee_id?: string | null | undefined;
+        case_code?: string | undefined;
+        links_count?: number | undefined;
         updated_at?: string | undefined;
         assignee_name?: string | null | undefined;
         severity?: "low" | "medium" | "high" | "critical" | null | undefined;
@@ -131,12 +168,14 @@ export declare const AdminCaseListResponseSchema: z.ZodObject<{
         tags?: string[] | undefined;
     }, {
         id: string;
-        created_at: string;
         subject: string;
+        created_at: string;
         status?: string | undefined;
         priority?: string | undefined;
         source?: string | undefined;
         assignee_id?: string | null | undefined;
+        case_code?: string | undefined;
+        links_count?: number | undefined;
         updated_at?: string | undefined;
         assignee_name?: string | null | undefined;
         severity?: "low" | "medium" | "high" | "critical" | null | undefined;
@@ -148,45 +187,181 @@ export declare const AdminCaseListResponseSchema: z.ZodObject<{
     limit: z.ZodNumber;
     totalPages: z.ZodOptional<z.ZodNumber>;
 }, "strip", z.ZodTypeAny, {
-    limit: number;
+    total: number;
     page: number;
+    limit: number;
     cases: {
         id: string;
-        created_at: string;
         subject: string;
+        created_at: string;
         status?: string | undefined;
         priority?: string | undefined;
         source?: string | undefined;
         assignee_id?: string | null | undefined;
+        case_code?: string | undefined;
+        links_count?: number | undefined;
         updated_at?: string | undefined;
         assignee_name?: string | null | undefined;
         severity?: "low" | "medium" | "high" | "critical" | null | undefined;
         sla_due_at?: string | null | undefined;
         tags?: string[] | undefined;
     }[];
-    total: number;
     totalPages?: number | undefined;
 }, {
-    limit: number;
+    total: number;
     page: number;
+    limit: number;
     cases: {
         id: string;
-        created_at: string;
         subject: string;
+        created_at: string;
         status?: string | undefined;
         priority?: string | undefined;
         source?: string | undefined;
         assignee_id?: string | null | undefined;
+        case_code?: string | undefined;
+        links_count?: number | undefined;
         updated_at?: string | undefined;
         assignee_name?: string | null | undefined;
         severity?: "low" | "medium" | "high" | "critical" | null | undefined;
         sla_due_at?: string | null | undefined;
         tags?: string[] | undefined;
     }[];
-    total: number;
     totalPages?: number | undefined;
 }>;
 export type AdminCaseListResponse = z.infer<typeof AdminCaseListResponseSchema>;
+/** Query string for hero analytics chart. */
+export declare const AdminCasesAnalyticsQuerySchema: z.ZodObject<{
+    window: z.ZodDefault<z.ZodEnum<["7d"]>>;
+}, "strip", z.ZodTypeAny, {
+    window: "7d";
+}, {
+    window?: "7d" | undefined;
+}>;
+export type AdminCasesAnalyticsQuery = z.infer<typeof AdminCasesAnalyticsQuerySchema>;
+/** Single analytics point for a day bucket. */
+export declare const AdminCasesAnalyticsPointSchema: z.ZodObject<{
+    bucket_start: z.ZodString;
+    value: z.ZodNumber;
+}, "strip", z.ZodTypeAny, {
+    value: number;
+    bucket_start: string;
+}, {
+    value: number;
+    bucket_start: string;
+}>;
+export type AdminCasesAnalyticsPoint = z.infer<typeof AdminCasesAnalyticsPointSchema>;
+/** KPI ids rendered on the cases page cards. */
+export declare const AdminCasesKpiIdSchema: z.ZodEnum<["total", "open", "in_progress", "escalated"]>;
+export type AdminCasesKpiId = z.infer<typeof AdminCasesKpiIdSchema>;
+/** KPI trend directions for visual indicators. */
+export declare const AdminCasesKpiTrendSchema: z.ZodEnum<["up", "down", "neutral"]>;
+export type AdminCasesKpiTrend = z.infer<typeof AdminCasesKpiTrendSchema>;
+/** Live KPI trend payload used by Cases KPI cards. */
+export declare const AdminCasesKpiItemSchema: z.ZodObject<{
+    id: z.ZodEnum<["total", "open", "in_progress", "escalated"]>;
+    value: z.ZodNumber;
+    delta: z.ZodString;
+    trend: z.ZodEnum<["up", "down", "neutral"]>;
+    sparkline: z.ZodArray<z.ZodNumber, "many">;
+}, "strip", z.ZodTypeAny, {
+    value: number;
+    id: "open" | "in_progress" | "total" | "escalated";
+    delta: string;
+    trend: "up" | "down" | "neutral";
+    sparkline: number[];
+}, {
+    value: number;
+    id: "open" | "in_progress" | "total" | "escalated";
+    delta: string;
+    trend: "up" | "down" | "neutral";
+    sparkline: number[];
+}>;
+export type AdminCasesKpiItem = z.infer<typeof AdminCasesKpiItemSchema>;
+/** Hero chart payload for opened vs closed cases. */
+export declare const AdminCasesHeroSeriesSchema: z.ZodObject<{
+    window: z.ZodLiteral<"7d">;
+    opened: z.ZodArray<z.ZodObject<{
+        bucket_start: z.ZodString;
+        value: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        value: number;
+        bucket_start: string;
+    }, {
+        value: number;
+        bucket_start: string;
+    }>, "many">;
+    closed: z.ZodArray<z.ZodObject<{
+        bucket_start: z.ZodString;
+        value: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        value: number;
+        bucket_start: string;
+    }, {
+        value: number;
+        bucket_start: string;
+    }>, "many">;
+    kpis: z.ZodArray<z.ZodObject<{
+        id: z.ZodEnum<["total", "open", "in_progress", "escalated"]>;
+        value: z.ZodNumber;
+        delta: z.ZodString;
+        trend: z.ZodEnum<["up", "down", "neutral"]>;
+        sparkline: z.ZodArray<z.ZodNumber, "many">;
+    }, "strip", z.ZodTypeAny, {
+        value: number;
+        id: "open" | "in_progress" | "total" | "escalated";
+        delta: string;
+        trend: "up" | "down" | "neutral";
+        sparkline: number[];
+    }, {
+        value: number;
+        id: "open" | "in_progress" | "total" | "escalated";
+        delta: string;
+        trend: "up" | "down" | "neutral";
+        sparkline: number[];
+    }>, "many">;
+    is_stale: z.ZodOptional<z.ZodBoolean>;
+    generated_at: z.ZodOptional<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    closed: {
+        value: number;
+        bucket_start: string;
+    }[];
+    window: "7d";
+    opened: {
+        value: number;
+        bucket_start: string;
+    }[];
+    kpis: {
+        value: number;
+        id: "open" | "in_progress" | "total" | "escalated";
+        delta: string;
+        trend: "up" | "down" | "neutral";
+        sparkline: number[];
+    }[];
+    is_stale?: boolean | undefined;
+    generated_at?: string | undefined;
+}, {
+    closed: {
+        value: number;
+        bucket_start: string;
+    }[];
+    window: "7d";
+    opened: {
+        value: number;
+        bucket_start: string;
+    }[];
+    kpis: {
+        value: number;
+        id: "open" | "in_progress" | "total" | "escalated";
+        delta: string;
+        trend: "up" | "down" | "neutral";
+        sparkline: number[];
+    }[];
+    is_stale?: boolean | undefined;
+    generated_at?: string | undefined;
+}>;
+export type AdminCasesHeroSeries = z.infer<typeof AdminCasesHeroSeriesSchema>;
 /** Attached entity row in case detail. */
 export declare const AdminCaseEntitySchema: z.ZodObject<{
     id: z.ZodString;
@@ -198,10 +373,10 @@ export declare const AdminCaseEntitySchema: z.ZodObject<{
     created_at: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     id: string;
-    meta: Record<string, unknown>;
     entity_type: "task" | "user" | "conversation" | "booking" | "dispute" | "report";
     entity_id: string;
     case_id: string;
+    meta: Record<string, unknown>;
     created_at?: string | undefined;
     label?: string | null | undefined;
 }, {
@@ -210,8 +385,8 @@ export declare const AdminCaseEntitySchema: z.ZodObject<{
     entity_id: string;
     case_id: string;
     created_at?: string | undefined;
-    meta?: Record<string, unknown> | undefined;
     label?: string | null | undefined;
+    meta?: Record<string, unknown> | undefined;
 }>;
 export type AdminCaseEntity = z.infer<typeof AdminCaseEntitySchema>;
 /** Case note visibility. */
@@ -256,10 +431,10 @@ export declare const AdminCaseEvidenceSchema: z.ZodObject<{
     meta: z.ZodDefault<z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>>;
 }, "strip", z.ZodTypeAny, {
     id: string;
-    meta: Record<string, unknown>;
     entity_type: string;
     entity_id: string;
     case_id: string;
+    meta: Record<string, unknown>;
     evidence_type: string;
     created_at?: string | undefined;
     title?: string | null | undefined;
@@ -286,8 +461,8 @@ export declare const AdminCaseTimelineItemSchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     id: string;
     created_at: string;
-    meta: Record<string, unknown>;
     case_id: string;
+    meta: Record<string, unknown>;
     event: string;
     reason?: string | null | undefined;
     actor_user_id?: string | null | undefined;
@@ -297,8 +472,8 @@ export declare const AdminCaseTimelineItemSchema: z.ZodObject<{
     case_id: string;
     event: string;
     reason?: string | null | undefined;
-    actor_user_id?: string | null | undefined;
     meta?: Record<string, unknown> | undefined;
+    actor_user_id?: string | null | undefined;
 }>;
 export type AdminCaseTimelineItem = z.infer<typeof AdminCaseTimelineItemSchema>;
 /** Case detail (case + entities + workspace details). */
@@ -308,6 +483,8 @@ export declare const AdminCaseDetailSchema: z.ZodObject<{
     source: z.ZodOptional<z.ZodString>;
     status: z.ZodOptional<z.ZodUnion<[z.ZodEnum<["open", "in_progress", "pending", "closed"]>, z.ZodString]>>;
     priority: z.ZodOptional<z.ZodUnion<[z.ZodEnum<["low", "medium", "high", "urgent"]>, z.ZodString]>>;
+    case_code: z.ZodOptional<z.ZodString>;
+    links_count: z.ZodOptional<z.ZodNumber>;
     created_at: z.ZodString;
     updated_at: z.ZodOptional<z.ZodString>;
     assignee_id: z.ZodOptional<z.ZodNullable<z.ZodString>>;
@@ -326,10 +503,10 @@ export declare const AdminCaseDetailSchema: z.ZodObject<{
         created_at: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
         id: string;
-        meta: Record<string, unknown>;
         entity_type: "task" | "user" | "conversation" | "booking" | "dispute" | "report";
         entity_id: string;
         case_id: string;
+        meta: Record<string, unknown>;
         created_at?: string | undefined;
         label?: string | null | undefined;
     }, {
@@ -338,8 +515,8 @@ export declare const AdminCaseDetailSchema: z.ZodObject<{
         entity_id: string;
         case_id: string;
         created_at?: string | undefined;
-        meta?: Record<string, unknown> | undefined;
         label?: string | null | undefined;
+        meta?: Record<string, unknown> | undefined;
     }>, "many">>;
     evidence: z.ZodDefault<z.ZodArray<z.ZodObject<{
         id: z.ZodString;
@@ -352,10 +529,10 @@ export declare const AdminCaseDetailSchema: z.ZodObject<{
         meta: z.ZodDefault<z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>>;
     }, "strip", z.ZodTypeAny, {
         id: string;
-        meta: Record<string, unknown>;
         entity_type: string;
         entity_id: string;
         case_id: string;
+        meta: Record<string, unknown>;
         evidence_type: string;
         created_at?: string | undefined;
         title?: string | null | undefined;
@@ -405,8 +582,8 @@ export declare const AdminCaseDetailSchema: z.ZodObject<{
     }, "strip", z.ZodTypeAny, {
         id: string;
         created_at: string;
-        meta: Record<string, unknown>;
         case_id: string;
+        meta: Record<string, unknown>;
         event: string;
         reason?: string | null | undefined;
         actor_user_id?: string | null | undefined;
@@ -416,28 +593,28 @@ export declare const AdminCaseDetailSchema: z.ZodObject<{
         case_id: string;
         event: string;
         reason?: string | null | undefined;
-        actor_user_id?: string | null | undefined;
         meta?: Record<string, unknown> | undefined;
+        actor_user_id?: string | null | undefined;
     }>, "many">>;
 }, "strip", z.ZodTypeAny, {
     id: string;
-    created_at: string;
     subject: string;
+    created_at: string;
     entities: {
         id: string;
-        meta: Record<string, unknown>;
         entity_type: "task" | "user" | "conversation" | "booking" | "dispute" | "report";
         entity_id: string;
         case_id: string;
+        meta: Record<string, unknown>;
         created_at?: string | undefined;
         label?: string | null | undefined;
     }[];
     evidence: {
         id: string;
-        meta: Record<string, unknown>;
         entity_type: string;
         entity_id: string;
         case_id: string;
+        meta: Record<string, unknown>;
         evidence_type: string;
         created_at?: string | undefined;
         title?: string | null | undefined;
@@ -454,8 +631,8 @@ export declare const AdminCaseDetailSchema: z.ZodObject<{
     timeline: {
         id: string;
         created_at: string;
-        meta: Record<string, unknown>;
         case_id: string;
+        meta: Record<string, unknown>;
         event: string;
         reason?: string | null | undefined;
         actor_user_id?: string | null | undefined;
@@ -464,6 +641,8 @@ export declare const AdminCaseDetailSchema: z.ZodObject<{
     priority?: string | undefined;
     source?: string | undefined;
     assignee_id?: string | null | undefined;
+    case_code?: string | undefined;
+    links_count?: number | undefined;
     updated_at?: string | undefined;
     assignee_name?: string | null | undefined;
     severity?: "low" | "medium" | "high" | "critical" | null | undefined;
@@ -471,12 +650,14 @@ export declare const AdminCaseDetailSchema: z.ZodObject<{
     tags?: string[] | undefined;
 }, {
     id: string;
-    created_at: string;
     subject: string;
+    created_at: string;
     status?: string | undefined;
     priority?: string | undefined;
     source?: string | undefined;
     assignee_id?: string | null | undefined;
+    case_code?: string | undefined;
+    links_count?: number | undefined;
     updated_at?: string | undefined;
     assignee_name?: string | null | undefined;
     severity?: "low" | "medium" | "high" | "critical" | null | undefined;
@@ -488,8 +669,8 @@ export declare const AdminCaseDetailSchema: z.ZodObject<{
         entity_id: string;
         case_id: string;
         created_at?: string | undefined;
-        meta?: Record<string, unknown> | undefined;
         label?: string | null | undefined;
+        meta?: Record<string, unknown> | undefined;
     }[] | undefined;
     evidence?: {
         id: string;
@@ -516,8 +697,8 @@ export declare const AdminCaseDetailSchema: z.ZodObject<{
         case_id: string;
         event: string;
         reason?: string | null | undefined;
-        actor_user_id?: string | null | undefined;
         meta?: Record<string, unknown> | undefined;
+        actor_user_id?: string | null | undefined;
     }[] | undefined;
 }>;
 export type AdminCaseDetail = z.infer<typeof AdminCaseDetailSchema>;
@@ -526,11 +707,11 @@ export declare const AdminCaseAssignInputSchema: z.ZodObject<{
     assignee_id: z.ZodNullable<z.ZodString>;
     reason: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    reason: string;
     assignee_id: string | null;
+    reason: string;
 }, {
-    reason: string;
     assignee_id: string | null;
+    reason: string;
 }>;
 export type AdminCaseAssignInput = z.infer<typeof AdminCaseAssignInputSchema>;
 /** Status transition input. */
@@ -538,10 +719,10 @@ export declare const AdminCaseStatusInputSchema: z.ZodObject<{
     status: z.ZodEnum<["open", "in_progress", "pending", "closed"]>;
     reason: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    status: "pending" | "open" | "in_progress" | "closed";
+    status: "open" | "in_progress" | "pending" | "closed";
     reason: string;
 }, {
-    status: "pending" | "open" | "in_progress" | "closed";
+    status: "open" | "in_progress" | "pending" | "closed";
     reason: string;
 }>;
 export type AdminCaseStatusInput = z.infer<typeof AdminCaseStatusInputSchema>;

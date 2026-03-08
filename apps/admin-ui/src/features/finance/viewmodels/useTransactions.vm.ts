@@ -42,7 +42,7 @@ export function useTransactionsVM(
   }, [nextCursor, searchParams, router]);
 
   const clearFilters = useCallback(() => {
-    router.push('/dashboard/finance/transactions');
+    router.push('/finance/transactions');
   }, [router]);
 
   return {

@@ -1,9 +1,30 @@
 import { createClient } from '@supabase/supabase-js';
 import { requireAdminRole } from '../middleware/rbac.js';
 import { withAudit } from '../audit.js';
-import { failure as fail, success } from '@sline/shared';
+import { failure as fail, success, TaskQueueAnalyticsDataSchema } from '@sline/shared';
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 export default async function tasksRoutes(fastify) {
+    const toUtcDateKey = (value) => {
+        const parsed = new Date(value);
+        if (Number.isNaN(parsed.getTime()))
+            return '';
+        return parsed.toISOString().slice(0, 10);
+    };
+    const buildLast7Days = () => {
+        const today = new Date();
+        const utcTodayStart = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
+        return Array.from({ length: 7 }).map((_, idx) => {
+            const day = new Date(utcTodayStart);
+            day.setUTCDate(utcTodayStart.getUTCDate() - (6 - idx));
+            return day.toISOString().slice(0, 10);
+        });
+    };
+    const getWindowBounds = (days) => {
+        const start = `${days[0]}T00:00:00.000Z`;
+        const endAnchor = new Date(`${days[days.length - 1]}T00:00:00.000Z`);
+        endAnchor.setUTCDate(endAnchor.getUTCDate() + 1);
+        return { start, endExclusive: endAnchor.toISOString() };
+    };
     fastify.get('/', { preHandler: [requireAdminRole(['admin', 'super_admin'])] }, async (request, reply) => {
         const queryParams = request.query;
         const page = parseInt(queryParams.page) || 1;
@@ -65,6 +86,64 @@ export default async function tasksRoutes(fastify) {
             count: count || 0,
             totalPages: count ? Math.ceil(count / limit) : 0,
         });
+    });
+    fastify.get('/queue-analytics', { preHandler: [requireAdminRole(['admin', 'super_admin'])] }, async (request, reply) => {
+        const query = request.query;
+        const range = query.range ?? '7d';
+        if (range !== '7d') {
+            return reply.status(400).send(fail('VALIDATION_ERROR', 'range must be 7d'));
+        }
+        const days = buildLast7Days();
+        const { start, endExclusive } = getWindowBounds(days);
+        const [{ data: postedRows, error: postedError }, { data: completedRows, error: completedError }] = await Promise.all([
+            supabase
+                .from('tasks')
+                .select('created_at')
+                .gte('created_at', start)
+                .lt('created_at', endExclusive),
+            supabase
+                .from('tasks')
+                .select('updated_at')
+                .eq('status', 'completed')
+                .gte('updated_at', start)
+                .lt('updated_at', endExclusive),
+        ]);
+        if (postedError || completedError) {
+            const message = postedError?.message || completedError?.message || 'Failed to load queue analytics';
+            return reply.status(500).send(fail('DATABASE_ERROR', message));
+        }
+        const postedByDay = new Map();
+        for (const row of postedRows ?? []) {
+            const key = row.created_at ? toUtcDateKey(row.created_at) : '';
+            if (!key)
+                continue;
+            postedByDay.set(key, (postedByDay.get(key) ?? 0) + 1);
+        }
+        const completedByDay = new Map();
+        for (const row of completedRows ?? []) {
+            const key = row.updated_at ? toUtcDateKey(row.updated_at) : '';
+            if (!key)
+                continue;
+            completedByDay.set(key, (completedByDay.get(key) ?? 0) + 1);
+        }
+        const analyticsData = {
+            range: '7d',
+            days: days.map((date) => ({
+                date,
+                posted_count: postedByDay.get(date) ?? 0,
+                completed_count: completedByDay.get(date) ?? 0,
+            })),
+            totals: {
+                posted: Array.from(postedByDay.values()).reduce((sum, count) => sum + count, 0),
+                completed: Array.from(completedByDay.values()).reduce((sum, count) => sum + count, 0),
+            },
+            generated_at: new Date().toISOString(),
+        };
+        const parsed = TaskQueueAnalyticsDataSchema.safeParse(analyticsData);
+        if (!parsed.success) {
+            return reply.status(500).send(fail('SCHEMA_VALIDATION_ERROR', 'Invalid queue analytics payload'));
+        }
+        return success(parsed.data);
     });
     fastify.get('/:id', { preHandler: [requireAdminRole(['admin', 'super_admin'])] }, async (request, reply) => {
         const { id } = request.params;

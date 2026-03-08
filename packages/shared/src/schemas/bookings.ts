@@ -23,11 +23,65 @@ export type BookingStatus = z.infer<typeof BookingStatusEnum>;
 export const PaymentStatusEnum = z.enum(['unpaid', 'held', 'released', 'refunded']);
 export type PaymentStatus = z.infer<typeof PaymentStatusEnum>;
 
+export const BookingListSortEnum = z.enum(['created_desc', 'created_asc', 'price_desc', 'price_asc']);
+export type BookingListSort = z.infer<typeof BookingListSortEnum>;
+
+/** Analytics query for bookings hero series. */
+export const BookingAnalyticsSeriesQuerySchema = z.object({
+  window: z.enum(['7d']).default('7d'),
+  tz: z.enum(['UTC']).default('UTC'),
+});
+export type BookingAnalyticsSeriesQuery = z.infer<typeof BookingAnalyticsSeriesQuerySchema>;
+
+/** Single analytics point containing booked and completed values for one day bucket. */
+export const BookingAnalyticsSeriesPointSchema = z.object({
+  bucket_start: z.string().datetime({ offset: true }),
+  booked: z.number().int().nonnegative(),
+  completed: z.number().int().nonnegative(),
+});
+export type BookingAnalyticsSeriesPoint = z.infer<typeof BookingAnalyticsSeriesPointSchema>;
+
+/** Hero analytics payload for booking trends (last 7 days). */
+export const BookingAnalyticsSeriesSchema = z.object({
+  window: z.literal('7d'),
+  timezone: z.literal('UTC'),
+  points: z.array(BookingAnalyticsSeriesPointSchema).length(7),
+  updated_at: z.string().datetime({ offset: true }),
+  is_stale: z.boolean().optional(),
+});
+export type BookingAnalyticsSeries = z.infer<typeof BookingAnalyticsSeriesSchema>;
+
+export const BookingKpiCardIdSchema = z.enum(['total_bookings', 'completed', 'revenue', 'canceled']);
+export type BookingKpiCardId = z.infer<typeof BookingKpiCardIdSchema>;
+
+export const BookingKpiToneSchema = z.enum(['violet', 'green', 'amber', 'red']);
+export type BookingKpiTone = z.infer<typeof BookingKpiToneSchema>;
+
+export const BookingAnalyticsKpiCardSchema = z.object({
+  id: BookingKpiCardIdSchema,
+  value: z.number().nonnegative(),
+  delta: z.number(),
+  sparkline: z.array(z.number().nonnegative()).length(7),
+  tone: BookingKpiToneSchema,
+});
+export type BookingAnalyticsKpiCard = z.infer<typeof BookingAnalyticsKpiCardSchema>;
+
+export const BookingAnalyticsKpisSchema = z.object({
+  window: z.literal('7d'),
+  currency: z.literal('IQD'),
+  cards: z.array(BookingAnalyticsKpiCardSchema).length(4),
+  updated_at: z.string().datetime({ offset: true }),
+  is_stale: z.boolean().optional(),
+});
+export type BookingAnalyticsKpis = z.infer<typeof BookingAnalyticsKpisSchema>;
+
 /** List query: pagination + optional status filter. */
 export const BookingListQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   pageSize: z.coerce.number().int().min(1).max(100).default(10),
+  q: z.string().trim().max(120).optional(),
   status: BookingStatusEnum.optional(),
+  sort: BookingListSortEnum.default('created_desc'),
 });
 export type BookingListQuery = z.infer<typeof BookingListQuerySchema>;
 
@@ -43,6 +97,12 @@ export const BookingRowSchema = z.object({
   created_at: z.string(),
   completed_at: z.string().nullable().optional(),
   delivered_at: z.string().nullable().optional(),
+  booking_code: z.string().nullable().optional(),
+  service_title: z.string().nullable().optional(),
+  category_label: z.string().nullable().optional(),
+  client_display_name: z.string().nullable().optional(),
+  provider_display_name: z.string().nullable().optional(),
+  provider_short_name: z.string().nullable().optional(),
 });
 export type BookingRow = z.infer<typeof BookingRowSchema>;
 

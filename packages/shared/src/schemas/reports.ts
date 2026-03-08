@@ -166,6 +166,13 @@ export const ListReportsQuerySchema = z.object({
   severity: ReportSeverityEnum.optional(),
   assigned_admin_id: z.string().uuid().optional(),
   assigned_to_me: z.coerce.boolean().optional(),
+  q: z
+    .string()
+    .trim()
+    .min(2, 'Search query must be at least 2 characters')
+    .max(80, 'Search query is too long')
+    .regex(/^[a-zA-Z0-9 _.:@#-]+$/, 'Search query contains unsupported characters')
+    .optional(),
   page: z.coerce.number().int().positive().default(1),
   limit: z.coerce.number().int().positive().max(100).default(20),
 });
@@ -201,6 +208,18 @@ export const EscalateReportInputSchema = z.object({
 });
 export type EscalateReportInput = z.infer<typeof EscalateReportInputSchema>;
 
+/** Body for POST /reports */
+export const CreateReportInputSchema = z.object({
+  entity_type: ReportEntityTypeEnum,
+  entity_id: uuid,
+  reason: z.string().min(1, 'Reason is required to create report').max(1000, 'Reason is too long'),
+  category: z.string().max(120, 'Category is too long').optional(),
+  severity: ReportSeverityEnum.optional(),
+  reporter_user_id: z.string().uuid().optional(),
+  meta: z.record(z.unknown()).optional(),
+});
+export type CreateReportInput = z.infer<typeof CreateReportInputSchema>;
+
 /** Generic ack payload for report mutations. */
 export const ReportMutationAckSchema = z.object({
   id: uuid,
@@ -209,6 +228,47 @@ export const ReportMutationAckSchema = z.object({
   case_id: z.string().uuid().optional(),
 });
 export type ReportMutationAck = z.infer<typeof ReportMutationAckSchema>;
+
+/** Response for POST /reports create flow. */
+export const CreateReportResponseSchema = z.object({
+  id: uuid,
+  status: ReportStatusEnum,
+  resolution: ReportResolutionEnum.optional().nullable(),
+});
+export type CreateReportResponse = z.infer<typeof CreateReportResponseSchema>;
+
+export const ReportsTrendPointSchema = z.object({
+  date: z.string(),
+  incoming: z.number().int().nonnegative(),
+  resolved: z.number().int().nonnegative(),
+});
+export type ReportsTrendPoint = z.infer<typeof ReportsTrendPointSchema>;
+
+export const ReportsTrendResponseSchema = z.object({
+  window: z.literal('7d'),
+  timezone: z.literal('UTC'),
+  points: z.array(ReportsTrendPointSchema).length(7),
+});
+export type ReportsTrendResponse = z.infer<typeof ReportsTrendResponseSchema>;
+
+export const ReportsKpiKeyEnum = z.enum(['total', 'open', 'escalated', 'closed']);
+export type ReportsKpiKey = z.infer<typeof ReportsKpiKeyEnum>;
+
+export const ReportsKpiCardAnalyticsSchema = z.object({
+  key: ReportsKpiKeyEnum,
+  count: z.number().int().nonnegative(),
+  delta_absolute: z.number().int(),
+  delta_percent: z.number().nullable(),
+  trend: z.array(z.number().int().nonnegative()).length(7),
+});
+export type ReportsKpiCardAnalytics = z.infer<typeof ReportsKpiCardAnalyticsSchema>;
+
+export const ReportsKpisResponseSchema = z.object({
+  window: z.literal('7d'),
+  comparison_window: z.literal('previous_7d'),
+  cards: z.array(ReportsKpiCardAnalyticsSchema).length(4),
+});
+export type ReportsKpisResponse = z.infer<typeof ReportsKpisResponseSchema>;
 
 export const ListReportsResponseSchema = z.object({
   reports: z.array(ReportListItemSchema),

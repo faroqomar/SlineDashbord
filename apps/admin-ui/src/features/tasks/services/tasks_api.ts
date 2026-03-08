@@ -1,5 +1,5 @@
 import { request } from "../../../lib/api";
-import type { TaskActivityResponse } from '@sline/shared';
+import type { TaskActivityResponse, TaskQueueAnalyticsData } from '@sline/shared';
 import type { TaskDTO, TaskDetailsDTO, TaskStatus } from '../models/task.schema';
 
 export const tasksApi = {
@@ -23,6 +23,12 @@ export const tasksApi = {
   getTaskActivity: async (id: string) => {
     const res = await request<TaskActivityResponse>('GET', `/tasks/${id}/activity`);
     if (!res.ok) throw new Error(res.error?.message || 'Failed to fetch activity');
+    return res.data;
+  },
+
+  getTaskQueueAnalytics: async (range: '7d' = '7d') => {
+    const res = await request<TaskQueueAnalyticsData>('GET', `/tasks/queue-analytics?range=${range}`);
+    if (!res.ok) throw new Error(res.error?.message || 'Failed to fetch queue analytics');
     return res.data;
   },
   

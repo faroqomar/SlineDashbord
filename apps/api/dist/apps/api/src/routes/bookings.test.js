@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { buildApp } from '../app.js';
-import { BookingListResponseSchema } from '@sline/shared';
+import { BookingListResponseSchema, BookingAnalyticsSeriesSchema } from '@sline/shared';
 if (!process.env.SUPABASE_URL)
     process.env.SUPABASE_URL = 'https://placeholder.supabase.co';
 if (!process.env.SUPABASE_SERVICE_ROLE_KEY)
@@ -41,6 +41,45 @@ describe('PAGE 07 — Bookings API', () => {
                     expect(Array.isArray(parsed.data.bookings)).toBe(true);
                     expect(typeof parsed.data.count).toBe('number');
                     expect(typeof parsed.data.totalPages).toBe('number');
+                }
+            }
+        });
+    });
+    describe('GET /api/v1/bookings/analytics/series', () => {
+        it('returns 401 when no auth', async () => {
+            const noAuthApp = await buildApp();
+            const res = await noAuthApp.inject({
+                method: 'GET',
+                url: '/api/v1/bookings/analytics/series?window=7d',
+            });
+            await noAuthApp.close();
+            expect(res.statusCode).toBe(401);
+        });
+        it('returns 400 for unsupported timezone', async () => {
+            const res = await app.inject({
+                method: 'GET',
+                url: '/api/v1/bookings/analytics/series?window=7d&tz=Europe/Istanbul',
+            });
+            expect(res.statusCode).toBe(400);
+            const body = JSON.parse(res.body);
+            expect(body.ok).toBe(false);
+            expect(body.error?.code).toBe('VALIDATION_ERROR');
+        });
+        it('returns 200 with schema-parseable deterministic payload', async () => {
+            const res = await app.inject({
+                method: 'GET',
+                url: '/api/v1/bookings/analytics/series?window=7d',
+            });
+            expect([200, 500]).toContain(res.statusCode);
+            if (res.statusCode === 200) {
+                const body = JSON.parse(res.body);
+                const data = body.data ?? body;
+                const parsed = BookingAnalyticsSeriesSchema.safeParse(data);
+                expect(parsed.success).toBe(true);
+                if (parsed.success) {
+                    expect(parsed.data.window).toBe('7d');
+                    expect(parsed.data.timezone).toBe('UTC');
+                    expect(parsed.data.points).toHaveLength(7);
                 }
             }
         });

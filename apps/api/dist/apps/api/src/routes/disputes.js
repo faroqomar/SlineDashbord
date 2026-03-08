@@ -1,9 +1,84 @@
 import { createClient } from '@supabase/supabase-js';
-import { GetDisputesSchema, UpdateDisputeStatusSchema, DISPUTES_READ_ROLES, DISPUTES_WRITE_ROLES, failure, success } from '@sline/shared';
+import { CreateDisputeInputSchema, GetDisputesSchema, UpdateDisputeStatusSchema, DISPUTES_READ_ROLES, DISPUTES_WRITE_ROLES, failure, success } from '@sline/shared';
 import { requireAdminRole } from '../middleware/rbac.js';
 import { withAudit } from '../audit.js';
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+const CATEGORY_RULES = [
+    { label: 'Harassment', keywords: ['harass', 'threat', 'abuse', 'insult'] },
+    { label: 'Non-delivery', keywords: ['not deliver', 'did not deliver', 'non delivery', 'no delivery'] },
+    { label: 'Quality', keywords: ['quality', 'below standard', 'poor work', 'bad quality'] },
+    { label: 'Fraud', keywords: ['fraud', 'scam', 'fake', 'chargeback'] },
+    { label: 'Payment', keywords: ['payment', 'refund', 'invoice', 'charge'] },
+];
+function mapCreateDisputeRpcError(error) {
+    const message = error?.message ?? 'Database error';
+    const normalized = message.toLowerCase();
+    if (normalized.includes('not found')) {
+        return { status: 404, payload: failure('NOT_FOUND', message) };
+    }
+    if (normalized.includes('already exists') || normalized.includes('duplicate key')) {
+        return { status: 409, payload: failure('CONFLICT', message) };
+    }
+    if (normalized.includes('invalid')) {
+        return { status: 400, payload: failure('VALIDATION_ERROR', message) };
+    }
+    return { status: 500, payload: failure('DATABASE_ERROR', message) };
+}
+function deriveDisputeCategory(reason) {
+    const normalized = String(reason ?? '').toLowerCase();
+    if (!normalized)
+        return 'General';
+    const matchedRule = CATEGORY_RULES.find((rule) => rule.keywords.some((keyword) => normalized.includes(keyword)));
+    return matchedRule?.label ?? 'Service';
+}
+function deriveDisputeSeverity(status, createdAt) {
+    const normalizedStatus = String(status ?? '').toLowerCase();
+    if (normalizedStatus === 'escalated')
+        return 'crit';
+    if (normalizedStatus === 'resolved')
+        return 'low';
+    const createdMs = Date.parse(String(createdAt ?? ''));
+    if (Number.isNaN(createdMs))
+        return 'med';
+    const ageDays = Math.max(0, Math.floor((Date.now() - createdMs) / (24 * 60 * 60 * 1000)));
+    if (ageDays >= 14)
+        return 'high';
+    if (ageDays >= 7)
+        return 'med';
+    return 'low';
+}
 export default async function disputeRoutes(fastify) {
+    /**
+     * Create Dispute (Admin)
+     */
+    fastify.post('/', {
+        preHandler: [requireAdminRole(DISPUTES_WRITE_ROLES)]
+    }, async (request, reply) => {
+        const validation = CreateDisputeInputSchema.safeParse(request.body);
+        if (!validation.success) {
+            return reply.status(400).send(failure('VALIDATION_ERROR', 'Invalid input', validation.error.format()));
+        }
+        const adminId = request.user?.id;
+        if (!adminId) {
+            return reply.status(401).send(failure('UNAUTHORIZED', 'Admin user required'));
+        }
+        const { task_id, complainant_id, defendant_id, reason } = validation.data;
+        const { data: createdId, error } = await supabase.rpc('admin_create_dispute', {
+            p_admin_id: adminId,
+            p_task_id: task_id,
+            p_complainant_id: complainant_id,
+            p_defendant_id: defendant_id,
+            p_reason: reason,
+        });
+        if (error) {
+            const mapped = mapCreateDisputeRpcError(error);
+            return reply.status(mapped.status).send(mapped.payload);
+        }
+        if (!createdId || typeof createdId !== 'string') {
+            return reply.status(500).send(failure('DATABASE_ERROR', 'Create dispute returned no id'));
+        }
+        return reply.status(201).send(success({ id: createdId }));
+    });
     /**
      * Get Disputes List
      */
@@ -56,11 +131,30 @@ export default async function disputeRoutes(fastify) {
             .range(from, to)
             .order('created_at', { ascending: false });
         if (error)
-            return failure('DATABASE_ERROR', error.message);
+            return reply.status(500).send(failure('DATABASE_ERROR', error.message));
+        const rows = disputes || [];
+        const disputeIds = rows.map((row) => row.id);
+        const commentCountByDispute = new Map();
+        if (disputeIds.length > 0) {
+            const { data: messageRows, error: messagesError } = await supabase
+                .from('dispute_messages')
+                .select('dispute_id')
+                .in('dispute_id', disputeIds);
+            if (messagesError) {
+                return reply.status(500).send(failure('DATABASE_ERROR', messagesError.message));
+            }
+            for (const message of messageRows || []) {
+                const disputeId = message.dispute_id;
+                commentCountByDispute.set(disputeId, (commentCountByDispute.get(disputeId) ?? 0) + 1);
+            }
+        }
         return success({
-            disputes: (disputes || []).map(d => ({
+            disputes: rows.map(d => ({
                 ...d,
-                amount: d.task?.budget_cents ? d.task.budget_cents / 100 : d.task?.budget || 0
+                amount: d.task?.budget_cents ? d.task.budget_cents / 100 : d.task?.budget || 0,
+                category: deriveDisputeCategory(d.reason),
+                severity: deriveDisputeSeverity(d.status, d.created_at),
+                comments_count: commentCountByDispute.get(d.id) ?? 0,
             })),
             totalDisputes: count || 0,
             totalPages: Math.ceil((count || 0) / limit)

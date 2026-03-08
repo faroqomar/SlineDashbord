@@ -9,6 +9,10 @@ import {
   EscalateReportInputSchema,
   TriageReportInputSchema,
   CloseReportInputSchema,
+  CreateReportInputSchema,
+  CreateReportResponseSchema,
+  ReportsTrendResponseSchema,
+  ReportsKpisResponseSchema,
   ListReportsQuerySchema,
   ReportListItemSchema,
   ReportDetailSchema,
@@ -113,6 +117,40 @@ describe('reports schemas (PAGE 10 contracts)', () => {
     });
   });
 
+  describe('CreateReportInputSchema', () => {
+    it('accepts valid create payload', () => {
+      const r = CreateReportInputSchema.safeParse({
+        entity_type: 'task',
+        entity_id: validUuid,
+        reason: 'Manual moderation report',
+        category: 'abuse',
+        severity: 'high',
+      });
+      expect(r.success).toBe(true);
+    });
+
+    it('rejects empty reason', () => {
+      expect(
+        CreateReportInputSchema.safeParse({
+          entity_type: 'task',
+          entity_id: validUuid,
+          reason: '',
+        }).success
+      ).toBe(false);
+    });
+  });
+
+  describe('CreateReportResponseSchema', () => {
+    it('parses create response payload', () => {
+      const r = CreateReportResponseSchema.safeParse({
+        id: validUuid,
+        status: 'open',
+        resolution: null,
+      });
+      expect(r.success).toBe(true);
+    });
+  });
+
   describe('ListReportsQuerySchema', () => {
     it('accepts empty query with defaults', () => {
       const r = ListReportsQuerySchema.safeParse({});
@@ -132,6 +170,13 @@ describe('reports schemas (PAGE 10 contracts)', () => {
     });
     it('rejects limit > 100', () => {
       expect(ListReportsQuerySchema.safeParse({ limit: 101 }).success).toBe(false);
+    });
+    it('accepts q search query', () => {
+      const r = ListReportsQuerySchema.safeParse({ q: 'report 123', page: 1, limit: 20 });
+      expect(r.success).toBe(true);
+    });
+    it('rejects invalid q characters', () => {
+      expect(ListReportsQuerySchema.safeParse({ q: 'report,123' }).success).toBe(false);
     });
   });
 
@@ -188,6 +233,39 @@ describe('reports schemas (PAGE 10 contracts)', () => {
         ],
       };
       expect(ReportDetailSchema.safeParse(detail).success).toBe(true);
+    });
+  });
+
+  describe('ReportsTrendResponseSchema', () => {
+    it('parses 7-day trend response', () => {
+      const points = Array.from({ length: 7 }).map((_, idx) => ({
+        date: `2026-03-0${idx + 1}`,
+        incoming: idx + 1,
+        resolved: idx,
+      }));
+      const r = ReportsTrendResponseSchema.safeParse({
+        window: '7d',
+        timezone: 'UTC',
+        points,
+      });
+      expect(r.success).toBe(true);
+    });
+  });
+
+  describe('ReportsKpisResponseSchema', () => {
+    it('parses KPI analytics payload', () => {
+      const trend = [1, 2, 3, 4, 5, 6, 7];
+      const r = ReportsKpisResponseSchema.safeParse({
+        window: '7d',
+        comparison_window: 'previous_7d',
+        cards: [
+          { key: 'total', count: 10, delta_absolute: 2, delta_percent: 25, trend },
+          { key: 'open', count: 4, delta_absolute: -1, delta_percent: -20, trend },
+          { key: 'escalated', count: 2, delta_absolute: 1, delta_percent: 100, trend },
+          { key: 'closed', count: 3, delta_absolute: 2, delta_percent: 200, trend },
+        ],
+      });
+      expect(r.success).toBe(true);
     });
   });
 });

@@ -1,11 +1,118 @@
 import { createClient } from '@supabase/supabase-js';
-import { BookingListQuerySchema, BookingListResponseSchema, AdminBookingCancelInputSchema, AdminBookingRefundInputSchema, failure, success, } from '@sline/shared';
+import { BookingAnalyticsSeriesQuerySchema, BookingAnalyticsSeriesSchema, BookingListQuerySchema, BookingListResponseSchema, AdminBookingCancelInputSchema, AdminBookingRefundInputSchema, failure, success, } from '@sline/shared';
 import { requireAdminRole } from '../middleware/rbac.js';
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 const BOOKING_LIST_ROLES = ['moderator', 'admin', 'super_admin'];
 const BOOKING_CANCEL_ROLES = ['moderator', 'admin', 'super_admin'];
 const BOOKING_REFUND_ROLES = ['admin', 'super_admin'];
+const DAY_MS = 24 * 60 * 60 * 1000;
+const BOOKING_ANALYTICS_BUCKETS = 7;
+function toUtcDayStart(value) {
+    return new Date(Date.UTC(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate(), 0, 0, 0, 0));
+}
+function buildDailyBucketStarts(start, days) {
+    return Array.from({ length: days }, (_, index) => new Date(start.getTime() + index * DAY_MS).toISOString());
+}
+function toBucketStartIso(value) {
+    if (typeof value !== 'string' && !(value instanceof Date))
+        return null;
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime()))
+        return null;
+    return toUtcDayStart(date).toISOString();
+}
+function countByBucket(bucketStarts, values) {
+    const counts = new Map(bucketStarts.map((bucketStart) => [bucketStart, 0]));
+    const knownBuckets = new Set(bucketStarts);
+    for (const value of values) {
+        const bucketStart = toBucketStartIso(value);
+        if (!bucketStart || !knownBuckets.has(bucketStart))
+            continue;
+        counts.set(bucketStart, (counts.get(bucketStart) ?? 0) + 1);
+    }
+    return counts;
+}
+function buildStaleAnalyticsPayload(bucketStarts) {
+    return {
+        window: '7d',
+        timezone: 'UTC',
+        points: bucketStarts.map((bucketStart) => ({
+            bucket_start: bucketStart,
+            booked: 0,
+            completed: 0,
+        })),
+        updated_at: new Date().toISOString(),
+        is_stale: true,
+    };
+}
 export default async function bookingsRoutes(fastify) {
+    /**
+     * GET /analytics/series — Hero analytics series (last 7 days, UTC)
+     */
+    fastify.get('/analytics/series', { preHandler: [requireAdminRole(BOOKING_LIST_ROLES)] }, async (request, reply) => {
+        const query = BookingAnalyticsSeriesQuerySchema.safeParse(request.query ?? {});
+        if (!query.success) {
+            return reply.status(400).send(failure('VALIDATION_ERROR', 'Invalid analytics query', query.error.format()));
+        }
+        const now = new Date();
+        const todayUtcStart = toUtcDayStart(now);
+        const startUtc = new Date(todayUtcStart.getTime() - (BOOKING_ANALYTICS_BUCKETS - 1) * DAY_MS);
+        const endUtcExclusive = new Date(todayUtcStart.getTime() + DAY_MS);
+        const startIso = startUtc.toISOString();
+        const endIso = endUtcExclusive.toISOString();
+        const bucketStarts = buildDailyBucketStarts(startUtc, BOOKING_ANALYTICS_BUCKETS);
+        const [bookedRes, completedRes, deliveredFallbackRes] = await Promise.all([
+            supabase
+                .from('bookings')
+                .select('created_at')
+                .gte('created_at', startIso)
+                .lt('created_at', endIso),
+            supabase
+                .from('bookings')
+                .select('completed_at')
+                .not('completed_at', 'is', null)
+                .gte('completed_at', startIso)
+                .lt('completed_at', endIso),
+            supabase
+                .from('bookings')
+                .select('delivered_at')
+                .is('completed_at', null)
+                .not('delivered_at', 'is', null)
+                .gte('delivered_at', startIso)
+                .lt('delivered_at', endIso),
+        ]);
+        if (bookedRes.error || completedRes.error || deliveredFallbackRes.error) {
+            fastify.log.warn({
+                route: '/api/v1/bookings/analytics/series',
+                bookedQueryFailed: Boolean(bookedRes.error),
+                completedQueryFailed: Boolean(completedRes.error),
+                deliveredFallbackQueryFailed: Boolean(deliveredFallbackRes.error),
+            }, 'Booking analytics query failed; returning stale fallback series');
+            return reply.send(success(buildStaleAnalyticsPayload(bucketStarts)));
+        }
+        const bookedCounts = countByBucket(bucketStarts, (bookedRes.data ?? []).map((row) => row.created_at));
+        const completedCounts = countByBucket(bucketStarts, [
+            ...(completedRes.data ?? []).map((row) => row.completed_at),
+            ...(deliveredFallbackRes.data ?? []).map((row) => row.delivered_at),
+        ]);
+        const payload = {
+            window: query.data.window,
+            timezone: query.data.tz,
+            points: bucketStarts.map((bucketStart) => ({
+                bucket_start: bucketStart,
+                booked: bookedCounts.get(bucketStart) ?? 0,
+                completed: completedCounts.get(bucketStart) ?? 0,
+            })),
+            updated_at: now.toISOString(),
+            is_stale: false,
+        };
+        const validated = BookingAnalyticsSeriesSchema.safeParse(payload);
+        if (!validated.success) {
+            fastify.log.error({ err: validated.error }, 'Booking analytics response validation failed');
+            return reply.status(500).send(failure('INTERNAL_ERROR', 'Failed to build booking analytics response'));
+        }
+        return reply.send(success(validated.data));
+    });
     /**
      * GET / — List bookings (paginated, optional status filter)
      */

@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { TaskDTO, TaskStatus } from '../models/task.schema';
 import { tasksApi } from '../services/tasks_api';
+import type { TaskQueueAnalyticsData } from '@sline/shared';
 
 export interface TaskFilters {
   status?: string;
@@ -19,6 +20,9 @@ export function useTasksViewModel(initialFilters: TaskFilters = { page: 1, pageS
 
   const [selectedTask, setSelectedTask] = useState<TaskDTO | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [heroAnalytics, setHeroAnalytics] = useState<TaskQueueAnalyticsData | null>(null);
+  const [isAnalyticsLoading, setIsAnalyticsLoading] = useState(false);
+  const [analyticsError, setAnalyticsError] = useState<string | null>(null);
 
   const fetchTasks = useCallback(async (currentFilters: TaskFilters) => {
     setIsLoading(true);
@@ -70,9 +74,30 @@ export function useTasksViewModel(initialFilters: TaskFilters = { page: 1, pageS
     }
   };
 
+  const fetchHeroAnalytics = useCallback(async () => {
+    setIsAnalyticsLoading(true);
+    setAnalyticsError(null);
+    try {
+      const data = await tasksApi.getTaskQueueAnalytics('7d');
+      setHeroAnalytics(data);
+    } catch (e: any) {
+      setAnalyticsError(e.message);
+    } finally {
+      setIsAnalyticsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchTasks(filters);
   }, [filters, fetchTasks]);
+
+  useEffect(() => {
+    fetchHeroAnalytics();
+  }, [fetchHeroAnalytics]);
+
+  const refreshTasks = async () => {
+    await Promise.all([fetchTasks(filters), fetchHeroAnalytics()]);
+  };
 
   return {
     tasks,
@@ -82,10 +107,13 @@ export function useTasksViewModel(initialFilters: TaskFilters = { page: 1, pageS
     filters,
     selectedTask,
     isUpdating,
+    heroAnalytics,
+    isAnalyticsLoading,
+    analyticsError,
     changeFilters,
     handleUpdateStatus,
     loadTaskDetails,
     setSelectedTask,
-    refreshTasks: () => fetchTasks(filters)
+    refreshTasks,
   };
 }

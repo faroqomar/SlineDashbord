@@ -21,6 +21,9 @@ export interface DisputeDTO {
   reason: string;
   status: 'open' | 'in_progress' | 'resolved' | 'escalated';
   amount: number;
+  category?: string;
+  severity?: 'low' | 'med' | 'high' | 'crit';
+  comments_count?: number;
   created_at: string;
   resolution?: string;
   resolved_at?: string;

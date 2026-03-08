@@ -16,31 +16,49 @@ export declare const InvestigationTaskRefSchema: z.ZodObject<{
     id: z.ZodString;
     title: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     status: z.ZodOptional<z.ZodString>;
+    task_type: z.ZodOptional<z.ZodEnum<["tender", "booking"]>>;
+    owner_id: z.ZodOptional<z.ZodString>;
+    assigned_freelancer_id: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     created_at: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     id: string;
     status?: string | undefined;
     created_at?: string | undefined;
     title?: string | null | undefined;
+    task_type?: "booking" | "tender" | undefined;
+    owner_id?: string | undefined;
+    assigned_freelancer_id?: string | null | undefined;
 }, {
     id: string;
     status?: string | undefined;
     created_at?: string | undefined;
     title?: string | null | undefined;
+    task_type?: "booking" | "tender" | undefined;
+    owner_id?: string | undefined;
+    assigned_freelancer_id?: string | null | undefined;
 }>;
 export type InvestigationTaskRef = z.infer<typeof InvestigationTaskRefSchema>;
 /** Minimal booking reference in investigation graph. */
 export declare const InvestigationBookingRefSchema: z.ZodObject<{
     id: z.ZodString;
+    task_id: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    client_id: z.ZodOptional<z.ZodString>;
+    provider_id: z.ZodOptional<z.ZodString>;
     status: z.ZodOptional<z.ZodString>;
     created_at: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     id: string;
     status?: string | undefined;
+    task_id?: string | null | undefined;
+    client_id?: string | undefined;
+    provider_id?: string | undefined;
     created_at?: string | undefined;
 }, {
     id: string;
     status?: string | undefined;
+    task_id?: string | null | undefined;
+    client_id?: string | undefined;
+    provider_id?: string | undefined;
     created_at?: string | undefined;
 }>;
 export type InvestigationBookingRef = z.infer<typeof InvestigationBookingRefSchema>;
@@ -116,54 +134,53 @@ export declare const UserInvestigationResponseSchema: z.ZodObject<{
         phone: z.ZodOptional<z.ZodLiteral<"[MASKED]">>;
     }, "strip", z.ZodTypeAny, {
         id: string;
+        updated_at?: string | null | undefined;
+        created_at?: string | undefined;
         full_name?: string | null | undefined;
         avatar_url?: string | null | undefined;
         account_status?: string | undefined;
-        created_at?: string | undefined;
-        email?: "[MASKED]" | undefined;
-        phone?: "[MASKED]" | undefined;
         moderation_reason?: string | null | undefined;
         moderated_at?: string | null | undefined;
-        updated_at?: string | null | undefined;
+        email?: "[MASKED]" | undefined;
+        phone?: "[MASKED]" | undefined;
     }, {
         id: string;
+        updated_at?: string | null | undefined;
+        created_at?: string | undefined;
         full_name?: string | null | undefined;
         avatar_url?: string | null | undefined;
         account_status?: string | undefined;
-        created_at?: string | undefined;
-        email?: "[MASKED]" | undefined;
-        phone?: "[MASKED]" | undefined;
         moderation_reason?: string | null | undefined;
         moderated_at?: string | null | undefined;
-        updated_at?: string | null | undefined;
+        email?: "[MASKED]" | undefined;
+        phone?: "[MASKED]" | undefined;
     }>;
     tasks: z.ZodDefault<z.ZodArray<z.ZodObject<{
         id: z.ZodString;
         title: z.ZodOptional<z.ZodNullable<z.ZodString>>;
         status: z.ZodOptional<z.ZodString>;
+        task_type: z.ZodOptional<z.ZodEnum<["tender", "booking"]>>;
+        owner_id: z.ZodOptional<z.ZodString>;
+        assigned_freelancer_id: z.ZodOptional<z.ZodNullable<z.ZodString>>;
         created_at: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
         id: string;
         status?: string | undefined;
         created_at?: string | undefined;
         title?: string | null | undefined;
+        task_type?: "booking" | "tender" | undefined;
+        owner_id?: string | undefined;
+        assigned_freelancer_id?: string | null | undefined;
     }, {
         id: string;
         status?: string | undefined;
         created_at?: string | undefined;
         title?: string | null | undefined;
+        task_type?: "booking" | "tender" | undefined;
+        owner_id?: string | undefined;
+        assigned_freelancer_id?: string | null | undefined;
     }>, "many">>;
     offers: z.ZodDefault<z.ZodArray<z.ZodObject<{
-        id: z.ZodString;
-        created_at: z.ZodOptional<z.ZodString>;
-    }, "strip", z.ZodTypeAny, {
-        id: string;
-        created_at?: string | undefined;
-    }, {
-        id: string;
-        created_at?: string | undefined;
-    }>, "many">>;
-    bookings: z.ZodDefault<z.ZodArray<z.ZodObject<{
         id: z.ZodString;
         status: z.ZodOptional<z.ZodString>;
         created_at: z.ZodOptional<z.ZodString>;
@@ -174,6 +191,28 @@ export declare const UserInvestigationResponseSchema: z.ZodObject<{
     }, {
         id: string;
         status?: string | undefined;
+        created_at?: string | undefined;
+    }>, "many">>;
+    bookings: z.ZodDefault<z.ZodArray<z.ZodObject<{
+        id: z.ZodString;
+        task_id: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+        client_id: z.ZodOptional<z.ZodString>;
+        provider_id: z.ZodOptional<z.ZodString>;
+        status: z.ZodOptional<z.ZodString>;
+        created_at: z.ZodOptional<z.ZodString>;
+    }, "strip", z.ZodTypeAny, {
+        id: string;
+        status?: string | undefined;
+        task_id?: string | null | undefined;
+        client_id?: string | undefined;
+        provider_id?: string | undefined;
+        created_at?: string | undefined;
+    }, {
+        id: string;
+        status?: string | undefined;
+        task_id?: string | null | undefined;
+        client_id?: string | undefined;
+        provider_id?: string | undefined;
         created_at?: string | undefined;
     }>, "many">>;
     disputes: z.ZodDefault<z.ZodArray<z.ZodObject<{
@@ -238,29 +277,36 @@ export declare const UserInvestigationResponseSchema: z.ZodObject<{
         caseId?: string | null | undefined;
     }>, "many">>;
 }, "strip", z.ZodTypeAny, {
+    bookings: {
+        id: string;
+        status?: string | undefined;
+        task_id?: string | null | undefined;
+        client_id?: string | undefined;
+        provider_id?: string | undefined;
+        created_at?: string | undefined;
+    }[];
     profile: {
         id: string;
+        updated_at?: string | null | undefined;
+        created_at?: string | undefined;
         full_name?: string | null | undefined;
         avatar_url?: string | null | undefined;
         account_status?: string | undefined;
-        created_at?: string | undefined;
-        email?: "[MASKED]" | undefined;
-        phone?: "[MASKED]" | undefined;
         moderation_reason?: string | null | undefined;
         moderated_at?: string | null | undefined;
-        updated_at?: string | null | undefined;
+        email?: "[MASKED]" | undefined;
+        phone?: "[MASKED]" | undefined;
     };
     tasks: {
         id: string;
         status?: string | undefined;
         created_at?: string | undefined;
         title?: string | null | undefined;
+        task_type?: "booking" | "tender" | undefined;
+        owner_id?: string | undefined;
+        assigned_freelancer_id?: string | null | undefined;
     }[];
     offers: {
-        id: string;
-        created_at?: string | undefined;
-    }[];
-    bookings: {
         id: string;
         status?: string | undefined;
         created_at?: string | undefined;
@@ -291,27 +337,34 @@ export declare const UserInvestigationResponseSchema: z.ZodObject<{
 }, {
     profile: {
         id: string;
+        updated_at?: string | null | undefined;
+        created_at?: string | undefined;
         full_name?: string | null | undefined;
         avatar_url?: string | null | undefined;
         account_status?: string | undefined;
-        created_at?: string | undefined;
-        email?: "[MASKED]" | undefined;
-        phone?: "[MASKED]" | undefined;
         moderation_reason?: string | null | undefined;
         moderated_at?: string | null | undefined;
-        updated_at?: string | null | undefined;
+        email?: "[MASKED]" | undefined;
+        phone?: "[MASKED]" | undefined;
     };
+    bookings?: {
+        id: string;
+        status?: string | undefined;
+        task_id?: string | null | undefined;
+        client_id?: string | undefined;
+        provider_id?: string | undefined;
+        created_at?: string | undefined;
+    }[] | undefined;
     tasks?: {
         id: string;
         status?: string | undefined;
         created_at?: string | undefined;
         title?: string | null | undefined;
+        task_type?: "booking" | "tender" | undefined;
+        owner_id?: string | undefined;
+        assigned_freelancer_id?: string | null | undefined;
     }[] | undefined;
     offers?: {
-        id: string;
-        created_at?: string | undefined;
-    }[] | undefined;
-    bookings?: {
         id: string;
         status?: string | undefined;
         created_at?: string | undefined;
@@ -389,12 +442,12 @@ export declare const EvidencePackExportQuerySchema: z.ZodObject<{
     limit: z.ZodDefault<z.ZodNumber>;
     cursor: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    format: "csv" | "json";
     limit: number;
+    format: "csv" | "json";
     cursor?: string | undefined;
 }, {
-    format?: "csv" | "json" | undefined;
     limit?: number | undefined;
+    format?: "csv" | "json" | undefined;
     cursor?: string | undefined;
 }>;
 export type EvidencePackExportQuery = z.infer<typeof EvidencePackExportQuerySchema>;
@@ -405,13 +458,13 @@ export declare const EvidencePackExportReceiptSchema: z.ZodObject<{
     rowCount: z.ZodNumber;
     exportedAt: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    userId: string;
     format: "csv" | "json";
+    userId: string;
     rowCount: number;
     exportedAt: string;
 }, {
-    userId: string;
     format: "csv" | "json";
+    userId: string;
     rowCount: number;
     exportedAt: string;
 }>;

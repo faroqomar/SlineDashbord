@@ -1,7 +1,54 @@
 import { describe, it, expect } from 'vitest';
-import { BookingListQuerySchema, BookingRowSchema, BookingListResponseSchema, AdminBookingCancelInputSchema, AdminBookingRefundInputSchema, } from './bookings.js';
+import { BookingAnalyticsSeriesQuerySchema, BookingAnalyticsSeriesSchema, BookingListQuerySchema, BookingRowSchema, BookingListResponseSchema, AdminBookingCancelInputSchema, AdminBookingRefundInputSchema, } from './bookings.js';
 const validUuid = '00000000-0000-0000-0000-000000000001';
 describe('bookings schemas (PAGE 07 contracts)', () => {
+    describe('BookingAnalyticsSeriesQuerySchema', () => {
+        it('defaults analytics query fields', () => {
+            const parsed = BookingAnalyticsSeriesQuerySchema.safeParse({});
+            expect(parsed.success).toBe(true);
+            if (parsed.success) {
+                expect(parsed.data.window).toBe('7d');
+                expect(parsed.data.tz).toBe('UTC');
+            }
+        });
+        it('rejects unsupported analytics window', () => {
+            expect(BookingAnalyticsSeriesQuerySchema.safeParse({ window: '24h' }).success).toBe(false);
+        });
+        it('rejects unsupported timezone values', () => {
+            expect(BookingAnalyticsSeriesQuerySchema.safeParse({ tz: 'Europe/Istanbul' }).success).toBe(false);
+        });
+    });
+    describe('BookingAnalyticsSeriesSchema', () => {
+        it('accepts deterministic 7-day analytics payload', () => {
+            const parsed = BookingAnalyticsSeriesSchema.safeParse({
+                window: '7d',
+                timezone: 'UTC',
+                points: Array.from({ length: 7 }, (_, index) => ({
+                    bucket_start: `2026-03-0${index + 1}T00:00:00Z`,
+                    booked: index + 1,
+                    completed: index,
+                })),
+                updated_at: '2026-03-07T12:00:00Z',
+                is_stale: false,
+            });
+            expect(parsed.success).toBe(true);
+        });
+        it('rejects payload when points length is not 7', () => {
+            const parsed = BookingAnalyticsSeriesSchema.safeParse({
+                window: '7d',
+                timezone: 'UTC',
+                points: [
+                    {
+                        bucket_start: '2026-03-01T00:00:00Z',
+                        booked: 1,
+                        completed: 1,
+                    },
+                ],
+                updated_at: '2026-03-07T12:00:00Z',
+            });
+            expect(parsed.success).toBe(false);
+        });
+    });
     describe('BookingListQuerySchema', () => {
         it('accepts empty object with defaults', () => {
             const r = BookingListQuerySchema.safeParse({});

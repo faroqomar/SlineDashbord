@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { AdminCaseCreateInputSchema, AdminCaseAttachEntityInputSchema, AdminCaseDetailSchema, AdminCaseAssignInputSchema, AdminCaseStatusInputSchema, AdminCaseNoteInputSchema, AdminCaseSchema, CaseEntityTypeSchema, CaseStatusEnum, CasePriorityEnum, } from './cases.js';
+import { AdminCaseCreateInputSchema, AdminCaseAttachEntityInputSchema, AdminCaseDetailSchema, AdminCaseAssignInputSchema, AdminCaseStatusInputSchema, AdminCaseNoteInputSchema, AdminCaseSchema, AdminCasesListQuerySchema, AdminCasesAnalyticsQuerySchema, AdminCasesHeroSeriesSchema, CaseEntityTypeSchema, CaseStatusEnum, CasePriorityEnum, } from './cases.js';
 const validUuid = '00000000-0000-0000-0000-000000000001';
 describe('cases schemas (PAGE 08 contracts)', () => {
     describe('CaseStatusEnum and CasePriorityEnum', () => {
@@ -14,6 +14,66 @@ describe('cases schemas (PAGE 08 contracts)', () => {
             expect(CasePriorityEnum.safeParse('medium').success).toBe(true);
             expect(CasePriorityEnum.safeParse('high').success).toBe(true);
             expect(CasePriorityEnum.safeParse('urgent').success).toBe(true);
+        });
+    });
+    describe('analytics schemas', () => {
+        it('defaults analytics window to 7d', () => {
+            const parsed = AdminCasesAnalyticsQuerySchema.safeParse({});
+            expect(parsed.success).toBe(true);
+            if (parsed.success)
+                expect(parsed.data.window).toBe('7d');
+        });
+        it('rejects unsupported analytics window', () => {
+            expect(AdminCasesAnalyticsQuerySchema.safeParse({ window: '24h' }).success).toBe(false);
+        });
+        it('parses deterministic 7-point hero analytics payload', () => {
+            const opened = Array.from({ length: 7 }, (_, index) => ({
+                bucket_start: `2026-03-0${index + 1}T00:00:00Z`,
+                value: index,
+            }));
+            const closed = Array.from({ length: 7 }, (_, index) => ({
+                bucket_start: `2026-03-0${index + 1}T00:00:00Z`,
+                value: 7 - index,
+            }));
+            const parsed = AdminCasesHeroSeriesSchema.safeParse({
+                window: '7d',
+                opened,
+                closed,
+                kpis: [
+                    { id: 'total', value: 10, delta: '+2', trend: 'up', sparkline: [1, 1, 1, 2, 2, 1, 2] },
+                    { id: 'open', value: 4, delta: '-1', trend: 'down', sparkline: [1, 0, 1, 1, 0, 1, 0] },
+                    { id: 'in_progress', value: 3, delta: '+1', trend: 'up', sparkline: [0, 1, 0, 1, 0, 1, 0] },
+                    { id: 'escalated', value: 1, delta: '0', trend: 'neutral', sparkline: [0, 0, 0, 1, 0, 0, 0] },
+                ],
+                is_stale: false,
+                generated_at: '2026-03-07T12:00:00Z',
+            });
+            expect(parsed.success).toBe(true);
+        });
+        it('rejects hero analytics payload when bucket count is not 7', () => {
+            const parsed = AdminCasesHeroSeriesSchema.safeParse({
+                window: '7d',
+                opened: [{ bucket_start: '2026-03-01T00:00:00Z', value: 1 }],
+                closed: [{ bucket_start: '2026-03-01T00:00:00Z', value: 1 }],
+                kpis: [],
+            });
+            expect(parsed.success).toBe(false);
+        });
+    });
+    describe('list query schema', () => {
+        it('parses default server-side query values', () => {
+            const parsed = AdminCasesListQuerySchema.safeParse({});
+            expect(parsed.success).toBe(true);
+            if (!parsed.success)
+                return;
+            expect(parsed.data.page).toBe(1);
+            expect(parsed.data.limit).toBe(10);
+            expect(parsed.data.sort).toBe('created_desc');
+            expect(parsed.data.status).toBe('all');
+        });
+        it('rejects unsupported sort values', () => {
+            const parsed = AdminCasesListQuerySchema.safeParse({ sort: 'updated_desc' });
+            expect(parsed.success).toBe(false);
         });
     });
     describe('AdminCaseCreateInputSchema', () => {
@@ -83,6 +143,9 @@ describe('cases schemas (PAGE 08 contracts)', () => {
                 source: 'dashboard',
                 status: 'open',
                 priority: 'urgent',
+                case_code: 'CAS-000001',
+                links_count: 2,
+                tags: ['#report'],
                 created_at: '2025-01-01T00:00:00Z',
             });
             expect(r.success).toBe(true);

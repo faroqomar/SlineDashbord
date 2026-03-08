@@ -6,6 +6,9 @@ import {
   CloseReportInputSchema,
   DismissReportInputSchema,
   EscalateReportInputSchema,
+  CreateReportInputSchema,
+  ReportsTrendResponseSchema,
+  ReportsKpisResponseSchema,
   REPORTS_READ_ROLES,
   REPORTS_WRITE_ROLES,
   failure,
@@ -42,6 +45,172 @@ function mapRpcError(error: { message?: string } | null) {
   }
   if (msg.includes('Invalid')) return { status: 400, payload: failure('VALIDATION_ERROR', msg) };
   return { status: 500, payload: failure('DATABASE_ERROR', msg) };
+}
+
+type WindowRange = {
+  days: string[];
+  startIso: string;
+  endExclusiveIso: string;
+};
+
+function getWindowRange(daysCount: number, offsetDays = 0): WindowRange {
+  const now = new Date();
+  const endExclusive = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1 - offsetDays));
+  const start = new Date(endExclusive);
+  start.setUTCDate(start.getUTCDate() - daysCount);
+
+  const days: string[] = [];
+  for (let idx = 0; idx < daysCount; idx += 1) {
+    const day = new Date(start);
+    day.setUTCDate(start.getUTCDate() + idx);
+    days.push(day.toISOString().slice(0, 10));
+  }
+
+  return {
+    days,
+    startIso: start.toISOString(),
+    endExclusiveIso: endExclusive.toISOString(),
+  };
+}
+
+function toDayCounts(days: string[], timestamps: Array<string | null | undefined>): number[] {
+  const counts = new Map<string, number>(days.map((day) => [day, 0]));
+  for (const timestamp of timestamps) {
+    if (!timestamp) continue;
+    const day = timestamp.slice(0, 10);
+    if (!counts.has(day)) continue;
+    counts.set(day, (counts.get(day) ?? 0) + 1);
+  }
+  return days.map((day) => counts.get(day) ?? 0);
+}
+
+function sumSeries(series: number[]): number {
+  return series.reduce((acc, value) => acc + value, 0);
+}
+
+function buildDeltaPercent(current: number, previous: number): number | null {
+  if (previous <= 0) return null;
+  return Number((((current - previous) / previous) * 100).toFixed(2));
+}
+
+async function searchReporterIds(query: string): Promise<string[]> {
+  const like = `%${query}%`;
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id')
+    .or(`full_name.ilike.${like},username.ilike.${like}`)
+    .limit(20);
+
+  if (error) return [];
+  return (data ?? [])
+    .map((row: { id?: unknown }) => (typeof row.id === 'string' ? row.id : ''))
+    .filter((id) => id.length > 0);
+}
+
+async function fetchReportCreatedTimestamps(range: WindowRange, status?: string): Promise<string[]> {
+  let query = supabase
+    .from('reports')
+    .select('created_at')
+    .gte('created_at', range.startIso)
+    .lt('created_at', range.endExclusiveIso);
+  if (status) query = query.eq('status', status);
+  const { data, error } = await query;
+  if (error) return [];
+  return (data ?? [])
+    .map((row: { created_at?: unknown }) => (typeof row.created_at === 'string' ? row.created_at : null))
+    .filter((value): value is string => Boolean(value));
+}
+
+async function fetchResolvedTimestamps(range: WindowRange): Promise<string[]> {
+  const primary = await supabase
+    .from('reports')
+    .select('closed_at')
+    .eq('status', 'closed')
+    .eq('resolution', 'resolved')
+    .not('closed_at', 'is', null)
+    .gte('closed_at', range.startIso)
+    .lt('closed_at', range.endExclusiveIso);
+
+  if (!primary.error) {
+    return (primary.data ?? [])
+      .map((row: { closed_at?: unknown }) => (typeof row.closed_at === 'string' ? row.closed_at : null))
+      .filter((value): value is string => Boolean(value));
+  }
+
+  const fallback = await supabase
+    .from('report_actions')
+    .select('created_at')
+    .in('action', ['close', 'close_resolved'])
+    .gte('created_at', range.startIso)
+    .lt('created_at', range.endExclusiveIso);
+
+  if (fallback.error) return [];
+  return (fallback.data ?? [])
+    .map((row: { created_at?: unknown }) => (typeof row.created_at === 'string' ? row.created_at : null))
+    .filter((value): value is string => Boolean(value));
+}
+
+async function fetchEscalatedTimestamps(range: WindowRange): Promise<string[]> {
+  const primary = await supabase
+    .from('reports')
+    .select('escalated_at')
+    .not('escalated_at', 'is', null)
+    .gte('escalated_at', range.startIso)
+    .lt('escalated_at', range.endExclusiveIso);
+
+  if (!primary.error) {
+    return (primary.data ?? [])
+      .map((row: { escalated_at?: unknown }) => (typeof row.escalated_at === 'string' ? row.escalated_at : null))
+      .filter((value): value is string => Boolean(value));
+  }
+
+  const fallback = await supabase
+    .from('report_actions')
+    .select('created_at')
+    .eq('action', 'escalate')
+    .gte('created_at', range.startIso)
+    .lt('created_at', range.endExclusiveIso);
+
+  if (fallback.error) return [];
+  return (fallback.data ?? [])
+    .map((row: { created_at?: unknown }) => (typeof row.created_at === 'string' ? row.created_at : null))
+    .filter((value): value is string => Boolean(value));
+}
+
+async function fetchClosedTimestamps(range: WindowRange): Promise<string[]> {
+  const primary = await supabase
+    .from('reports')
+    .select('closed_at')
+    .eq('status', 'closed')
+    .not('closed_at', 'is', null)
+    .gte('closed_at', range.startIso)
+    .lt('closed_at', range.endExclusiveIso);
+
+  if (!primary.error) {
+    return (primary.data ?? [])
+      .map((row: { closed_at?: unknown }) => (typeof row.closed_at === 'string' ? row.closed_at : null))
+      .filter((value): value is string => Boolean(value));
+  }
+
+  const fallback = await supabase
+    .from('report_actions')
+    .select('created_at')
+    .eq('status_after', 'closed')
+    .gte('created_at', range.startIso)
+    .lt('created_at', range.endExclusiveIso);
+
+  if (fallback.error) return [];
+  return (fallback.data ?? [])
+    .map((row: { created_at?: unknown }) => (typeof row.created_at === 'string' ? row.created_at : null))
+    .filter((value): value is string => Boolean(value));
+}
+
+async function countReports(status?: 'open' | 'escalated' | 'closed'): Promise<number> {
+  let query = supabase.from('reports').select('id', { count: 'exact', head: true });
+  if (status) query = query.eq('status', status);
+  const { count, error } = await query;
+  if (error) return 0;
+  return count ?? 0;
 }
 
 async function fetchReporterSummary(reporterId: string | null) {
@@ -189,6 +358,8 @@ async function fetchReportRows(params: {
   entity_type?: string;
   severity?: string;
   assigned_admin_id?: string;
+  q?: string;
+  reporter_user_ids?: string[];
   from: number;
   to: number;
 }) {
@@ -202,6 +373,17 @@ async function fetchReportRows(params: {
   if (params.entity_type) builder = builder.eq('entity_type', params.entity_type);
   if (params.severity) builder = builder.eq('severity', params.severity);
   if (params.assigned_admin_id) builder = builder.eq('assigned_admin_id', params.assigned_admin_id);
+  if (params.q) {
+    const like = `%${params.q}%`;
+    const orFilters = [`reason.ilike.${like}`, `category.ilike.${like}`];
+    if (isUuid(params.q)) {
+      orFilters.push(`id.eq.${params.q}`, `entity_id.eq.${params.q}`, `reporter_user_id.eq.${params.q}`);
+    }
+    if ((params.reporter_user_ids ?? []).length > 0) {
+      orFilters.push(`reporter_user_id.in.(${params.reporter_user_ids!.join(',')})`);
+    }
+    builder = builder.or(orFilters.join(','));
+  }
 
   const v2 = await builder;
   if (!v2.error) return v2;
@@ -217,10 +399,58 @@ async function fetchReportRows(params: {
     .range(params.from, params.to);
   if (params.status) fallback = fallback.eq('status', params.status);
   if (params.entity_type) fallback = fallback.eq('entity_type', params.entity_type);
+  if (params.q) {
+    const like = `%${params.q}%`;
+    const orFilters = [`reason.ilike.${like}`, `category.ilike.${like}`];
+    if (isUuid(params.q)) {
+      orFilters.push(`id.eq.${params.q}`, `entity_id.eq.${params.q}`, `reporter_user_id.eq.${params.q}`);
+    }
+    if ((params.reporter_user_ids ?? []).length > 0) {
+      orFilters.push(`reporter_user_id.in.(${params.reporter_user_ids!.join(',')})`);
+    }
+    fallback = fallback.or(orFilters.join(','));
+  }
   return fallback;
 }
 
 export default async function reportsRoutes(fastify: FastifyInstance) {
+  /**
+   * POST /api/v1/reports — create report (RPC writes report + action + audit atomically)
+   */
+  fastify.post('/', { preHandler: [requireAdminRole(REPORTS_WRITE_ROLES)] }, async (request, reply) => {
+    const body = request.body as unknown;
+    const validation = CreateReportInputSchema.safeParse(body);
+    if (!validation.success) {
+      return reply.status(400).send(failure('VALIDATION_ERROR', 'Invalid body', validation.error.format()));
+    }
+
+    const adminId = (request as any).user?.id as string | undefined;
+    if (!adminId) return reply.status(401).send(failure('UNAUTHORIZED', 'Not authenticated'));
+
+    const input = validation.data;
+    const { data: createdId, error } = await supabase.rpc('admin_create_report', {
+      p_admin_id: adminId,
+      p_entity_type: input.entity_type,
+      p_entity_id: input.entity_id,
+      p_reason: input.reason,
+      p_category: input.category ?? null,
+      p_severity: input.severity ?? null,
+      p_meta: input.meta ?? {},
+      p_reporter_user_id: input.reporter_user_id ?? null,
+    });
+
+    if (error) {
+      const mapped = mapRpcError(error);
+      return reply.status(mapped.status).send(mapped.payload);
+    }
+
+    if (!createdId || typeof createdId !== 'string') {
+      return reply.status(500).send(failure('DATABASE_ERROR', 'Create report returned no id'));
+    }
+
+    return reply.status(201).send(success({ id: createdId, status: 'open', resolution: null }));
+  });
+
   /**
    * GET /api/v1/reports — list reports (filter by status, entity_type, severity)
    */
@@ -230,16 +460,19 @@ export default async function reportsRoutes(fastify: FastifyInstance) {
     if (!validation.success) {
       return reply.status(400).send(failure('VALIDATION_ERROR', 'Invalid query', validation.error.format()));
     }
-    const { status, entity_type, severity, assigned_admin_id, assigned_to_me, page, limit } = validation.data;
+    const { status, entity_type, severity, assigned_admin_id, assigned_to_me, q, page, limit } = validation.data;
     const from = (page - 1) * limit;
     const to = from + limit - 1;
     const currentAdminId = (request as any).user?.id as string | undefined;
+    const reporterUserIds = q ? await searchReporterIds(q) : [];
 
     const { data: rows, error, count } = await fetchReportRows({
       status,
       entity_type,
       severity,
       assigned_admin_id: assigned_to_me && currentAdminId ? currentAdminId : assigned_admin_id,
+      q: q || undefined,
+      reporter_user_ids: reporterUserIds,
       from,
       to,
     });
@@ -267,6 +500,138 @@ export default async function reportsRoutes(fastify: FastifyInstance) {
     )) as ReportListItem[];
 
     return reply.send(success({ reports: list, total: count ?? 0, page, limit }));
+  });
+
+  /**
+   * GET /api/v1/reports/trends?window=7d — incoming vs resolved trend points
+   */
+  fastify.get('/trends', { preHandler: [requireAdminRole(REPORTS_READ_ROLES)] }, async (request, reply) => {
+    const query = request.query as { window?: string };
+    if (query.window && query.window !== '7d') {
+      return reply.status(400).send(failure('VALIDATION_ERROR', 'Unsupported window'));
+    }
+
+    const range = getWindowRange(7, 0);
+    const [incomingTimestamps, resolvedTimestamps] = await Promise.all([
+      fetchReportCreatedTimestamps(range),
+      fetchResolvedTimestamps(range),
+    ]);
+
+    const incomingSeries = toDayCounts(range.days, incomingTimestamps);
+    const resolvedSeries = toDayCounts(range.days, resolvedTimestamps);
+    const points = range.days.map((day, index) => ({
+      date: day,
+      incoming: incomingSeries[index],
+      resolved: resolvedSeries[index],
+    }));
+
+    const payload = {
+      window: '7d' as const,
+      timezone: 'UTC' as const,
+      points,
+    };
+    const parsed = ReportsTrendResponseSchema.safeParse(payload);
+    if (!parsed.success) {
+      return reply.status(500).send(failure('DATABASE_ERROR', 'Invalid trends payload'));
+    }
+
+    return reply.send(success(parsed.data));
+  });
+
+  /**
+   * GET /api/v1/reports/kpis?window=7d — KPI counts + deltas + sparkline series
+   */
+  fastify.get('/kpis', { preHandler: [requireAdminRole(REPORTS_READ_ROLES)] }, async (request, reply) => {
+    const query = request.query as { window?: string };
+    if (query.window && query.window !== '7d') {
+      return reply.status(400).send(failure('VALIDATION_ERROR', 'Unsupported window'));
+    }
+
+    const currentRange = getWindowRange(7, 0);
+    const previousRange = getWindowRange(7, 7);
+
+    const [totalCount, openCount, escalatedCount, closedCount] = await Promise.all([
+      countReports(),
+      countReports('open'),
+      countReports('escalated'),
+      countReports('closed'),
+    ]);
+
+    const [
+      totalCurrentTs,
+      totalPreviousTs,
+      openCurrentTs,
+      openPreviousTs,
+      escalatedCurrentTs,
+      escalatedPreviousTs,
+      closedCurrentTs,
+      closedPreviousTs,
+    ] = await Promise.all([
+      fetchReportCreatedTimestamps(currentRange),
+      fetchReportCreatedTimestamps(previousRange),
+      fetchReportCreatedTimestamps(currentRange, 'open'),
+      fetchReportCreatedTimestamps(previousRange, 'open'),
+      fetchEscalatedTimestamps(currentRange),
+      fetchEscalatedTimestamps(previousRange),
+      fetchClosedTimestamps(currentRange),
+      fetchClosedTimestamps(previousRange),
+    ]);
+
+    const totalTrend = toDayCounts(currentRange.days, totalCurrentTs);
+    const openTrend = toDayCounts(currentRange.days, openCurrentTs);
+    const escalatedTrend = toDayCounts(currentRange.days, escalatedCurrentTs);
+    const closedTrend = toDayCounts(currentRange.days, closedCurrentTs);
+
+    const totalCurrent = sumSeries(totalTrend);
+    const totalPrevious = sumSeries(toDayCounts(previousRange.days, totalPreviousTs));
+    const openCurrent = sumSeries(openTrend);
+    const openPrevious = sumSeries(toDayCounts(previousRange.days, openPreviousTs));
+    const escalatedCurrent = sumSeries(escalatedTrend);
+    const escalatedPrevious = sumSeries(toDayCounts(previousRange.days, escalatedPreviousTs));
+    const closedCurrent = sumSeries(closedTrend);
+    const closedPrevious = sumSeries(toDayCounts(previousRange.days, closedPreviousTs));
+
+    const payload = {
+      window: '7d' as const,
+      comparison_window: 'previous_7d' as const,
+      cards: [
+        {
+          key: 'total' as const,
+          count: totalCount,
+          delta_absolute: totalCurrent - totalPrevious,
+          delta_percent: buildDeltaPercent(totalCurrent, totalPrevious),
+          trend: totalTrend,
+        },
+        {
+          key: 'open' as const,
+          count: openCount,
+          delta_absolute: openCurrent - openPrevious,
+          delta_percent: buildDeltaPercent(openCurrent, openPrevious),
+          trend: openTrend,
+        },
+        {
+          key: 'escalated' as const,
+          count: escalatedCount,
+          delta_absolute: escalatedCurrent - escalatedPrevious,
+          delta_percent: buildDeltaPercent(escalatedCurrent, escalatedPrevious),
+          trend: escalatedTrend,
+        },
+        {
+          key: 'closed' as const,
+          count: closedCount,
+          delta_absolute: closedCurrent - closedPrevious,
+          delta_percent: buildDeltaPercent(closedCurrent, closedPrevious),
+          trend: closedTrend,
+        },
+      ],
+    };
+
+    const parsed = ReportsKpisResponseSchema.safeParse(payload);
+    if (!parsed.success) {
+      return reply.status(500).send(failure('DATABASE_ERROR', 'Invalid KPI payload'));
+    }
+
+    return reply.send(success(parsed.data));
   });
 
   /**

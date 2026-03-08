@@ -17,11 +17,49 @@ export const BookingStatusEnum = z.enum([
 ]);
 /** Payment status for list/detail (matches payment_status_enum). */
 export const PaymentStatusEnum = z.enum(['unpaid', 'held', 'released', 'refunded']);
+export const BookingListSortEnum = z.enum(['created_desc', 'created_asc', 'price_desc', 'price_asc']);
+/** Analytics query for bookings hero series. */
+export const BookingAnalyticsSeriesQuerySchema = z.object({
+    window: z.enum(['7d']).default('7d'),
+    tz: z.enum(['UTC']).default('UTC'),
+});
+/** Single analytics point containing booked and completed values for one day bucket. */
+export const BookingAnalyticsSeriesPointSchema = z.object({
+    bucket_start: z.string().datetime({ offset: true }),
+    booked: z.number().int().nonnegative(),
+    completed: z.number().int().nonnegative(),
+});
+/** Hero analytics payload for booking trends (last 7 days). */
+export const BookingAnalyticsSeriesSchema = z.object({
+    window: z.literal('7d'),
+    timezone: z.literal('UTC'),
+    points: z.array(BookingAnalyticsSeriesPointSchema).length(7),
+    updated_at: z.string().datetime({ offset: true }),
+    is_stale: z.boolean().optional(),
+});
+export const BookingKpiCardIdSchema = z.enum(['total_bookings', 'completed', 'revenue', 'canceled']);
+export const BookingKpiToneSchema = z.enum(['violet', 'green', 'amber', 'red']);
+export const BookingAnalyticsKpiCardSchema = z.object({
+    id: BookingKpiCardIdSchema,
+    value: z.number().nonnegative(),
+    delta: z.number(),
+    sparkline: z.array(z.number().nonnegative()).length(7),
+    tone: BookingKpiToneSchema,
+});
+export const BookingAnalyticsKpisSchema = z.object({
+    window: z.literal('7d'),
+    currency: z.literal('IQD'),
+    cards: z.array(BookingAnalyticsKpiCardSchema).length(4),
+    updated_at: z.string().datetime({ offset: true }),
+    is_stale: z.boolean().optional(),
+});
 /** List query: pagination + optional status filter. */
 export const BookingListQuerySchema = z.object({
     page: z.coerce.number().int().min(1).default(1),
     pageSize: z.coerce.number().int().min(1).max(100).default(10),
+    q: z.string().trim().max(120).optional(),
     status: BookingStatusEnum.optional(),
+    sort: BookingListSortEnum.default('created_desc'),
 });
 /** Single booking row (list item). */
 export const BookingRowSchema = z.object({
@@ -35,6 +73,12 @@ export const BookingRowSchema = z.object({
     created_at: z.string(),
     completed_at: z.string().nullable().optional(),
     delivered_at: z.string().nullable().optional(),
+    booking_code: z.string().nullable().optional(),
+    service_title: z.string().nullable().optional(),
+    category_label: z.string().nullable().optional(),
+    client_display_name: z.string().nullable().optional(),
+    provider_display_name: z.string().nullable().optional(),
+    provider_short_name: z.string().nullable().optional(),
 });
 /** Booking detail (full row for GET /:bookingId). */
 export const BookingDetailSchema = BookingRowSchema.extend({

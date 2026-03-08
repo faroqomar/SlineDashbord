@@ -40,7 +40,7 @@ export function WithdrawalsTable({ initialData, nextCursor, statusFilter }: With
            <Button variant={statusFilter === 'requested' ? 'default' : 'outline'} size="sm" onClick={() => router.push('?status=requested')}>
             Pending
           </Button>
-          <Button variant={!statusFilter ? 'default' : 'outline'} size="sm" onClick={() => router.push('/dashboard/finance/withdrawals')}>
+          <Button variant={!statusFilter ? 'default' : 'outline'} size="sm" onClick={() => router.push('/finance/withdrawals')}>
             All
           </Button>
         </div>

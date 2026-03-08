@@ -1,5 +1,6 @@
 import { request } from "@/lib/api";
 import type { DisputeDTO } from "../models/dispute.schema";
+import type { CreateDisputeInput } from "@sline/shared";
 
 export const disputesApi = {
   getDisputes: async (params: { page?: number, limit?: number, status?: string, query?: string }) => {
@@ -8,7 +9,7 @@ export const disputesApi = {
       if (v !== undefined && v !== '') search.append(k, String(v));
     });
     
-    const res = await request<{ disputes: any[], totalDisputes: number, totalPages: number }>('GET', `/disputes?${search.toString()}`);
+    const res = await request<{ disputes: DisputeDTO[], totalDisputes: number, totalPages: number }>('GET', `/disputes?${search.toString()}`);
     if (!res.ok) throw new Error(res.error?.message || 'Failed to fetch disputes');
     return res.data;
   },
@@ -16,6 +17,12 @@ export const disputesApi = {
   getDisputeDetails: async (id: string) => {
     const res = await request<any>('GET', `/disputes/${id}`);
     if (!res.ok) throw new Error(res.error?.message || 'Failed to fetch dispute details');
+    return res.data;
+  },
+
+  createDispute: async (data: CreateDisputeInput) => {
+    const res = await request<{ id: string }>('POST', '/disputes', data);
+    if (!res.ok) throw new Error(res.error?.message || 'Failed to create dispute');
     return res.data;
   },
   

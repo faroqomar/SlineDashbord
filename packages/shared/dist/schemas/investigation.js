@@ -11,11 +11,17 @@ export const InvestigationTaskRefSchema = z.object({
     id: uuid,
     title: z.string().nullable().optional(),
     status: z.string().optional(),
+    task_type: z.enum(['tender', 'booking']).optional(),
+    owner_id: uuid.optional(),
+    assigned_freelancer_id: uuid.nullable().optional(),
     created_at: z.string().optional(),
 });
 /** Minimal booking reference in investigation graph. */
 export const InvestigationBookingRefSchema = z.object({
     id: uuid,
+    task_id: uuid.nullable().optional(),
+    client_id: uuid.optional(),
+    provider_id: uuid.optional(),
     status: z.string().optional(),
     created_at: z.string().optional(),
 });
@@ -45,7 +51,13 @@ export const InvestigationConversationSummarySchema = z.object({
 export const UserInvestigationResponseSchema = z.object({
     profile: UserDetailMaskedSchema,
     tasks: z.array(InvestigationTaskRefSchema).default([]),
-    offers: z.array(z.object({ id: uuid, created_at: z.string().optional() })).default([]),
+    offers: z
+        .array(z.object({
+        id: uuid,
+        status: z.string().optional(),
+        created_at: z.string().optional(),
+    }))
+        .default([]),
     bookings: z.array(InvestigationBookingRefSchema).default([]),
     disputes: z.array(InvestigationDisputeRefSchema).default([]),
     ledgerActivity: z.array(InvestigationLedgerEntrySchema).default([]),

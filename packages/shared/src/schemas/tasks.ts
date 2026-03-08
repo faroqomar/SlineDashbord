@@ -57,5 +57,33 @@ export const UpdateTaskStatusSchema = z.object({
   reason: z.string().min(5, "Reason required")
 });
 
+export const TaskQueueAnalyticsDaySchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  posted_count: z.number().int().nonnegative(),
+  completed_count: z.number().int().nonnegative(),
+});
+
+export type TaskQueueAnalyticsDay = z.infer<typeof TaskQueueAnalyticsDaySchema>;
+
+export const TaskQueueAnalyticsDataSchema = z.object({
+  range: z.literal('7d'),
+  days: z.array(TaskQueueAnalyticsDaySchema).length(7),
+  totals: z.object({
+    posted: z.number().int().nonnegative(),
+    completed: z.number().int().nonnegative(),
+  }),
+  generated_at: z.string(),
+  is_stale: z.boolean().optional(),
+});
+
+export type TaskQueueAnalyticsData = z.infer<typeof TaskQueueAnalyticsDataSchema>;
+
+export const TaskQueueAnalyticsResponseSchema = z.object({
+  ok: z.literal(true),
+  data: TaskQueueAnalyticsDataSchema,
+});
+
+export type TaskQueueAnalyticsResponse = z.infer<typeof TaskQueueAnalyticsResponseSchema>;
+
 export const TASKS_READ_ROLES = ['support', 'moderator', 'admin', 'super_admin'];
 export const TASKS_WRITE_ROLES = ['moderator', 'admin', 'super_admin'];

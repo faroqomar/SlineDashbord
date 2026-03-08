@@ -158,19 +158,60 @@ export default async function userRoutes(fastify) {
         if (!adminId)
             return reply.status(401).send(failure('UNAUTHORIZED', 'Admin user required'));
         const [profileRes, tasksRes, bookingsRes, disputesRes, ledgerRes] = await Promise.all([
-            supabase.from('profiles').select('id, full_name, avatar_url, account_status, moderation_reason, moderated_at, created_at, updated_at').eq('id', userId).maybeSingle(),
-            supabase.from('tasks').select('id, title, status, created_at').or(`owner_id.eq.${userId},assigned_freelancer_id.eq.${userId}`).order('created_at', { ascending: false }).limit(30),
-            supabase.from('bookings').select('id, status, created_at').or(`client_id.eq.${userId},provider_id.eq.${userId}`).order('created_at', { ascending: false }).limit(30),
+            supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
+            supabase
+                .from('tasks')
+                .select('id, title, status, task_type, owner_id, assigned_freelancer_id, created_at')
+                .or(`owner_id.eq.${userId},assigned_freelancer_id.eq.${userId}`)
+                .order('created_at', { ascending: false })
+                .limit(100),
+            supabase
+                .from('bookings')
+                .select('id, task_id, client_id, provider_id, status, created_at')
+                .or(`client_id.eq.${userId},provider_id.eq.${userId}`)
+                .order('created_at', { ascending: false })
+                .limit(100),
             supabase.from('disputes').select('id, status, created_at').eq('initiator_id', userId).order('created_at', { ascending: false }).limit(30),
             supabase.from('vw_admin_journal_ledger').select('journal_id, amount_cents, entity_type, entity_id, created_at').eq('entity_id', userId).order('created_at', { ascending: false }).limit(50),
         ]);
-        const profile = profileRes.data;
-        if (!profile)
-            return reply.status(404).send(failure('NOT_FOUND', 'User not found'));
-        const tasks = (tasksRes.data ?? []).map((t) => ({ id: t.id, title: t.title ?? null, status: t.status, created_at: t.created_at }));
-        const bookings = (bookingsRes.data ?? []).map((b) => ({ id: b.id, status: b.status, created_at: b.created_at }));
-        const disputes = (disputesRes.data ?? []).map((d) => ({ id: d.id, status: d.status, created_at: d.created_at }));
-        const ledgerRows = Array.isArray(ledgerRes.data) ? ledgerRes.data : (ledgerRes.data ? [ledgerRes.data] : []);
+        if (profileRes.error) {
+            fastify.log.warn({ err: profileRes.error }, 'users investigation: profile lookup failed; returning minimal profile fallback');
+        }
+        const profile = profileRes.data && typeof profileRes.data === 'object'
+            ? profileRes.data
+            : { id: userId };
+        if (tasksRes.error) {
+            fastify.log.warn({ err: tasksRes.error }, 'users investigation: tasks query failed; returning empty array');
+        }
+        if (bookingsRes.error) {
+            fastify.log.warn({ err: bookingsRes.error }, 'users investigation: bookings query failed; returning empty array');
+        }
+        if (disputesRes.error) {
+            fastify.log.warn({ err: disputesRes.error }, 'users investigation: disputes query failed; returning empty array');
+        }
+        if (ledgerRes.error) {
+            fastify.log.warn({ err: ledgerRes.error }, 'users investigation: ledger query failed; returning empty array');
+        }
+        const tasks = ((tasksRes.error ? [] : tasksRes.data) ?? []).map((t) => ({
+            id: t.id,
+            title: t.title ?? null,
+            status: t.status,
+            task_type: t.task_type ?? undefined,
+            owner_id: t.owner_id ?? undefined,
+            assigned_freelancer_id: t.assigned_freelancer_id ?? null,
+            created_at: t.created_at,
+        }));
+        const bookings = ((bookingsRes.error ? [] : bookingsRes.data) ?? []).map((b) => ({
+            id: b.id,
+            task_id: b.task_id ?? null,
+            client_id: b.client_id ?? undefined,
+            provider_id: b.provider_id ?? undefined,
+            status: b.status,
+            created_at: b.created_at,
+        }));
+        const disputes = ((disputesRes.error ? [] : disputesRes.data) ?? []).map((d) => ({ id: d.id, status: d.status, created_at: d.created_at }));
+        const safeLedgerData = ledgerRes.error ? [] : ledgerRes.data;
+        const ledgerRows = Array.isArray(safeLedgerData) ? safeLedgerData : (safeLedgerData ? [safeLedgerData] : []);
         const ledgerActivity = ledgerRows.map((r) => ({
             id: r.journal_id ?? r.id,
             amount_cents: r.amount_cents,

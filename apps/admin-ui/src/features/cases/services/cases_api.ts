@@ -2,6 +2,7 @@ import { request } from '../../../lib/api';
 import type {
   AdminCase,
   AdminCaseDetail,
+  AdminCasesHeroSeries,
   AdminCaseCreateInput,
   AdminCaseAttachEntityInput,
   AdminCaseAssignInput,
@@ -10,10 +11,23 @@ import type {
 } from '@sline/shared';
 
 export const casesApi = {
-  listCases: async (params: { page?: number; limit?: number } = {}) => {
+  listCases: async (params: {
+    page?: number;
+    limit?: number;
+    q?: string;
+    status?: string;
+    priority?: string;
+    source?: string;
+    sort?: 'created_desc' | 'created_asc';
+  } = {}) => {
     const search = new URLSearchParams();
     if (params.page != null) search.append('page', String(params.page));
     if (params.limit != null) search.append('limit', String(params.limit));
+    if (params.q) search.append('q', params.q);
+    if (params.status) search.append('status', params.status);
+    if (params.priority) search.append('priority', params.priority);
+    if (params.source) search.append('source', params.source);
+    if (params.sort) search.append('sort', params.sort);
     const res = await request<{
       cases: AdminCase[];
       total: number;
@@ -22,6 +36,15 @@ export const casesApi = {
       totalPages?: number;
     }>('GET', `/cases?${search.toString()}`);
     if (!res.ok) throw new Error(res.error?.message ?? 'Failed to fetch cases');
+    return res.data;
+  },
+
+  getCasesAnalytics: async (params: { window?: '7d' } = {}) => {
+    const search = new URLSearchParams();
+    if (params.window) search.append('window', params.window);
+    const qs = search.toString();
+    const res = await request<AdminCasesHeroSeries>('GET', `/cases/analytics${qs ? `?${qs}` : ''}`);
+    if (!res.ok) throw new Error(res.error?.message ?? 'Failed to fetch cases analytics');
     return res.data;
   },
 

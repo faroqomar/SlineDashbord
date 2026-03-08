@@ -6,6 +6,10 @@ import type {
   CloseReportInput,
   DismissReportInput,
   EscalateReportInput,
+  CreateReportInput,
+  CreateReportResponse,
+  ReportsTrendResponse,
+  ReportsKpisResponse,
   ReportSeverity,
   ReportStatus,
   ReportEntityType,
@@ -17,6 +21,7 @@ export type ListReportsParams = {
   severity?: ReportSeverity;
   assigned_admin_id?: string;
   assigned_to_me?: boolean;
+  q?: string;
   page?: number;
   limit?: number;
 };
@@ -29,6 +34,12 @@ export type ListReportsResponse = {
 };
 
 export const reportsApi = {
+  create: async (body: CreateReportInput): Promise<CreateReportResponse> => {
+    const res = await request<CreateReportResponse>('POST', '/reports', body);
+    if (!res.ok) throw new Error(res.error?.message ?? 'Create report failed');
+    return res.data;
+  },
+
   list: async (params: ListReportsParams = {}): Promise<ListReportsResponse> => {
     const search = new URLSearchParams();
     Object.entries(params).forEach(([k, v]) => {
@@ -36,6 +47,18 @@ export const reportsApi = {
     });
     const res = await request<ListReportsResponse>('GET', `/reports?${search.toString()}`);
     if (!res.ok) throw new Error(res.error?.message ?? 'Failed to fetch reports');
+    return res.data;
+  },
+
+  getTrends: async (window: '7d' = '7d'): Promise<ReportsTrendResponse> => {
+    const res = await request<ReportsTrendResponse>('GET', `/reports/trends?window=${window}`);
+    if (!res.ok) throw new Error(res.error?.message ?? 'Failed to fetch report trends');
+    return res.data;
+  },
+
+  getKpis: async (window: '7d' = '7d'): Promise<ReportsKpisResponse> => {
+    const res = await request<ReportsKpisResponse>('GET', `/reports/kpis?window=${window}`);
+    if (!res.ok) throw new Error(res.error?.message ?? 'Failed to fetch report KPIs');
     return res.data;
   },
 

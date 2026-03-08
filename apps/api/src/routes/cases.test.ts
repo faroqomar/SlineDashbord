@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { buildApp, type TestUser } from '../app.js';
+import { AdminCasesHeroSeriesSchema } from '@sline/shared';
 
 if (!process.env.SUPABASE_URL) process.env.SUPABASE_URL = 'https://placeholder.supabase.co';
 if (!process.env.SUPABASE_SERVICE_ROLE_KEY) process.env.SUPABASE_SERVICE_ROLE_KEY = 'placeholder-key';
@@ -37,6 +38,83 @@ describe('PAGE 08 — Cases API', () => {
         expect(typeof body.data?.total).toBe('number');
       } else {
         expect(body.error?.code).toBe('DATABASE_ERROR');
+      }
+    });
+
+    it('returns 400 for invalid sort query', async () => {
+      const res = await app.inject({ method: 'GET', url: '/api/v1/cases?sort=updated_desc' });
+      expect(res.statusCode).toBe(400);
+      const body = JSON.parse(res.body);
+      expect(body.ok).toBe(false);
+      expect(body.error?.code).toBe('VALIDATION_ERROR');
+    });
+
+    it('returns 400 for invalid status query', async () => {
+      const res = await app.inject({ method: 'GET', url: '/api/v1/cases?status=triaged' });
+      expect(res.statusCode).toBe(400);
+      const body = JSON.parse(res.body);
+      expect(body.ok).toBe(false);
+      expect(body.error?.code).toBe('VALIDATION_ERROR');
+    });
+
+    it('accepts server-side filter params and returns paged payload (or 500 if DB/tables missing)', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/api/v1/cases?page=1&limit=10&q=test&status=open&priority=high&source=reports&sort=created_asc',
+      });
+      expect([200, 500]).toContain(res.statusCode);
+      const body = JSON.parse(res.body);
+      if (res.statusCode === 200) {
+        expect(body.ok).toBe(true);
+        expect(Array.isArray(body.data?.cases)).toBe(true);
+      } else {
+        expect(body.error?.code).toBe('DATABASE_ERROR');
+      }
+    });
+  });
+
+  describe('GET /api/v1/cases/analytics', () => {
+    it('returns 401 when no auth', async () => {
+      const noAuthApp = await buildApp();
+      const res = await noAuthApp.inject({ method: 'GET', url: '/api/v1/cases/analytics' });
+      await noAuthApp.close();
+      expect(res.statusCode).toBe(401);
+    });
+
+    it('returns 403 when role is not allowed', async () => {
+      const noAccessUser: TestUser = { id: '00000000-0000-0000-0000-000000000010', role: 'viewer' };
+      const noAccessApp = await buildApp({ testUser: noAccessUser });
+      const res = await noAccessApp.inject({ method: 'GET', url: '/api/v1/cases/analytics' });
+      await noAccessApp.close();
+      expect(res.statusCode).toBe(403);
+      const body = JSON.parse(res.body);
+      expect(body.ok).toBe(false);
+      expect(body.error?.code).toBe('FORBIDDEN');
+    });
+
+    it('returns 400 for invalid analytics query', async () => {
+      const res = await app.inject({ method: 'GET', url: '/api/v1/cases/analytics?window=24h' });
+      expect(res.statusCode).toBe(400);
+      const body = JSON.parse(res.body);
+      expect(body.ok).toBe(false);
+      expect(body.error?.code).toBe('VALIDATION_ERROR');
+    });
+
+    it('returns 200 with ordered deterministic buckets', async () => {
+      const res = await app.inject({ method: 'GET', url: '/api/v1/cases/analytics?window=7d' });
+      expect(res.statusCode).toBe(200);
+      const body = JSON.parse(res.body);
+      expect(body.ok).toBe(true);
+
+      const parsed = AdminCasesHeroSeriesSchema.safeParse(body.data);
+      expect(parsed.success).toBe(true);
+      if (parsed.success) {
+        expect(parsed.data.opened).toHaveLength(7);
+        expect(parsed.data.closed).toHaveLength(7);
+        for (let index = 1; index < parsed.data.opened.length; index += 1) {
+          expect(parsed.data.opened[index - 1].bucket_start < parsed.data.opened[index].bucket_start).toBe(true);
+          expect(parsed.data.closed[index - 1].bucket_start < parsed.data.closed[index].bucket_start).toBe(true);
+        }
       }
     });
   });

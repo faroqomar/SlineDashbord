@@ -21,6 +21,8 @@ export const AdminCaseSchema = z.object({
     source: z.string().optional(),
     status: z.union([CaseStatusEnum, z.string()]).optional(),
     priority: z.union([CasePriorityEnum, z.string()]).optional(),
+    case_code: z.string().optional(),
+    links_count: z.number().int().nonnegative().optional(),
     created_at: z.string(),
     updated_at: z.string().optional(),
     assignee_id: z.string().uuid().nullable().optional(),
@@ -42,6 +44,16 @@ export const AdminCaseAttachEntityInputSchema = z.object({
     entity_type: CaseEntityTypeSchema,
     entity_id: uuid,
 });
+/** Safe query contract for server-side list filtering/sorting. */
+export const AdminCasesListQuerySchema = z.object({
+    page: z.coerce.number().int().min(1).default(1),
+    limit: z.coerce.number().int().min(1).max(100).default(10),
+    q: z.string().trim().max(200).optional(),
+    status: z.enum(['all', 'open', 'in_progress', 'escalated', 'closed']).default('all'),
+    priority: z.enum(['all', 'low', 'medium', 'high', 'critical']).default('all'),
+    source: z.string().trim().max(100).default('all'),
+    sort: z.enum(['created_desc', 'created_asc']).default('created_desc'),
+});
 /** List response for GET /cases */
 export const AdminCaseListResponseSchema = z.object({
     cases: z.array(AdminCaseSchema),
@@ -49,6 +61,36 @@ export const AdminCaseListResponseSchema = z.object({
     page: z.number(),
     limit: z.number(),
     totalPages: z.number().optional(),
+});
+/** Query string for hero analytics chart. */
+export const AdminCasesAnalyticsQuerySchema = z.object({
+    window: z.enum(['7d']).default('7d'),
+});
+/** Single analytics point for a day bucket. */
+export const AdminCasesAnalyticsPointSchema = z.object({
+    bucket_start: z.string().datetime({ offset: true }),
+    value: z.number().int().nonnegative(),
+});
+/** KPI ids rendered on the cases page cards. */
+export const AdminCasesKpiIdSchema = z.enum(['total', 'open', 'in_progress', 'escalated']);
+/** KPI trend directions for visual indicators. */
+export const AdminCasesKpiTrendSchema = z.enum(['up', 'down', 'neutral']);
+/** Live KPI trend payload used by Cases KPI cards. */
+export const AdminCasesKpiItemSchema = z.object({
+    id: AdminCasesKpiIdSchema,
+    value: z.number().int().nonnegative(),
+    delta: z.string(),
+    trend: AdminCasesKpiTrendSchema,
+    sparkline: z.array(z.number().int().nonnegative()).length(7),
+});
+/** Hero chart payload for opened vs closed cases. */
+export const AdminCasesHeroSeriesSchema = z.object({
+    window: z.literal('7d'),
+    opened: z.array(AdminCasesAnalyticsPointSchema).length(7),
+    closed: z.array(AdminCasesAnalyticsPointSchema).length(7),
+    kpis: z.array(AdminCasesKpiItemSchema).length(4),
+    is_stale: z.boolean().optional(),
+    generated_at: z.string().datetime({ offset: true }).optional(),
 });
 /** Attached entity row in case detail. */
 export const AdminCaseEntitySchema = z.object({

@@ -304,7 +304,14 @@ export function DisputeDetailScreen() {
 
             {/* Resolution Dialog */}
             <Dialog open={vm.isResolving} onOpenChange={vm.setIsResolving}>
-                <DialogContent className="sm:max-w-[500px] glass-card !border-none shadow-2xl">
+                <DialogContent className="sm:max-w-[500px] !border-none shadow-2xl p-0 overflow-hidden bg-transparent">
+                    {/* Solid backing layer so the panel is never transparent */}
+                    <div
+                        className="absolute inset-0 rounded-lg -z-10"
+                        style={{ backgroundColor: 'hsl(var(--background))' }}
+                        aria-hidden
+                    />
+                    <div className="relative grid gap-4 p-6">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-3 text-xl font-black italic">
                             <Scale className="h-6 w-6 text-primary" />
@@ -373,6 +380,7 @@ export function DisputeDetailScreen() {
                             {vm.isResolvingAction ? "Executing Decision..." : "Execute Case Resolution"}
                         </Button>
                     </DialogFooter>
+                    </div>
                 </DialogContent>
             </Dialog>
         </div>
