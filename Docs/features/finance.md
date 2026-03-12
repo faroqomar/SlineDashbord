@@ -85,7 +85,7 @@ Component → ViewModel (useXxxVM) → mutations.ts → ServiceResult<T> → toa
 | Type                 | File               | Purpose                            |
 | -------------------- | ------------------ | ---------------------------------- | -------------------------- |
 | `JournalLedgerEntry` | `finance.model.ts` | Row from `vw_admin_journal_ledger` |
-| `PlatformMetrics`    | `finance.model.ts` | Platform cash, escrow, revenue     |
+| `PlatformMetrics`    | `finance.model.ts` | Separated user-held liabilities vs company-owned funds |
 | `WithdrawalRequest`  | `finance.model.ts` | Withdrawal request row             |
 | `WalletSummary`      | `finance.model.ts` | User wallet balances               |
 | `TransactionFilters` | `finance.model.ts` | Query filter interface             |
@@ -139,7 +139,7 @@ Component → ViewModel (useXxxVM) → mutations.ts → ServiceResult<T> → toa
 | View                            | Purpose                                             |
 | ------------------------------- | --------------------------------------------------- |
 | `vw_admin_journal_ledger`       | Flattened journal entries with amounts and metadata |
-| `vw_financial_metrics_realtime` | Aggregated platform cash, escrow, revenue           |
+| `vw_financial_metrics_realtime` | Raw ledger-derived cash, escrow, and fee balances used to derive user-held vs company-owned summaries |
 | `vw_wallet_balances_user`       | Per-user wallet balances                            |
 | `vw_wallet_activity_user`       | Per-user transaction history                        |
 
@@ -227,6 +227,18 @@ All use Zod from `packages/shared`, `requireAdminRole` in preHandler, and return
 - [ ] Withdrawal batch processing
 - [ ] Advanced filters (date range, amount range)
 - [ ] Chart visualizations for revenue trends
+
+## Accounting Separation Rule
+
+- **User-held funds** include escrow, wallet balances, and pending withdrawals. They are liabilities owed to users and must never be shown as company revenue or company balance.
+- **Company-owned funds** come only from platform fees / commissions.
+- The finance dashboard now exposes:
+  - `userFunds.held_in_escrow`
+  - `userFunds.total_wallet_balances`
+  - `userFunds.total_owed_to_users`
+  - `companyFunds.total_fee_revenue`
+  - `companyFunds.net_platform_earnings`
+  - `companyFunds.actual_company_owned_balance`
 
 ---
 

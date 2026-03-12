@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { BookingAnalyticsSeriesQuerySchema, BookingAnalyticsSeriesSchema, BookingListQuerySchema, BookingListResponseSchema, AdminBookingCancelInputSchema, AdminBookingRefundInputSchema, failure, success, } from '@sline/shared';
+import { BookingAnalyticsSeriesQuerySchema, BookingAnalyticsSeriesSchema, BookingAnalyticsKpisSchema, BookingListQuerySchema, BookingListResponseSchema, AdminBookingCancelInputSchema, AdminBookingRefundInputSchema, failure, success, } from '@sline/shared';
 import { requireAdminRole } from '../middleware/rbac.js';
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 const BOOKING_LIST_ROLES = ['moderator', 'admin', 'super_admin'];
@@ -44,6 +44,45 @@ function buildStaleAnalyticsPayload(bucketStarts) {
         updated_at: new Date().toISOString(),
         is_stale: true,
     };
+}
+function buildStaleKpisPayload() {
+    const empty = Array.from({ length: 7 }, () => 0);
+    return {
+        window: '7d',
+        currency: 'IQD',
+        cards: [
+            { id: 'total_bookings', value: 0, delta: 0, sparkline: [...empty], tone: 'violet' },
+            { id: 'completed', value: 0, delta: 0, sparkline: [...empty], tone: 'green' },
+            { id: 'revenue', value: 0, delta: 0, sparkline: [...empty], tone: 'amber' },
+            { id: 'canceled', value: 0, delta: 0, sparkline: [...empty], tone: 'red' },
+        ],
+        updated_at: new Date().toISOString(),
+        is_stale: true,
+    };
+}
+function formatBookingCode(id) {
+    return `BK-${id.replace(/-/g, '').slice(0, 6).toUpperCase()}`;
+}
+function shortName(name) {
+    const value = (name ?? '').trim();
+    if (!value)
+        return null;
+    return value.split(/\s+/)[0] ?? value;
+}
+function normalizeSearchValue(value) {
+    return (value ?? '').toLowerCase();
+}
+function resolveOrder(sort) {
+    if (sort === 'created_asc')
+        return { column: 'created_at', ascending: true };
+    if (sort === 'price_desc')
+        return { column: 'price', ascending: false };
+    if (sort === 'price_asc')
+        return { column: 'price', ascending: true };
+    return { column: 'created_at', ascending: false };
+}
+function isUuidLike(value) {
+    return /^[0-9a-f-]{36}$/i.test(value);
 }
 export default async function bookingsRoutes(fastify) {
     /**
@@ -114,6 +153,134 @@ export default async function bookingsRoutes(fastify) {
         return reply.send(success(validated.data));
     });
     /**
+     * GET /analytics/kpis — KPI cards with trend and sparkline (last 7 days)
+     */
+    fastify.get('/analytics/kpis', { preHandler: [requireAdminRole(BOOKING_LIST_ROLES)] }, async (_request, reply) => {
+        const now = new Date();
+        const todayUtcStart = toUtcDayStart(now);
+        const currentStart = new Date(todayUtcStart.getTime() - (BOOKING_ANALYTICS_BUCKETS - 1) * DAY_MS);
+        const previousStart = new Date(currentStart.getTime() - BOOKING_ANALYTICS_BUCKETS * DAY_MS);
+        const endUtcExclusive = new Date(todayUtcStart.getTime() + DAY_MS);
+        const currentBuckets = buildDailyBucketStarts(currentStart, BOOKING_ANALYTICS_BUCKETS);
+        const previousBuckets = buildDailyBucketStarts(previousStart, BOOKING_ANALYTICS_BUCKETS);
+        const currentIndexByBucket = new Map(currentBuckets.map((bucket, index) => [bucket, index]));
+        const previousIndexByBucket = new Map(previousBuckets.map((bucket, index) => [bucket, index]));
+        const rowsRes = await supabase
+            .from('bookings')
+            .select('created_at, status, payment_status, price, completed_at, delivered_at')
+            .gte('created_at', previousStart.toISOString())
+            .lt('created_at', endUtcExclusive.toISOString());
+        if (rowsRes.error) {
+            fastify.log.warn({ route: '/api/v1/bookings/analytics/kpis' }, 'Booking KPI query failed; returning stale fallback cards');
+            return reply.send(success(buildStaleKpisPayload()));
+        }
+        const mkSeries = () => Array.from({ length: BOOKING_ANALYTICS_BUCKETS }, () => 0);
+        const current = {
+            total_bookings: mkSeries(),
+            completed: mkSeries(),
+            revenue: mkSeries(),
+            canceled: mkSeries(),
+        };
+        const previous = {
+            total_bookings: mkSeries(),
+            completed: mkSeries(),
+            revenue: mkSeries(),
+            canceled: mkSeries(),
+        };
+        for (const row of rowsRes.data ?? []) {
+            const createdBucket = toBucketStartIso(row.created_at);
+            const completedAt = row.completed_at ?? row.delivered_at;
+            const completedBucket = toBucketStartIso(completedAt);
+            const price = Number(row.price ?? 0) || 0;
+            const isCanceled = String(row.status ?? '') === 'canceled';
+            const isRevenue = String(row.payment_status ?? '') === 'released';
+            const currentCreatedIndex = createdBucket ? currentIndexByBucket.get(createdBucket) : undefined;
+            const previousCreatedIndex = createdBucket ? previousIndexByBucket.get(createdBucket) : undefined;
+            const currentCompletedIndex = completedBucket ? currentIndexByBucket.get(completedBucket) : undefined;
+            const previousCompletedIndex = completedBucket ? previousIndexByBucket.get(completedBucket) : undefined;
+            if (currentCreatedIndex != null) {
+                current.total_bookings[currentCreatedIndex] += 1;
+                if (isCanceled)
+                    current.canceled[currentCreatedIndex] += 1;
+                if (isRevenue)
+                    current.revenue[currentCreatedIndex] += Math.max(0, price);
+            }
+            else if (previousCreatedIndex != null) {
+                previous.total_bookings[previousCreatedIndex] += 1;
+                if (isCanceled)
+                    previous.canceled[previousCreatedIndex] += 1;
+                if (isRevenue)
+                    previous.revenue[previousCreatedIndex] += Math.max(0, price);
+            }
+            if (currentCompletedIndex != null) {
+                current.completed[currentCompletedIndex] += 1;
+            }
+            else if (previousCompletedIndex != null) {
+                previous.completed[previousCompletedIndex] += 1;
+            }
+        }
+        const sum = (values) => values.reduce((acc, value) => acc + value, 0);
+        const deltaPct = (currentValue, previousValue) => {
+            if (previousValue <= 0)
+                return currentValue > 0 ? 100 : 0;
+            return Number((((currentValue - previousValue) / previousValue) * 100).toFixed(1));
+        };
+        const totals = {
+            total_bookings: sum(current.total_bookings),
+            completed: sum(current.completed),
+            revenue: sum(current.revenue),
+            canceled: sum(current.canceled),
+        };
+        const previousTotals = {
+            total_bookings: sum(previous.total_bookings),
+            completed: sum(previous.completed),
+            revenue: sum(previous.revenue),
+            canceled: sum(previous.canceled),
+        };
+        const payload = {
+            window: '7d',
+            currency: 'IQD',
+            cards: [
+                {
+                    id: 'total_bookings',
+                    value: totals.total_bookings,
+                    delta: deltaPct(totals.total_bookings, previousTotals.total_bookings),
+                    sparkline: current.total_bookings,
+                    tone: 'violet',
+                },
+                {
+                    id: 'completed',
+                    value: totals.completed,
+                    delta: deltaPct(totals.completed, previousTotals.completed),
+                    sparkline: current.completed,
+                    tone: 'green',
+                },
+                {
+                    id: 'revenue',
+                    value: totals.revenue,
+                    delta: deltaPct(totals.revenue, previousTotals.revenue),
+                    sparkline: current.revenue,
+                    tone: 'amber',
+                },
+                {
+                    id: 'canceled',
+                    value: totals.canceled,
+                    delta: deltaPct(totals.canceled, previousTotals.canceled),
+                    sparkline: current.canceled,
+                    tone: 'red',
+                },
+            ],
+            updated_at: now.toISOString(),
+            is_stale: false,
+        };
+        const validated = BookingAnalyticsKpisSchema.safeParse(payload);
+        if (!validated.success) {
+            fastify.log.error({ err: validated.error }, 'Booking KPI response validation failed');
+            return reply.status(500).send(failure('INTERNAL_ERROR', 'Failed to build booking KPI response'));
+        }
+        return reply.send(success(validated.data));
+    });
+    /**
      * GET / — List bookings (paginated, optional status filter)
      */
     fastify.get('/', { preHandler: [requireAdminRole(BOOKING_LIST_ROLES)] }, async (request, reply) => {
@@ -121,20 +288,105 @@ export default async function bookingsRoutes(fastify) {
         if (!query.success) {
             return reply.status(400).send(failure('VALIDATION_ERROR', 'Invalid query', query.error.format()));
         }
-        const { page, pageSize, status } = query.data;
+        const { page, pageSize, status, q, sort } = query.data;
         const from = (page - 1) * pageSize;
         const to = from + pageSize - 1;
+        const normalizedQ = normalizeSearchValue(q);
+        const order = resolveOrder(sort);
         let builder = supabase
             .from('bookings')
             .select('id, task_id, client_id, provider_id, status, payment_status, price, created_at, completed_at, delivered_at', { count: 'exact' })
-            .range(from, to)
-            .order('created_at', { ascending: false });
+            .order(order.column, { ascending: order.ascending });
         if (status)
             builder = builder.eq('status', status);
+        if (!normalizedQ)
+            builder = builder.range(from, to);
         const { data: rows, error, count } = await builder;
         if (error)
             return reply.status(500).send(failure('DATABASE_ERROR', error.message));
-        const bookings = (rows || []).map((r) => ({
+        const baseRows = rows ?? [];
+        const taskIds = Array.from(new Set(baseRows.map((row) => row.task_id).filter(Boolean)));
+        const profileIds = Array.from(new Set(baseRows
+            .flatMap((row) => [row.client_id, row.provider_id])
+            .filter(Boolean)));
+        const [tasksRes, profilesRes] = await Promise.all([
+            taskIds.length > 0
+                ? supabase.from('tasks').select('id, title, category').in('id', taskIds)
+                : Promise.resolve({ data: [], error: null }),
+            profileIds.length > 0
+                ? supabase.from('profiles').select('id, full_name').in('id', profileIds)
+                : Promise.resolve({ data: [], error: null }),
+        ]);
+        if (tasksRes.error)
+            return reply.status(500).send(failure('DATABASE_ERROR', tasksRes.error.message));
+        if (profilesRes.error)
+            return reply.status(500).send(failure('DATABASE_ERROR', profilesRes.error.message));
+        const tasksById = new Map((tasksRes.data ?? []).map((row) => [row.id, row]));
+        const profilesById = new Map((profilesRes.data ?? []).map((row) => [row.id, row]));
+        const enrichedRows = baseRows.map((r) => {
+            const task = r.task_id ? tasksById.get(r.task_id) : null;
+            const clientProfile = profilesById.get(r.client_id);
+            const providerProfile = profilesById.get(r.provider_id);
+            return {
+                id: r.id,
+                task_id: r.task_id ?? null,
+                client_id: r.client_id,
+                provider_id: r.provider_id,
+                status: r.status,
+                payment_status: r.payment_status ?? null,
+                price: r.price ?? null,
+                created_at: r.created_at,
+                completed_at: r.completed_at ?? null,
+                delivered_at: r.delivered_at ?? null,
+                booking_code: formatBookingCode(r.id),
+                service_title: task?.title ?? null,
+                category_label: task?.category ?? null,
+                client_display_name: clientProfile?.full_name ?? null,
+                provider_display_name: providerProfile?.full_name ?? null,
+                provider_short_name: shortName(providerProfile?.full_name) ?? null,
+            };
+        });
+        const searchedRows = normalizedQ
+            ? enrichedRows.filter((row) => {
+                const searchable = [
+                    row.id,
+                    row.task_id,
+                    row.client_id,
+                    row.provider_id,
+                    row.booking_code,
+                    row.service_title,
+                    row.category_label,
+                    row.client_display_name,
+                    row.provider_display_name,
+                    row.provider_short_name,
+                ]
+                    .map((value) => normalizeSearchValue(typeof value === 'string' ? value : null))
+                    .join(' ');
+                if (!normalizedQ)
+                    return true;
+                if (isUuidLike(normalizedQ))
+                    return searchable.includes(normalizedQ);
+                return searchable.includes(normalizedQ);
+            })
+            : enrichedRows;
+        const sortedRows = [...searchedRows].sort((a, b) => {
+            if (sort === 'price_desc' || sort === 'price_asc') {
+                const av = a.price ?? 0;
+                const bv = b.price ?? 0;
+                if (av !== bv)
+                    return sort === 'price_asc' ? av - bv : bv - av;
+            }
+            else {
+                const av = new Date(a.created_at).getTime();
+                const bv = new Date(b.created_at).getTime();
+                if (av !== bv)
+                    return sort === 'created_asc' ? av - bv : bv - av;
+            }
+            return a.id.localeCompare(b.id);
+        });
+        const pagedRows = normalizedQ ? sortedRows.slice(from, to + 1) : sortedRows;
+        const resolvedCount = normalizedQ ? sortedRows.length : (count ?? sortedRows.length);
+        const bookings = pagedRows.map((r) => ({
             id: r.id,
             task_id: r.task_id ?? null,
             client_id: r.client_id,
@@ -145,11 +397,17 @@ export default async function bookingsRoutes(fastify) {
             created_at: r.created_at,
             completed_at: r.completed_at ?? null,
             delivered_at: r.delivered_at ?? null,
+            booking_code: r.booking_code ?? null,
+            service_title: r.service_title ?? null,
+            category_label: r.category_label ?? null,
+            client_display_name: r.client_display_name ?? null,
+            provider_display_name: r.provider_display_name ?? null,
+            provider_short_name: r.provider_short_name ?? null,
         }));
         const payload = {
             bookings,
-            count: count ?? 0,
-            totalPages: count ? Math.ceil(count / pageSize) : 0,
+            count: resolvedCount,
+            totalPages: resolvedCount > 0 ? Math.ceil(resolvedCount / pageSize) : 0,
         };
         const parsed = BookingListResponseSchema.safeParse(payload);
         if (!parsed.success)

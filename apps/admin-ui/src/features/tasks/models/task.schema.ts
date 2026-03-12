@@ -25,6 +25,8 @@ export interface TaskDTO {
   deadline?: string;
   category?: string;
   task_type?: 'tender' | 'booking';
+  /** From backend when available; otherwise use mock fallback in table/App View. */
+  offers_count?: number;
   client: {
     id: string;
     full_name: string;

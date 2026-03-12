@@ -13,7 +13,8 @@ export interface UseTransactionTraceVM {
 // ─── Hook ─────────────────────────────────────────────────
 export function useTransactionTraceVM(
   journalId: string,
-  open: boolean
+  open: boolean,
+  reveal = false
 ): UseTransactionTraceVM {
   const [data, setData] = useState<JournalLedgerEntry | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -24,7 +25,7 @@ export function useTransactionTraceVM(
     if (open && journalId) {
       setIsLoading(true);
       setError(null);
-      financeApi.getTransactionDetails(journalId)
+      financeApi.getTransactionDetail(journalId, reveal)
         .then(data => {
           setData(data);
           setIsUnmasked(!!data.meta_full && Object.keys(data.meta_full).length > 0);
@@ -32,7 +33,7 @@ export function useTransactionTraceVM(
         .catch(err => setError(err instanceof Error ? err.message : 'Unknown error'))
         .finally(() => setIsLoading(false));
     }
-  }, [journalId, open]);
+  }, [journalId, open, reveal]);
 
   return { data, isLoading, error, isUnmasked };
 }

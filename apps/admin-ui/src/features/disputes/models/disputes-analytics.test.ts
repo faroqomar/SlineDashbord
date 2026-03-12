@@ -14,33 +14,26 @@ function makeDispute(partial: Partial<DisputeDTO>): DisputeDTO {
   return {
     id: partial.id ?? nextId(),
     task_id: partial.task_id ?? nextId(),
-    task_title: partial.task_title ?? 'Task',
     complainant: partial.complainant ?? {
       id: nextId(),
       full_name: 'Complainant',
       avatar_url: '',
-      email: 'a@example.com',
-      role: 'client',
     },
     defendant: partial.defendant ?? {
       id: nextId(),
       full_name: 'Defendant',
       avatar_url: '',
-      email: 'b@example.com',
-      role: 'provider',
     },
     reason: partial.reason ?? 'Reason',
     status: partial.status ?? 'open',
-    amount: partial.amount ?? 0,
     created_at: partial.created_at ?? now.toISOString(),
+    updated_at: partial.updated_at ?? now.toISOString(),
+    amount: partial.amount ?? 0,
     resolved_at: partial.resolved_at,
-    resolution: partial.resolution,
     category: partial.category,
     severity: partial.severity,
     comments_count: partial.comments_count,
-    task: partial.task,
-    messages: partial.messages,
-    evidence: partial.evidence,
+    task: partial.task ?? { id: nextId(), title: 'Task', budget: 0 },
   };
 }
 
@@ -49,7 +42,7 @@ describe('buildDisputesAnalytics', () => {
     const disputes: DisputeDTO[] = [
       makeDispute({ created_at: '2026-03-09T08:00:00.000Z', status: 'open', amount: 100 }),
       makeDispute({ created_at: '2026-03-08T08:00:00.000Z', resolved_at: '2026-03-10T09:00:00.000Z', status: 'resolved', amount: 200 }),
-      makeDispute({ created_at: '2026-03-07T08:00:00.000Z', status: 'in_progress', amount: 300 }),
+      makeDispute({ created_at: '2026-03-07T08:00:00.000Z', status: 'active', amount: 300 }),
       makeDispute({ created_at: '2026-03-01T08:00:00.000Z', status: 'open', amount: 150 }),
       makeDispute({ created_at: '2026-02-28T08:00:00.000Z', resolved_at: '2026-03-02T09:00:00.000Z', status: 'resolved', amount: 250 }),
     ];

@@ -6,7 +6,7 @@ describe('getDashboardPulseItems', () => {
     const items = getDashboardPulseItems(
       {
         activeUsers: 100,
-        platformRevenue: 2000,
+        feeRevenue: 2000,
         openDisputes: 4,
         activeJobs: 12,
       },

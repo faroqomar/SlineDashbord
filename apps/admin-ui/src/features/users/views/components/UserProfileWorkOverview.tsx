@@ -7,13 +7,14 @@ import {
   Clock3,
   ShieldAlert,
 } from 'lucide-react';
-import type { JournalLedgerEntry, WalletSummary } from '@/features/finance/models/finance.model';
+import type { WalletSummary } from '@/features/finance/models/finance.model';
+import { getWalletActivityAmount } from '@/features/finance/models/finance.model';
+import type { WalletActivityEntry } from '@sline/shared';
 import {
   buildBookingBuckets,
   buildTenderBuckets,
   buildWalletSummaryValues,
   formatProfileDate,
-  getLedgerAmount,
   type UserProfileBookingItem,
   type UserProfileBucket,
   type UserProfileTenderItem,
@@ -26,7 +27,7 @@ interface UserProfileWorkOverviewProps {
   isInvestigationLoading: boolean;
   investigationError: string | null;
   wallet: WalletSummary | null;
-  walletTimeline: JournalLedgerEntry[];
+  walletTimeline: WalletActivityEntry[];
   isWalletLoading: boolean;
   walletError: string | null;
 }
@@ -136,7 +137,7 @@ function WalletSummarySection({
   error,
 }: {
   wallet: WalletSummary | null;
-  timeline: JournalLedgerEntry[];
+  timeline: WalletActivityEntry[];
   isLoading: boolean;
   error: string | null;
 }) {
@@ -178,7 +179,7 @@ function WalletSummarySection({
             ) : (
               <ul className="space-y-2">
                 {timeline.slice(0, 8).map((entry) => (
-                  <li key={entry.journal_id} className="rounded-[10px] border border-[#1f2532] bg-[#0b0f17] p-2.5">
+                  <li key={entry.journal_entry_id} className="rounded-[10px] border border-[#1f2532] bg-[#0b0f17] p-2.5">
                     <div className="flex items-center justify-between gap-2">
                       <span className="max-w-[220px] truncate text-sm font-medium text-[#d8e9ff]">
                         {entry.event_type}
@@ -189,7 +190,7 @@ function WalletSummarySection({
                     </div>
                     <div className="mt-1 flex items-center justify-between gap-2 text-xs text-[#9d9588]">
                       <span>{formatProfileDate(entry.created_at)}</span>
-                      <span>{getLedgerAmount(entry)}</span>
+                      <span>{getWalletActivityAmount(entry)}</span>
                     </div>
                   </li>
                 ))}

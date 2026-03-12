@@ -4,7 +4,7 @@ export interface Dispute {
   initiator_id: string;
   respondent_id: string;
   reason: string;
-  status: 'open' | 'under_review' | 'resolved' | 'closed';
+  status: 'open' | 'active' | 'resolved' | 'canceled';
   resolution?: string;
   created_at: string;
   updated_at: string;

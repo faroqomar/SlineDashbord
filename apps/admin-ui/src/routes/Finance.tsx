@@ -1,58 +1,32 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Link, useRouteContext } from '@tanstack/react-router';
-import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
+import { Link } from '@tanstack/react-router';
+import { request } from '@/lib/api';
 import {
   ArrowDownCircle,
-  ArrowDownRight,
-  ArrowUpRight,
   Banknote,
   CircleDollarSign,
   History,
   Landmark,
+  Percent,
   PlusCircle,
   Receipt,
   RefreshCw,
   Search,
+  Wallet,
 } from 'lucide-react';
 import { financeApi } from '../features/finance/services/finance_api';
 import type { JournalLedgerEntry, WithdrawalRequest } from '../features/finance/models/finance.model';
 import { TopUpApprovalDialog } from '../features/finance/components/TopUpApprovalDialog';
+import { PlatformFeeCard } from '../features/finance/components/PlatformFeeCard';
+import { TransactionTraceDrawer } from '../features/finance/components/TransactionTraceDrawer';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-
-type TrendTone = 'up' | 'down' | 'flat';
-
-const MOCK_REVENUE_EXPENSE_DATA = [
-  { month: 'Sep', revenue: 12000, expenses: 8000 },
-  { month: 'Oct', revenue: 28000, expenses: 15000 },
-  { month: 'Nov', revenue: 19000, expenses: 11000 },
-  { month: 'Dec', revenue: 36000, expenses: 18000 },
-  { month: 'Jan', revenue: 42000, expenses: 22000 },
-  { month: 'Feb', revenue: 56000, expenses: 29000 },
-  { month: 'Mar', revenue: 23000, expenses: 13000 },
-];
-
-const MOCK_DAILY_VOLUME_DATA = [
-  { day: 'Mon', value: 8200 },
-  { day: 'Tue', value: 6400 },
-  { day: 'Wed', value: 9100 },
-  { day: 'Thu', value: 7300 },
-  { day: 'Fri', value: 11400 },
-  { day: 'Sat', value: 5900 },
-  { day: 'Sun', value: 3200 },
-];
+import { Badge } from '@/components/ui/badge';
+type JournalLedgerEntityCompat = JournalLedgerEntry & {
+  related_entity_type?: string | null;
+  related_entity_id?: string | null;
+};
 
 function formatIqd(value?: number): string {
   return `IQD ${(value ?? 0).toLocaleString()}`;
@@ -89,12 +63,6 @@ function getStatusPillClass(status: string): string {
   return 'bg-[rgba(24,26,38,0.9)] text-[#b1aaa0]';
 }
 
-function getTrendClass(tone: TrendTone): string {
-  if (tone === 'down') return 'bg-[#220c0c] text-[#f04d4d]';
-  if (tone === 'flat') return 'bg-[rgba(24,26,38,0.9)] text-[#b1aaa0]';
-  return 'bg-[#08190e] text-[#4ae081]';
-}
-
 function getUserLabel(tx: JournalLedgerEntry): string {
   const candidate = tx.payee_user_id ?? tx.payer_user_id;
   return candidate ? `${candidate.slice(0, 8)}...` : 'System';
@@ -103,6 +71,27 @@ function getUserLabel(tx: JournalLedgerEntry): string {
 function getUserInitials(value: string): string {
   if (value.length < 2) return value.toUpperCase();
   return `${value[0]}${value[1]}`.toUpperCase();
+}
+
+function getEntityType(tx: JournalLedgerEntityCompat): string | null {
+  return tx.entity_type ?? tx.related_entity_type ?? null;
+}
+
+function getEntityId(tx: JournalLedgerEntityCompat): string | null {
+  return tx.entity_id ?? tx.related_entity_id ?? null;
+}
+
+function formatProfitSource(tx: JournalLedgerEntityCompat): string {
+  const entityType = getEntityType(tx);
+  if (entityType === 'booking') return 'Booking';
+  if (entityType === 'task_request') return 'Task';
+  return formatEventType(entityType ?? 'unknown');
+}
+
+function getProfitEntityLabel(tx: JournalLedgerEntityCompat): string {
+  const prefix = formatProfitSource(tx);
+  const suffix = getEntityId(tx)?.slice(0, 8) ?? 'unknown';
+  return `${prefix} ${suffix}...`;
 }
 
 function FinanceDashboardSkeleton() {
@@ -126,11 +115,121 @@ function FinanceDashboardSkeleton() {
   );
 }
 
+function HeadlineFinanceCard({
+  icon,
+  eyebrow,
+  title,
+  value,
+  description,
+}: {
+  icon: React.ReactNode;
+  eyebrow: string;
+  title: string;
+  value: string;
+  description: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-black/15 px-5 py-5">
+      <div className="flex items-center gap-3">
+        <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
+          {icon}
+        </div>
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#9edfff]">{eyebrow}</p>
+          <h3 className="text-base font-semibold text-[#e8e6e3]">{title}</h3>
+        </div>
+      </div>
+      <p className="mt-4 text-4xl font-bold tracking-tight text-[#f6f4f1]">{value}</p>
+      <p className="mt-2 text-sm text-[#b9b2a8]">{description}</p>
+    </div>
+  );
+}
+
+function FinanceRealityPanel({
+  icon,
+  eyebrow,
+  title,
+  description,
+  toneClass,
+  metrics,
+}: {
+  icon: React.ReactNode;
+  eyebrow: string;
+  title: string;
+  description: string;
+  toneClass: string;
+  metrics: Array<{ label: string; value: string; hint: string; emphasized?: boolean }>;
+}) {
+  return (
+    <div className={`overflow-hidden rounded-2xl border p-5 ${toneClass}`}>
+      <div className="flex items-start gap-3">
+        <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
+          {icon}
+        </div>
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#b1aaa0]">{eyebrow}</p>
+          <h3 className="mt-1 text-xl font-semibold text-[#f6f4f1]">{title}</h3>
+          <p className="mt-2 text-sm text-[#c5beb2]">{description}</p>
+        </div>
+      </div>
+
+      <div className="mt-5 grid gap-3 md:grid-cols-3">
+        {metrics.map((metric) => (
+          <div
+            key={metric.label}
+            className={`rounded-2xl border px-4 py-4 ${
+              metric.emphasized
+                ? 'border-white/15 bg-white/[0.06]'
+                : 'border-white/10 bg-black/20'
+            }`}
+          >
+            <p className="text-[11px] uppercase tracking-[0.12em] text-[#9d9588]">{metric.label}</p>
+            <p className="mt-2 text-2xl font-semibold text-[#f6f4f1]">{metric.value}</p>
+            <p className="mt-2 text-xs text-[#b1aaa0]">{metric.hint}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CompactFinanceCard({
+  icon,
+  label,
+  value,
+  hint,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  hint: string;
+}) {
+  return (
+    <div className="rounded-xl border border-[#7f7668] bg-[#0e0f13] p-4">
+      <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-white/5">
+        {icon}
+      </div>
+      <p className="text-[11px] uppercase tracking-[0.12em] text-[#9d9588]">{label}</p>
+      <p className="mt-2 text-3xl font-bold tracking-tight text-[#e8e6e3]">{value}</p>
+      <p className="mt-2 text-xs text-[#7f7668]">{hint}</p>
+    </div>
+  );
+}
+
 export function FinancePage() {
-  const routeContext = useRouteContext({ from: '__root__' });
-  const userRole = ((routeContext as any).user?.role ?? '') as string;
-  const canRequestTopUp = userRole === 'admin' || userRole === 'super_admin';
   const [isTopUpDialogOpen, setIsTopUpDialogOpen] = React.useState(false);
+  const [selectedJournalId, setSelectedJournalId] = React.useState<string | null>(null);
+
+  const meQuery = useQuery({
+    queryKey: ['auth', 'me'],
+    queryFn: async () => {
+      const res = await request<{ user: { role?: string } }>('GET', '/auth/me');
+      if (!res.ok) return { user: { role: '' } };
+      return res.data ?? { user: { role: '' } };
+    },
+  });
+  const userRole = (meQuery.data?.user?.role ?? '') as string;
+  const canRequestTopUp = userRole === 'admin' || userRole === 'super_admin';
 
   const metricsQuery = useQuery({
     queryKey: ['finance', 'metrics'],
@@ -142,13 +241,40 @@ export function FinancePage() {
     queryFn: () => financeApi.getTransactions({ limit: 10 }),
   });
 
+  const profitFeedQuery = useQuery({
+    queryKey: ['finance', 'dashboard', 'profit-feed'],
+    queryFn: () => financeApi.getTransactions({ event_type: 'release_with_fee', limit: 40 }),
+  });
+
   const withdrawalsQuery = useQuery({
     queryKey: ['finance', 'dashboard', 'withdrawals'],
     queryFn: () => financeApi.getWithdrawals({ limit: 5 }),
   });
 
+  const feeSettingsQuery = useQuery({
+    queryKey: ['finance', 'fee-settings'],
+    queryFn: () => financeApi.getFeeSettings(),
+  });
+
   const metrics = metricsQuery.data;
   const recentTransactions = transactionsQuery.data?.data ?? [];
+  const profitEntries = React.useMemo(
+    () =>
+      (profitFeedQuery.data?.data ?? []).filter(
+        (tx) => {
+          const entityType = getEntityType(tx as JournalLedgerEntityCompat);
+          return (
+            (entityType === 'booking' || entityType === 'task_request') &&
+            Number(tx.fee_amount ?? 0) > 0
+          );
+        }
+      ),
+    [profitFeedQuery.data]
+  );
+  const profitFeeTotal = React.useMemo(
+    () => profitEntries.reduce((sum, tx) => sum + Number(tx.fee_amount ?? 0), 0),
+    [profitEntries]
+  );
   const withdrawalQueue = withdrawalsQuery.data?.data ?? [];
   const pendingWithdrawalCount = withdrawalQueue.filter(
     (item) => item.status === 'requested' || item.status === 'processing'
@@ -162,8 +288,17 @@ export function FinancePage() {
   const hasError = metricsQuery.isError || transactionsQuery.isError || withdrawalsQuery.isError;
 
   const refreshAll = () => {
-    void Promise.all([metricsQuery.refetch(), transactionsQuery.refetch(), withdrawalsQuery.refetch()]);
+    void Promise.all([
+      metricsQuery.refetch(),
+      transactionsQuery.refetch(),
+      profitFeedQuery.refetch(),
+      withdrawalsQuery.refetch(),
+      feeSettingsQuery.refetch(),
+    ]);
   };
+
+  const canEditFee = userRole === 'super_admin';
+  const [feeEditOpen, setFeeEditOpen] = React.useState(false);
 
   if (isInitialLoading) return <FinanceDashboardSkeleton />;
 
@@ -178,7 +313,7 @@ export function FinancePage() {
       <section className="relative overflow-hidden rounded-2xl border border-[#7c7365] bg-[linear-gradient(165deg,#05151D_0%,#0C1222_40%,#081520_100%)] p-6">
         <div className="pointer-events-none absolute -right-14 -top-12 h-48 w-48 rounded-full bg-[#0677a9]/20 blur-3xl" />
         <div className="pointer-events-none absolute -left-12 bottom-[-32px] h-32 w-32 rounded-full bg-[#1b9e4b]/20 blur-3xl" />
-        <div className="relative z-10 space-y-5">
+        <div className="relative z-10 space-y-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-start gap-4">
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[linear-gradient(133deg,rgba(6,119,169,0.19)_0%,rgba(27,158,75,0.13)_100%)] shadow-[0_0_24px_rgba(6,119,169,0.09)]">
@@ -186,8 +321,8 @@ export function FinancePage() {
               </div>
               <div>
                 <h2 className="text-3xl font-bold tracking-tight text-[#e8e6e3]">Finance Dashboard</h2>
-                <p className="mt-1 text-sm text-[#afa89d]">
-                  Platform revenue, escrow, transactions & withdrawal management
+                <p className="mt-1 max-w-3xl text-sm text-[#afa89d]">
+                  User-held wallet liabilities and platform-owned earnings are shown separately. Held wallet money is never treated as company revenue.
                 </p>
               </div>
             </div>
@@ -218,22 +353,6 @@ export function FinancePage() {
                   <Search className="mr-2 h-3.5 w-3.5" /> User Wallets
                 </Link>
               </Button>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-4 rounded-2xl border border-[rgba(48,52,54,0.25)] bg-[rgba(24,26,27,0.2)] px-4 py-4 md:flex-row md:items-center md:justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[rgba(6,119,169,0.12)]">
-                <CircleDollarSign className="h-5 w-5 text-[#42c0f8]" />
-              </div>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#6bd1ff]">Available Platform Cash</p>
-                <p className="mt-1 text-4xl font-bold tracking-tight text-[#e8e6e3]">
-                  {formatIqd(metrics?.platform_cash)}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
               <Button
                 type="button"
                 variant="outline"
@@ -241,120 +360,167 @@ export function FinancePage() {
                 disabled={!canRequestTopUp}
                 className="h-10 rounded-xl border-[rgba(27,158,76,0.3)] bg-[rgba(27,158,75,0.08)] text-[#4ae081] disabled:opacity-80"
               >
-                <PlusCircle className="mr-2 h-3.5 w-3.5" /> Top-up
+                <PlusCircle className="mr-2 h-3.5 w-3.5" /> Wallet adjust
               </Button>
-              <Button
-                type="button"
-                variant="outline"
-                disabled
-                className="h-10 rounded-xl border-[rgba(169,72,4,0.3)] bg-[rgba(190,81,5,0.08)] text-[#fa7f2a] disabled:opacity-80"
-              >
-                <ArrowDownCircle className="mr-2 h-3.5 w-3.5" /> Payout
-              </Button>
-              <Badge variant="outline" className="border-[#7f7668] bg-[rgba(24,26,27,0.35)] text-[#b1aaa0]">Payout mock</Badge>
+              {canEditFee && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setFeeEditOpen(true)}
+                  className="h-10 rounded-xl border-[rgba(156,125,249,0.4)] bg-[rgba(34,5,118,0.12)] text-[#9c7df9] hover:bg-[rgba(34,5,118,0.2)]"
+                >
+                  <Percent className="mr-2 h-3.5 w-3.5" /> Platform fee
+                </Button>
+              )}
             </div>
           </div>
 
+          <div className="grid gap-4 md:grid-cols-2">
+            <HeadlineFinanceCard
+              icon={<Wallet className="h-5 w-5 text-[#72cffc]" />}
+              eyebrow="Money We Hold For Users"
+              title="Total money owed to users"
+              value={formatIqd(metrics?.userFunds.total_owed_to_users)}
+              description="Wallet balances plus escrow liabilities. This is not company money."
+            />
+            <HeadlineFinanceCard
+              icon={<Banknote className="h-5 w-5 text-[#4ae081]" />}
+              eyebrow="Money We Actually Own"
+              title="Actual company-owned balance"
+              value={formatIqd(metrics?.companyFunds.actual_company_owned_balance)}
+              description="Derived after excluding all user-owned liabilities from platform cash."
+            />
+          </div>
         </div>
+      </section>
+
+      <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <FinanceRealityPanel
+          icon={<CircleDollarSign className="h-5 w-5 text-[#72cffc]" />}
+          eyebrow="User-Held Funds"
+          title="User liabilities"
+          description="These balances belong to clients or providers and must stay isolated from company performance."
+          toneClass="border-sky-500/30 bg-[linear-gradient(180deg,rgba(8,32,48,0.96)_0%,#0e0f13_100%)]"
+          metrics={[
+            {
+              label: 'Held client funds',
+              value: formatIqd(metrics?.userFunds.held_in_escrow),
+              hint: 'Escrow currently locked in work/payment flows',
+            },
+            {
+              label: 'Total wallet balances',
+              value: formatIqd(metrics?.userFunds.total_wallet_balances),
+              hint: 'Available plus pending-withdrawal user wallet balances',
+            },
+            {
+              label: 'Total owed to users',
+              value: formatIqd(metrics?.userFunds.total_owed_to_users),
+              hint: 'All user-owned money the platform is holding',
+              emphasized: true,
+            },
+          ]}
+        />
+
+        <FinanceRealityPanel
+          icon={<Landmark className="h-5 w-5 text-[#4ae081]" />}
+          eyebrow="Company Funds"
+          title="Platform-owned money"
+          description="Only fees and commissions contribute to company earnings in this ledger model."
+          toneClass="border-emerald-500/30 bg-[linear-gradient(180deg,rgba(7,34,21,0.96)_0%,#0e0f13_100%)]"
+          metrics={[
+            {
+              label: 'Total fee revenue',
+              value: formatIqd(metrics?.companyFunds.total_fee_revenue),
+              hint: 'Lifetime fees and commissions captured by the platform',
+            },
+            {
+              label: 'Net platform earnings',
+              value: formatIqd(metrics?.companyFunds.net_platform_earnings),
+              hint: 'Ledger earnings attributable to the company',
+            },
+            {
+              label: 'Actual company-owned balance',
+              value: formatIqd(metrics?.companyFunds.actual_company_owned_balance),
+              hint: 'Company money after removing all user liabilities',
+              emphasized: true,
+            },
+          ]}
+        />
       </section>
 
       <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="relative overflow-hidden rounded-xl border border-[#7f7668] bg-[#0e0f13] p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[rgba(27,158,75,0.09)]">
-              <ArrowUpRight className="h-4 w-4 text-[#4ae081]" />
-            </div>
-            <Badge className={`${getTrendClass('up')} border-none`}>+18% (Mock)</Badge>
-          </div>
-          <p className="text-[11px] uppercase tracking-[0.12em] text-[#9d9588]">Lifetime Revenue</p>
-          <p className="mt-1 text-4xl font-bold tracking-tight text-[#e8e6e3]">{formatIqd(metrics?.lifetime_revenue)}</p>
-        </div>
-        <div className="relative overflow-hidden rounded-xl border border-[#7f7668] bg-[#0e0f13] p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[rgba(195,126,8,0.09)]">
-              <Banknote className="h-4 w-4 text-[#f6a823]" />
-            </div>
-            <Badge className={`${getTrendClass('up')} border-none`}>0% (Mock)</Badge>
-          </div>
-          <p className="text-[11px] uppercase tracking-[0.12em] text-[#9d9588]">Escrow Held</p>
-          <p className="mt-1 text-4xl font-bold tracking-tight text-[#e8e6e3]">{formatIqd(metrics?.escrow_held)}</p>
-        </div>
-        <div className="relative overflow-hidden rounded-xl border border-[#7f7668] bg-[#0e0f13] p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[rgba(5,67,145,0.09)]">
-              <History className="h-4 w-4 text-[#5eb1fa]" />
-            </div>
-            <Badge className={`${getTrendClass('up')} border-none`}>+12 (Mock)</Badge>
-          </div>
-          <p className="text-[11px] uppercase tracking-[0.12em] text-[#9d9588]">Transactions</p>
-          <p className="mt-1 text-4xl font-bold tracking-tight text-[#e8e6e3]">{recentTransactions.length}</p>
-        </div>
-        <div className="relative overflow-hidden rounded-xl border border-[#7f7668] bg-[#0e0f13] p-4">
-          <div className="mb-3 flex items-center justify-between">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[rgba(34,5,118,0.09)]">
-              <ArrowDownRight className="h-4 w-4 text-[#9c7df9]" />
-            </div>
-            <Badge className={`${getTrendClass('down')} border-none`}>+3 (Mock)</Badge>
-          </div>
-          <p className="text-[11px] uppercase tracking-[0.12em] text-[#9d9588]">Withdrawals</p>
-          <p className="mt-1 text-4xl font-bold tracking-tight text-[#e8e6e3]">{withdrawalQueue.length}</p>
-        </div>
+        <CompactFinanceCard
+          icon={<Receipt className="h-4 w-4 text-[#5eb1fa]" />}
+          label="Recent transactions loaded"
+          value={String(recentTransactions.length)}
+          hint="Latest ledger rows in this dashboard view"
+        />
+        <CompactFinanceCard
+          icon={<ArrowDownCircle className="h-4 w-4 text-[#f6a823]" />}
+          label="Pending withdrawals"
+          value={String(pendingWithdrawalCount)}
+          hint="Requests waiting for processing or completion"
+        />
+        <CompactFinanceCard
+          icon={<Banknote className="h-4 w-4 text-[#9c7df9]" />}
+          label="Visible fee income"
+          value={formatIqd(profitFeeTotal)}
+          hint="Fee-bearing releases visible in the profit feed below"
+        />
+        <PlatformFeeCard
+          feeSettings={feeSettingsQuery.data}
+          isLoading={feeSettingsQuery.isLoading}
+          canEdit={canEditFee}
+          onUpdated={() => void feeSettingsQuery.refetch()}
+          editOpen={feeEditOpen}
+          onEditOpenChange={setFeeEditOpen}
+        />
       </section>
 
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-[2fr_1fr]">
-        <div className="rounded-xl border border-[#7f7668] bg-[#0e0f13] p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-[#e8e6e3]">Revenue vs Expenses</h3>
-              <p className="text-sm text-[#9d9588]">Last 7 months platform financials</p>
+        <div className="overflow-hidden rounded-xl border border-[#7f7668] bg-[#0e0f13]">
+          <div className="flex items-center justify-between border-b border-[#81786a] px-5 py-4">
+            <div className="flex items-center gap-2">
+              <Percent className="h-4 w-4 text-[#9c7df9]" />
+              <div>
+                <h3 className="text-base font-semibold text-[#e8e6e3]">Company Fee Revenue Feed</h3>
+                <p className="text-xs text-[#9d9588]">Only platform-owned fees from booking and task releases</p>
+              </div>
             </div>
-            <Badge variant="outline" className="border-[#7f7668] bg-[rgba(24,26,27,0.35)] text-[#b1aaa0]">
-              Mock
-            </Badge>
+            <div className="text-right">
+              <p className="text-[10px] uppercase tracking-[0.12em] text-[#9d9588]">Visible company fees</p>
+              <p className="text-lg font-bold text-[#9c7df9]">{formatIqd(profitFeeTotal)}</p>
+            </div>
           </div>
-          <div className="h-[230px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={MOCK_REVENUE_EXPENSE_DATA}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(157,149,136,0.32)" />
-                <XAxis dataKey="month" tick={{ fill: '#9e9589', fontSize: 11 }} tickLine={false} axisLine={false} />
-                <YAxis tick={{ fill: '#9e9589', fontSize: 11 }} tickLine={false} axisLine={false} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#12151c', border: '1px solid #7f7668', borderRadius: '10px', color: '#e8e6e3' }}
-                />
-                <Area type="monotone" dataKey="revenue" stroke="#00f6a1" fill="rgba(27,158,75,0.15)" strokeWidth={2} />
-                <Area type="monotone" dataKey="expenses" stroke="#ff4055" fill="rgba(159,14,14,0.12)" strokeWidth={2} />
-              </AreaChart>
-            </ResponsiveContainer>
+          <div className="max-h-[360px] overflow-y-auto">
+            {profitEntries.length > 0 ? (
+              profitEntries.map((tx) => (
+                <div
+                  key={tx.journal_id}
+                  className="grid cursor-pointer grid-cols-[1.6fr_auto_auto] items-center gap-3 border-b border-[#81786a] px-5 py-3 text-xs transition-colors hover:bg-[rgba(255,255,255,0.03)] last:border-b-0"
+                  onClick={() => setSelectedJournalId(tx.journal_id)}
+                >
+                  <div>
+                    <p className="font-medium text-[#d9d6d1]">{getProfitEntityLabel(tx)}</p>
+                    <p className="mt-1 text-[#b1aaa0]">{new Date(tx.created_at).toLocaleString()}</p>
+                  </div>
+                  <span className="w-fit rounded px-2 py-1 text-[10px] font-medium bg-[rgba(34,5,118,0.12)] text-[#9c7df9]">
+                    {formatProfitSource(tx)}
+                  </span>
+                  <p className="font-semibold text-[#9c7df9]">
+                    +{Number(tx.fee_amount).toLocaleString()}
+                    <span className="ml-0.5 font-normal text-[#b1aaa0]">IQD</span>
+                  </p>
+                </div>
+              ))
+            ) : (
+              <div className="px-5 py-10 text-center text-sm text-[#9d9588]">
+                No booking or task profit fees found.
+              </div>
+            )}
           </div>
         </div>
 
-        <div className="rounded-xl border border-[#7f7668] bg-[#0e0f13] p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-[#e8e6e3]">Daily Volume</h3>
-              <p className="text-sm text-[#9d9588]">Transaction volume this week</p>
-            </div>
-            <Badge variant="outline" className="border-[#7f7668] bg-[rgba(24,26,27,0.35)] text-[#b1aaa0]">
-              Mock
-            </Badge>
-          </div>
-          <div className="h-[230px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={MOCK_DAILY_VOLUME_DATA}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(157,149,136,0.32)" />
-                <XAxis dataKey="day" tick={{ fill: '#9e9589', fontSize: 11 }} tickLine={false} axisLine={false} />
-                <YAxis tick={{ fill: '#9e9589', fontSize: 11 }} tickLine={false} axisLine={false} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#12151c', border: '1px solid #7f7668', borderRadius: '10px', color: '#e8e6e3' }}
-                />
-                <Bar dataKey="value" fill="#0b87b6" radius={[5, 5, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </section>
-
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-[2fr_1fr]">
         <div className="overflow-hidden rounded-xl border border-[#7f7668] bg-[#0e0f13]">
           <div className="flex items-center justify-between border-b border-[#81786a] px-5 py-4">
             <div className="flex items-center gap-2">
@@ -373,7 +539,11 @@ export function FinancePage() {
                 const amountClass = isPositive ? 'text-[#4ae081]' : 'text-[#f04d4d]';
                 const amountPrefix = isPositive ? '+' : '';
                 return (
-                  <div key={tx.journal_id} className="grid grid-cols-[1.8fr_auto_auto_auto_auto] items-center gap-3 border-b border-[#81786a] px-5 py-3 text-xs last:border-b-0">
+                  <div
+                    key={tx.journal_id}
+                    className="grid cursor-pointer grid-cols-[1.8fr_auto_auto_auto_auto] items-center gap-3 border-b border-[#81786a] px-5 py-3 text-xs transition-colors hover:bg-[rgba(255,255,255,0.03)] last:border-b-0"
+                    onClick={() => setSelectedJournalId(tx.journal_id)}
+                  >
                     <div>
                       <p className="font-medium text-[#d9d6d1]">{formatEventType(tx.event_type)}</p>
                       <p className="mt-1 text-[#b1aaa0]">{new Date(tx.created_at).toLocaleString()}</p>
@@ -452,6 +622,15 @@ export function FinancePage() {
           refreshAll();
         }}
       />
+      {selectedJournalId ? (
+        <TransactionTraceDrawer
+          journalId={selectedJournalId}
+          open={Boolean(selectedJournalId)}
+          onOpenChange={(open) => {
+            if (!open) setSelectedJournalId(null);
+          }}
+        />
+      ) : null}
     </div>
   );
 }

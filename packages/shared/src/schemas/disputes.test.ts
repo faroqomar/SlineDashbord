@@ -1,11 +1,41 @@
 import { describe, expect, it } from 'vitest';
-import { CreateDisputeInputSchema } from './disputes.js';
+import {
+  CreateDisputeInputSchema,
+  DisputeStatusEnum,
+  GetDisputesSchema,
+  AdminCancelDisputeInputSchema,
+  AdminResolveDisputeInputSchema,
+  AdminAcceptDisputeInputSchema,
+  DisputeTabCountsSchema,
+  DisputeActionAvailabilitySchema,
+  DisputeQueueRowSchema,
+} from './disputes.js';
 
 const validUuidA = '00000000-0000-0000-0000-000000000001';
 const validUuidB = '00000000-0000-0000-0000-000000000002';
 const validUuidTask = '00000000-0000-0000-0000-000000000010';
+const validDisputeId = '00000000-0000-0000-0000-000000000099';
 
 describe('disputes schemas', () => {
+  describe('DisputeStatusEnum', () => {
+    it('accepts only open, active, resolved, canceled', () => {
+      expect(DisputeStatusEnum.safeParse('open').success).toBe(true);
+      expect(DisputeStatusEnum.safeParse('active').success).toBe(true);
+      expect(DisputeStatusEnum.safeParse('resolved').success).toBe(true);
+      expect(DisputeStatusEnum.safeParse('canceled').success).toBe(true);
+      expect(DisputeStatusEnum.safeParse('in_progress').success).toBe(false);
+      expect(DisputeStatusEnum.safeParse('escalated').success).toBe(false);
+    });
+  });
+
+  describe('GetDisputesSchema', () => {
+    it('accepts status all, open, active, resolved, canceled', () => {
+      expect(GetDisputesSchema.safeParse({ page: 1, status: 'all', limit: 10 }).success).toBe(true);
+      expect(GetDisputesSchema.safeParse({ page: 1, status: 'active', limit: 20 }).success).toBe(true);
+      expect(GetDisputesSchema.safeParse({ page: 1, status: 'canceled' }).success).toBe(true);
+    });
+  });
+
   describe('CreateDisputeInputSchema', () => {
     it('accepts valid payload', () => {
       const result = CreateDisputeInputSchema.safeParse({
@@ -38,6 +68,69 @@ describe('disputes schemas', () => {
       });
 
       expect(result.success).toBe(false);
+    });
+  });
+
+  describe('AdminCancelDisputeInputSchema', () => {
+    it('requires reason', () => {
+      expect(AdminCancelDisputeInputSchema.safeParse({ dispute_id: validDisputeId, reason: 'Dismissed by admin' }).success).toBe(true);
+      expect(AdminCancelDisputeInputSchema.safeParse({ dispute_id: validDisputeId }).success).toBe(false);
+      expect(AdminCancelDisputeInputSchema.safeParse({ dispute_id: validDisputeId, reason: '' }).success).toBe(false);
+    });
+  });
+
+  describe('AdminResolveDisputeInputSchema', () => {
+    it('accepts reason and optional outcome and booking_id', () => {
+      expect(AdminResolveDisputeInputSchema.safeParse({ dispute_id: validDisputeId, reason: 'Resolved' }).success).toBe(true);
+      expect(AdminResolveDisputeInputSchema.safeParse({
+        dispute_id: validDisputeId,
+        reason: 'Refund client',
+        outcome: 'refund_client',
+        booking_id: validUuidA,
+      }).success).toBe(true);
+    });
+    it('rejects empty reason', () => {
+      expect(AdminResolveDisputeInputSchema.safeParse({ dispute_id: validDisputeId, reason: '' }).success).toBe(false);
+    });
+  });
+
+  describe('AdminAcceptDisputeInputSchema', () => {
+    it('accepts dispute_id only', () => {
+      expect(AdminAcceptDisputeInputSchema.safeParse({ dispute_id: validDisputeId }).success).toBe(true);
+    });
+  });
+
+  describe('DisputeTabCountsSchema', () => {
+    it('parses tab counts', () => {
+      const result = DisputeTabCountsSchema.safeParse({ all: 10, open: 2, active: 3, resolved: 4, canceled: 1 });
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('DisputeActionAvailabilitySchema', () => {
+    it('parses action availability', () => {
+      const result = DisputeActionAvailabilitySchema.safeParse({
+        can_accept: true,
+        can_cancel: true,
+        can_resolve: false,
+        requires_booking_id: false,
+      });
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('DisputeQueueRowSchema', () => {
+    it('parses minimal queue row', () => {
+      const result = DisputeQueueRowSchema.safeParse({
+        id: validDisputeId,
+        task_id: validUuidTask,
+        status: 'open',
+        reason: 'Test',
+        created_at: '2026-01-01T00:00:00Z',
+        complainant: { id: validUuidA, full_name: 'A' },
+        defendant: { id: validUuidB, full_name: 'B' },
+      });
+      expect(result.success).toBe(true);
     });
   });
 });

@@ -38,9 +38,21 @@ describe('dashboard schemas', () => {
       data: {
         stats: {
           activeUsers: 42,
-          platformRevenue: 10500,
+          feeRevenue: 10500,
           openDisputes: 3,
           activeJobs: 9,
+        },
+        financeSummary: {
+          userFunds: {
+            heldInEscrow: 6000,
+            totalWalletBalances: 2400,
+            totalOwedToUsers: 8400,
+          },
+          companyFunds: {
+            totalFeeRevenue: 10500,
+            netPlatformEarnings: 10500,
+            actualCompanyOwnedBalance: 10500,
+          },
         },
         pulse: {
           openReports: 3,
@@ -54,7 +66,7 @@ describe('dashboard schemas', () => {
         },
         kpiTrends: {
           activeUsers: { direction: 'up', deltaPercent: 12.4, label: '+12.4%' },
-          platformRevenue: { direction: 'flat', deltaPercent: 0, label: 'No change' },
+          feeRevenue: { direction: 'flat', deltaPercent: 0, label: 'No change' },
           activeJobs: { direction: 'down', deltaPercent: -4.2, label: '-4.2%' },
           openDisputes: { direction: 'flat', deltaPercent: 0, label: 'No change' },
           comparisonWindow: 'last 30d vs previous 30d',

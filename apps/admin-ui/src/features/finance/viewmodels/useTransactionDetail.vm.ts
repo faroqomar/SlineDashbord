@@ -5,7 +5,7 @@ import { financeApi } from '../services/finance_api';
 import type { JournalLedgerEntry } from '../models/finance.model';
 
 export interface UseTransactionDetailVM {
-  detail: (JournalLedgerEntry & Record<string, unknown>) | null;
+  detail: JournalLedgerEntry | null;
   loading: boolean;
   error: string | null;
   load: (journalId: string, reveal?: boolean) => Promise<void>;
@@ -13,7 +13,7 @@ export interface UseTransactionDetailVM {
 }
 
 export function useTransactionDetailVM(): UseTransactionDetailVM {
-  const [detail, setDetail] = useState<(JournalLedgerEntry & Record<string, unknown>) | null>(null);
+  const [detail, setDetail] = useState<JournalLedgerEntry | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

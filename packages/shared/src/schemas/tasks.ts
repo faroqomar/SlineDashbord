@@ -24,6 +24,8 @@ export interface TaskDTO {
   deadline?: string;
   category?: string;
   task_type?: 'tender' | 'booking';
+  /** Admin list: count of task_requests (bids) for this task. Optional until backend rollout. */
+  offers_count?: number;
   client: {
     id: string;
     full_name: string;

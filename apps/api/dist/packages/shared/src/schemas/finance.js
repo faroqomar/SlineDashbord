@@ -105,3 +105,48 @@ export const WalletSummarySchema = z.object({
     currency: z.string(),
     is_wallet_frozen: z.boolean().optional(),
 });
+/** Wallet activity row from vw_wallet_activity_user. Use this (not JournalLedgerEntry) for wallet activity; preserves spent semantics e.g. gateway_escrow. */
+export const WalletActivityEntrySchema = z.object({
+    journal_entry_id: z.string().uuid(),
+    created_at: z.string(),
+    event_type: z.string(),
+    amount_gross: z.number(),
+    amount_net: z.number(),
+    fee_amount: z.number(),
+    currency: z.string(),
+    related_entity_type: z.string().nullable().optional(),
+    related_entity_id: z.string().uuid().nullable().optional(),
+    counterparty_user_id: z.string().uuid().nullable().optional(),
+    status: z.string(),
+    user_id: z.string().uuid().optional(),
+});
+// --- Finance workflow (read-only) ---
+export const WORKFLOW_BUCKETS = ['delivered_awaiting_client', 'disputed_money', 'stuck_direct_offer', 'held_funds', 'withdrawals_pending'];
+export const FinanceWorkflowOverviewSchema = z.object({
+    platform_cash: z.number(),
+    escrow_held: z.number(),
+    delivered_awaiting_count: z.number().optional(),
+    disputed_count: z.number().optional(),
+    stuck_direct_offer_count: z.number().optional(),
+    pending_withdrawals_count: z.number().optional(),
+    /** True when counts are stub (not yet from real queries). */
+    stub: z.boolean().optional(),
+});
+export const FinanceWorkflowCaseSchema = z.object({
+    entityType: z.string(),
+    entityId: z.string().uuid(),
+    bucket: z.enum(WORKFLOW_BUCKETS),
+    summary: z.string().optional(),
+    amount_cents: z.number().optional(),
+    created_at: z.string().optional(),
+});
+export const FinanceWorkflowCaseDetailSchema = z.object({
+    entityType: z.string(),
+    entityId: z.string().uuid(),
+    bucket: z.enum(WORKFLOW_BUCKETS),
+    state: z.record(z.unknown()).optional(),
+    journal_links: z.array(z.object({ journal_id: z.string().uuid(), event_type: z.string() })).optional(),
+    payer_user_id: z.string().uuid().nullable().optional(),
+    payee_user_id: z.string().uuid().nullable().optional(),
+    available_actions: z.array(z.string()).optional(),
+});

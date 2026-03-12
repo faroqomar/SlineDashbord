@@ -9,7 +9,9 @@ import {
   Clock,
   ArrowUpRight,
   Activity,
-  RefreshCw
+  Landmark,
+  RefreshCw,
+  Wallet
 } from 'lucide-react';
 import { useDashboardViewModel } from '../features/dashboard/viewmodels/use_dashboard_viewmodel';
 import { 
@@ -41,7 +43,7 @@ export function DashboardIndex() {
   const chartGrid = isDark ? CHART_GRID_DARK : CHART_GRID_LIGHT;
   const tooltipBg = '#1e293b';
 
-  const { stats, pulse, kpiTrends, recentActivity, revenueHistory, userGrowth, isLoading, error } = useDashboardViewModel();
+  const { stats, financeSummary, pulse, kpiTrends, recentActivity, revenueHistory, userGrowth, isLoading, error } = useDashboardViewModel();
   const pulseItems = getDashboardPulseItems(stats, pulse);
   const now = new Date();
   const nowTime = now.toLocaleTimeString();
@@ -93,9 +95,9 @@ export function DashboardIndex() {
         />
         <StatCard 
           icon={<DollarSign className="text-emerald-600 dark:text-emerald-400" size={24} />} 
-          label="Total Revenue" 
-          value={stats ? `${Number(stats.platformRevenue).toLocaleString()} IQD` : undefined} 
-          trend={getDashboardKpiTrendLabel(kpiTrends?.platformRevenue)}
+          label="Fee Revenue Only" 
+          value={stats ? `${Number(stats.feeRevenue).toLocaleString()} IQD` : undefined} 
+          trend={getDashboardKpiTrendLabel(kpiTrends?.feeRevenue)}
           isLoading={isLoading}
         />
         <StatCard 
@@ -111,6 +113,54 @@ export function DashboardIndex() {
           value={stats?.openDisputes.toString()} 
           trend={getDashboardKpiTrendLabel(kpiTrends?.openDisputes)}
           isLoading={isLoading}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <FinancialRealityCard
+          icon={<Wallet className="h-5 w-5 text-sky-300" />}
+          eyebrow="User Money We Hold"
+          title="Platform-held user funds"
+          description="These balances belong to clients or providers. They are liabilities, not company revenue."
+          accentClass="from-sky-500/20 to-cyan-400/5"
+          metrics={[
+            {
+              label: 'Held in escrow',
+              value: financeSummary ? formatIqd(financeSummary.userFunds.heldInEscrow) : '--',
+            },
+            {
+              label: 'Wallet balances',
+              value: financeSummary ? formatIqd(financeSummary.userFunds.totalWalletBalances) : '--',
+            },
+            {
+              label: 'Total owed to users',
+              value: financeSummary ? formatIqd(financeSummary.userFunds.totalOwedToUsers) : '--',
+              emphasized: true,
+            },
+          ]}
+        />
+
+        <FinancialRealityCard
+          icon={<Landmark className="h-5 w-5 text-emerald-300" />}
+          eyebrow="Company Money We Own"
+          title="Platform-owned funds"
+          description="Company funds come only from fees and commissions captured by the platform."
+          accentClass="from-emerald-500/20 to-lime-400/5"
+          metrics={[
+            {
+              label: 'Total fee revenue',
+              value: financeSummary ? formatIqd(financeSummary.companyFunds.totalFeeRevenue) : '--',
+            },
+            {
+              label: 'Net platform earnings',
+              value: financeSummary ? formatIqd(financeSummary.companyFunds.netPlatformEarnings) : '--',
+            },
+            {
+              label: 'Actual company-owned balance',
+              value: financeSummary ? formatIqd(financeSummary.companyFunds.actualCompanyOwnedBalance) : '--',
+              emphasized: true,
+            },
+          ]}
         />
       </div>
 
@@ -139,8 +189,8 @@ export function DashboardIndex() {
         <div className="glass-card min-h-[455px] p-6 lg:col-span-5">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h3 className="text-lg font-bold text-foreground">Revenue Dynamics</h3>
-              <p className="text-xs text-muted-foreground">Monthly platform earnings · IQD</p>
+              <h3 className="text-lg font-bold text-foreground">Fee Revenue Trend</h3>
+              <p className="text-xs text-muted-foreground">Monthly platform fee revenue only · IQD</p>
             </div>
             <div className="flex gap-2">
               <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/15 dark:bg-emerald-500/10 px-2 py-1 rounded-full uppercase tracking-tighter border border-emerald-500/20">
@@ -243,6 +293,62 @@ export function DashboardIndex() {
               <div className="p-4 text-center text-xs italic text-muted-foreground">No recent activity found.</div>
             )}
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function formatIqd(value: number): string {
+  return `${Number(value).toLocaleString()} IQD`;
+}
+
+function FinancialRealityCard({
+  icon,
+  eyebrow,
+  title,
+  description,
+  accentClass,
+  metrics,
+}: {
+  icon: React.ReactNode;
+  eyebrow: string;
+  title: string;
+  description: string;
+  accentClass: string;
+  metrics: Array<{ label: string; value: string; emphasized?: boolean }>;
+}) {
+  return (
+    <div className="relative overflow-hidden rounded-2xl border border-[#7f7668] bg-[linear-gradient(180deg,#10141d_0%,#0d1017_100%)] p-5">
+      <div className={`pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b ${accentClass}`} />
+      <div className="relative z-10">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#b8b1a5]">{eyebrow}</p>
+            <h3 className="mt-2 text-xl font-semibold text-white">{title}</h3>
+            <p className="mt-2 max-w-xl text-sm text-slate-300">{description}</p>
+          </div>
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
+            {icon}
+          </div>
+        </div>
+
+        <div className="mt-6 grid gap-3 sm:grid-cols-3">
+          {metrics.map((metric) => (
+            <div
+              key={metric.label}
+              className={`rounded-2xl border px-4 py-4 ${
+                metric.emphasized
+                  ? 'border-white/15 bg-white/[0.06]'
+                  : 'border-white/10 bg-black/20'
+              }`}
+            >
+              <p className="text-[11px] uppercase tracking-[0.12em] text-slate-400">{metric.label}</p>
+              <p className={`mt-2 text-2xl font-semibold ${metric.emphasized ? 'text-white' : 'text-slate-200'}`}>
+                {metric.value}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
     </div>

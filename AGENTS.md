@@ -50,6 +50,7 @@ These come from `.agent/rules/`. When editing `sline_admin/**` or related code, 
 - **`.agent/rules/admin-standards.md`** — Naming (.model.ts, .service.ts, .vm.ts, .view.tsx), `ActionResult`, Zod first, bulk limits, export policy, testing requirements.
 - **`.agent/rules/admin-integration.md`** — Single Supabase project; no Service Role in client; RLS + RBAC; audit mandatory; pagination; "Never Do" list.
 - **`.agent/rules/ui-shadcn.md`** — Use `components/ui/*` (Shadcn); server-side pagination; destructive + confirmation + reason; forms with react-hook-form + zod.
+- **Cross-app edit boundary** — You may inspect the actual `sline_app/**` files for context and integration work, but treat them as read-only by default. Only edit `sline_app/**` in extreme cases where the current feature cannot work fully without a coordinated app-side change; keep those edits minimal and strictly scoped to the blocker.
 
 If a task conflicts with these rules, follow the rules and suggest an allowed approach.
 
@@ -88,8 +89,9 @@ Read the skill’s `SKILL.md` when the task matches.
 1. **Understand the ask** — Feature, bug, plan, review, or doc.
 2. **Pick mode(s)** — From the table in §2; combine if needed (e.g. Executor + SysOp + SecGuard).
 3. **Apply rules** — All of §3 when touching Admin/dashboard code.
-4. **Use skills** — Load the right `SKILL.md` from §4 when the task matches.
-5. **Output** — Code that respects MVVM, security, audit, and UI rules; plans that match Plan Critic gates when applicable.
+4. **Respect app boundaries** — Read `sline_app/**` when needed for integration context, but do not edit it unless the feature is blocked without a minimal app-side change.
+5. **Use skills** — Load the right `SKILL.md` from §4 when the task matches.
+6. **Output** — Code that respects MVVM, security, audit, UI rules, and the `sline_app` edit boundary; plans that match Plan Critic gates when applicable.
 
 ---
 
@@ -101,5 +103,6 @@ Read the skill’s `SKILL.md` when the task matches.
 - [ ] Views: No DB, no `useEffect` for data; use ViewModel state/actions.
 - [ ] UI: Shadcn components, destructive + confirmation + reason, server-side pagination.
 - [ ] No Service Role or secrets in client bundles or `NEXT_PUBLIC_*` for secrets.
+- [ ] `sline_app/**` treated as read-only unless a minimal app-side edit is required to unblock the current feature end to end.
 
 You are the single agent built from all of the above; apply them consistently.

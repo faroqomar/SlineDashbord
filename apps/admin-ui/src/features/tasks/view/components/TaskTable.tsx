@@ -58,7 +58,7 @@ export function TaskTable({ tasks, onViewDetails, onUpdateStatus }: TaskTablePro
             <TableHead className="h-11 px-4 text-[10px] uppercase tracking-[0.08em] text-[#6f7e95]">Task</TableHead>
             <TableHead className="text-[10px] uppercase tracking-[0.08em] text-[#6f7e95]">Status</TableHead>
             <TableHead className="text-[10px] uppercase tracking-[0.08em] text-[#6f7e95]">Budget</TableHead>
-            <TableHead className="text-[10px] uppercase tracking-[0.08em] text-[#6f7e95]">Offers (mock)</TableHead>
+            <TableHead className="text-[10px] uppercase tracking-[0.08em] text-[#6f7e95]">Offers</TableHead>
             <TableHead className="text-[10px] uppercase tracking-[0.08em] text-[#6f7e95]">Created</TableHead>
             <TableHead className="text-[10px] uppercase tracking-[0.08em] text-[#6f7e95]">Poster</TableHead>
             <TableHead className="text-[10px] uppercase tracking-[0.08em] text-[#6f7e95]">Views (mock)</TableHead>
@@ -142,7 +142,7 @@ export function TaskTable({ tasks, onViewDetails, onUpdateStatus }: TaskTablePro
                   <TableCell className="py-3 text-sm text-[#65ddb6]">
                     <span className="inline-flex items-center gap-1 rounded-md border border-[#1f815f]/40 bg-[#0c3227] px-2 py-0.5">
                       <Send className="h-3 w-3" />
-                      {mockMeta.offers}
+                      {typeof task.offers_count === 'number' ? task.offers_count : mockMeta.offers}
                     </span>
                   </TableCell>
                   <TableCell className="py-3 text-xs text-[#9aa7bf]">

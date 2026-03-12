@@ -67,10 +67,10 @@ describe('PAGE 05 — Disputes create API', () => {
     expect(body.error?.code).toBe('VALIDATION_ERROR');
   });
 
-  it('returns list rows with derived category/severity/comments fields', async () => {
+  it('returns list with tabCounts and derived category/severity/comments', async () => {
     const res = await app.inject({
       method: 'GET',
-      url: '/api/v1/disputes?status=open&page=1&limit=5',
+      url: '/api/v1/disputes?status=all&page=1&limit=5',
     });
 
     expect([200, 500]).toContain(res.statusCode);
@@ -78,6 +78,16 @@ describe('PAGE 05 — Disputes create API', () => {
 
     if (res.statusCode === 200) {
       expect(body.ok).toBe(true);
+      expect(body.data).toBeDefined();
+      expect(Array.isArray(body.data.disputes)).toBe(true);
+      const tc = body.data.tabCounts;
+      if (tc) {
+        expect(typeof tc.all).toBe('number');
+        expect(typeof tc.open).toBe('number');
+        expect(typeof tc.active).toBe('number');
+        expect(typeof tc.resolved).toBe('number');
+        expect(typeof tc.canceled).toBe('number');
+      }
       const first = body.data?.disputes?.[0];
       if (first) {
         expect(typeof first.category).toBe('string');
@@ -87,6 +97,18 @@ describe('PAGE 05 — Disputes create API', () => {
     } else {
       expect(body.ok).toBe(false);
     }
+  });
+
+  it('accept/cancel/resolve require auth and valid dispute id', async () => {
+    const noAuthApp = await buildApp();
+    const disputeId = '00000000-0000-0000-0000-000000000099';
+    const acceptRes = await noAuthApp.inject({ method: 'POST', url: `/api/v1/disputes/${disputeId}/accept`, payload: {} });
+    const cancelRes = await noAuthApp.inject({ method: 'POST', url: `/api/v1/disputes/${disputeId}/cancel`, payload: { reason: 'Test' } });
+    const resolveRes = await noAuthApp.inject({ method: 'POST', url: `/api/v1/disputes/${disputeId}/resolve`, payload: { reason: 'Test' } });
+    await noAuthApp.close();
+    expect(acceptRes.statusCode).toBe(401);
+    expect(cancelRes.statusCode).toBe(401);
+    expect(resolveRes.statusCode).toBe(401);
   });
 
   it('returns 201 when create succeeds, otherwise 404/409/500 depending on DB state', async () => {

@@ -1,4 +1,4 @@
-import type { ApprovalRow, ApprovalRequest } from '@sline/shared';
+import type { ApprovalRow, ApprovalRequest, PlatformFeeSettings, UpdatePlatformFeeSettingsBody } from '@sline/shared';
 import { request } from '@/lib/api';
 import api from '@/lib/api';
 import type {
@@ -24,7 +24,7 @@ export interface AuditLogCursor {
 }
 export interface UserFinanceLookupResult {
   wallet: WalletSummary | null;
-  timeline: { data: JournalLedgerEntry[]; nextCursor?: undefined };
+  timeline: { data: import('@sline/shared').WalletActivityEntry[]; nextCursor?: undefined };
 }
 
 export const financeApi = {
@@ -71,7 +71,7 @@ export const financeApi = {
   /** Transaction detail; pass reveal: true to get meta_full (audit written server-side). */
   getTransactionDetail: async (journalId: string, reveal?: boolean) => {
     const url = reveal ? `finance/transactions/${journalId}?reveal=1` : `finance/transactions/${journalId}`;
-    const res = await request<JournalLedgerEntry & Record<string, unknown>>('GET', url);
+    const res = await request<JournalLedgerEntry>('GET', url);
     if (!res.ok) throw new Error(res.error?.message || 'Failed to fetch transaction details');
     return res.data;
   },
@@ -188,6 +188,19 @@ export const financeApi = {
       }));
     if (!res.ok) throw new Error((res as any).error?.message || 'Failed to execute adjust');
     return (res as { data: { userId: string } }).data;
+  },
+
+  /** GET /api/v1/finance/fee-settings — platform fee (single source: platform_settings). */
+  getFeeSettings: async (): Promise<PlatformFeeSettings> => {
+    const res = await request<PlatformFeeSettings>('GET', 'finance/fee-settings');
+    if (!res.ok) throw new Error(res.error?.message ?? 'Failed to fetch fee settings');
+    return res.data as PlatformFeeSettings;
+  },
+
+  /** PATCH /api/v1/finance/fee-settings — update fee rate (super_admin only); reason required. */
+  updateFeeSettings: async (body: UpdatePlatformFeeSettingsBody): Promise<void> => {
+    const res = await request<{ ok: boolean }>('PATCH', 'finance/fee-settings', body);
+    if (!res.ok) throw new Error(res.error?.message ?? 'Failed to update fee settings');
   },
 };
 

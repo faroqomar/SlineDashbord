@@ -406,76 +406,209 @@ describe('PAGE 03 — Finance withdrawal approve/reject', () => {
       }
     );
 
-    it.skipIf(!runFinanceIntegration)(
-      'execute wallet adjust twice with same approval_id returns 409 on second call',
-      async () => {
-        const idemKey = `e2e-exec-${Date.now()}`;
-        const appRequester = await buildApp({ testUser: SUPER_ADMIN });
-        const appApprover = await buildApp({ testUser: ADMIN_OTHER });
-
-        const createRes = await appRequester.inject({
-          method: 'POST',
-          url: '/api/v1/finance/approvals',
-          headers: { 'Idempotency-Key': idemKey },
-          payload: {
-            operation_type: 'wallet_adjust',
-            target_entity_type: 'profile',
-            target_entity_id: validUserId,
-            payload: { amount_cents: 150000 },
-          },
-        });
-        await appRequester.close();
-        if (createRes.statusCode !== 201) {
-          await appApprover.close();
-          throw new Error(`Create approval failed: ${createRes.statusCode} ${createRes.body}`);
-        }
-        const createBody = JSON.parse(createRes.body);
-        const approvalId = createBody.data?.id;
-        if (!approvalId) {
-          await appApprover.close();
-          throw new Error('No approval id in response');
-        }
-
-        const approveRes = await appApprover.inject({
-          method: 'POST',
-          url: `/api/v1/finance/approvals/${approvalId}/approve`,
-          payload: { reason: 'E2E approve' },
-        });
-        await appApprover.close();
-        if (approveRes.statusCode !== 200) {
-          throw new Error(`Approve failed: ${approveRes.statusCode} ${approveRes.body}`);
-        }
-
-        const appReq2 = await buildApp({ testUser: SUPER_ADMIN });
-        const adjustPayload = {
+    it('POST /api/v1/finance/wallets/:userId/adjust returns 501 (execute unavailable until ledger mutation exists)', async () => {
+      const res = await app.inject({
+        method: 'POST',
+        url: `/api/v1/finance/wallets/${validUserId}/adjust`,
+        headers: { 'Idempotency-Key': 'adjust-exec-501' },
+        payload: {
           target_user_id: validUserId,
           amount_cents: 150000,
-          reason: 'E2E execute',
-          approval_id: approvalId,
-        };
-        const firstExec = await appReq2.inject({
+          reason: 'Test execute',
+          approval_id: '00000000-0000-0000-0000-000000000099',
+        },
+      });
+      expect(res.statusCode).toBe(501);
+      const body = JSON.parse(res.body);
+      expect(body.ok).toBe(false);
+      expect(body.error?.code).toBe('NOT_IMPLEMENTED');
+      expect(body.error?.message).toMatch(/ledger mutation not yet implemented|Wallet adjust execute/i);
+    });
+
+    describe('POST /api/v1/finance/wallets/:userId/unfreeze', () => {
+      it('returns 401 when no auth', async () => {
+        const noAuthApp = await buildApp();
+        const res = await noAuthApp.inject({
           method: 'POST',
-          url: `/api/v1/finance/wallets/${validUserId}/adjust`,
-          headers: { 'Idempotency-Key': `exec-${idemKey}-1` },
-          payload: adjustPayload,
+          url: `/api/v1/finance/wallets/${validUserId}/unfreeze`,
+          payload: { reason: 'Unfreeze test' },
         });
-        if (firstExec.statusCode !== 200) {
-          await appReq2.close();
-          throw new Error(`First execute failed: ${firstExec.statusCode} ${firstExec.body}`);
+        await noAuthApp.close();
+        expect(res.statusCode).toBe(401);
+      });
+
+      it('returns 400 when reason is missing or empty', async () => {
+        const res = await app.inject({
+          method: 'POST',
+          url: `/api/v1/finance/wallets/${validUserId}/unfreeze`,
+          payload: {},
+        });
+        expect(res.statusCode).toBe(400);
+        const body = JSON.parse(res.body);
+        expect(body.ok).toBe(false);
+        expect(body.error?.code).toBe('VALIDATION_ERROR');
+      });
+
+      it('returns 200 with userId (or 200 with ok:false / 500 when DB unreachable)', async () => {
+        const res = await app.inject({
+          method: 'POST',
+          url: `/api/v1/finance/wallets/${validUserId}/unfreeze`,
+          payload: { reason: 'Unfreeze for test' },
+        });
+        expect([200, 500]).toContain(res.statusCode);
+        const body = JSON.parse(res.body);
+        if (res.statusCode === 200 && body.ok === true) {
+          expect(body.data?.userId).toBe(validUserId);
         }
-        const secondExec = await appReq2.inject({
-          method: 'POST',
-          url: `/api/v1/finance/wallets/${validUserId}/adjust`,
-          headers: { 'Idempotency-Key': `exec-${idemKey}-2` },
-          payload: adjustPayload,
-        });
-        await appReq2.close();
-        expect(secondExec.statusCode).toBe(409);
-        const secondBody = JSON.parse(secondExec.body);
-        expect(secondBody.ok).toBe(false);
-        expect(secondBody.error?.code).toBe('CONFLICT');
+      });
+    });
+  });
+
+  describe('GET /api/v1/finance/workflow/* (admin/super_admin only)', () => {
+    it('GET /api/v1/finance/workflow/overview returns 401 when no auth', async () => {
+      const noAuthApp = await buildApp();
+      const res = await noAuthApp.inject({ method: 'GET', url: '/api/v1/finance/workflow/overview' });
+      await noAuthApp.close();
+      expect(res.statusCode).toBe(401);
+    });
+
+    it('GET /api/v1/finance/workflow/overview returns 403 when support role', async () => {
+      const supportApp = await buildApp({ testUser: SUPPORT });
+      const res = await supportApp.inject({ method: 'GET', url: '/api/v1/finance/workflow/overview' });
+      await supportApp.close();
+      expect(res.statusCode).toBe(403);
+    });
+
+    it('GET /api/v1/finance/workflow/overview returns 200 with platform_cash and escrow_held (or 500)', async () => {
+      const res = await app.inject({ method: 'GET', url: '/api/v1/finance/workflow/overview' });
+      expect([200, 500]).toContain(res.statusCode);
+      if (res.statusCode === 200) {
+        const body = JSON.parse(res.body);
+        expect(body.ok).toBe(true);
+        expect(typeof body.data?.platform_cash).toBe('number');
+        expect(typeof body.data?.escrow_held).toBe('number');
       }
-    );
+    });
+
+    it('GET /api/v1/finance/workflow/cases returns 401 when no auth', async () => {
+      const noAuthApp = await buildApp();
+      const res = await noAuthApp.inject({ method: 'GET', url: '/api/v1/finance/workflow/cases' });
+      await noAuthApp.close();
+      expect(res.statusCode).toBe(401);
+    });
+
+    it('GET /api/v1/finance/workflow/cases returns 200 with cases array (or 500)', async () => {
+      const res = await app.inject({ method: 'GET', url: '/api/v1/finance/workflow/cases' });
+      expect([200, 500]).toContain(res.statusCode);
+      if (res.statusCode === 200) {
+        const body = JSON.parse(res.body);
+        expect(body.ok).toBe(true);
+        expect(Array.isArray(body.data?.cases)).toBe(true);
+      }
+    });
+
+    it('GET /api/v1/finance/workflow/cases/:entityType/:entityId returns 401 when no auth', async () => {
+      const noAuthApp = await buildApp();
+      const res = await noAuthApp.inject({
+        method: 'GET',
+        url: '/api/v1/finance/workflow/cases/booking/00000000-0000-0000-0000-000000000001',
+      });
+      await noAuthApp.close();
+      expect(res.statusCode).toBe(401);
+    });
+
+    it('GET /api/v1/finance/workflow/cases/:entityType/:entityId returns 200 with entityType and entityId (or 400)', async () => {
+      const res = await app.inject({
+        method: 'GET',
+        url: '/api/v1/finance/workflow/cases/booking/00000000-0000-0000-0000-000000000001',
+      });
+      expect([200, 400]).toContain(res.statusCode);
+      if (res.statusCode === 200) {
+        const body = JSON.parse(res.body);
+        expect(body.ok).toBe(true);
+        expect(body.data?.entityType).toBe('booking');
+        expect(body.data?.entityId).toBe('00000000-0000-0000-0000-000000000001');
+      }
+    });
+  });
+
+  describe('GET /api/v1/finance/fee-settings', () => {
+    it('returns 401 when no auth', async () => {
+      const noAuthApp = await buildApp();
+      const res = await noAuthApp.inject({ method: 'GET', url: '/api/v1/finance/fee-settings' });
+      await noAuthApp.close();
+      expect(res.statusCode).toBe(401);
+    });
+
+    it('returns 200 with fee_rate_default_bps and max_fee_rate_bps (or 500 if table missing)', async () => {
+      const res = await app.inject({ method: 'GET', url: '/api/v1/finance/fee-settings' });
+      expect([200, 500]).toContain(res.statusCode);
+      if (res.statusCode === 200) {
+        const body = JSON.parse(res.body);
+        expect(body.ok).toBe(true);
+        expect(typeof body.data?.fee_rate_default_bps).toBe('number');
+        expect(typeof body.data?.max_fee_rate_bps).toBe('number');
+        expect(typeof body.data?.updated_at).toBe('string');
+      }
+    });
+  });
+
+  describe('PATCH /api/v1/finance/fee-settings', () => {
+    it('returns 401 when no auth', async () => {
+      const noAuthApp = await buildApp();
+      const res = await noAuthApp.inject({
+        method: 'PATCH',
+        url: '/api/v1/finance/fee-settings',
+        payload: { fee_rate_default_bps: 1200, reason: 'Test' },
+      });
+      await noAuthApp.close();
+      expect(res.statusCode).toBe(401);
+    });
+
+    it('returns 403 when admin (non-super_admin)', async () => {
+      const adminApp = await buildApp({ testUser: ADMIN_OTHER });
+      const res = await adminApp.inject({
+        method: 'PATCH',
+        url: '/api/v1/finance/fee-settings',
+        payload: { fee_rate_default_bps: 1200, reason: 'Test' },
+      });
+      await adminApp.close();
+      expect(res.statusCode).toBe(403);
+    });
+
+    it('returns 400 when reason is missing', async () => {
+      const res = await app.inject({
+        method: 'PATCH',
+        url: '/api/v1/finance/fee-settings',
+        payload: { fee_rate_default_bps: 1200 },
+      });
+      expect(res.statusCode).toBe(400);
+      const body = JSON.parse(res.body);
+      expect(body.ok).toBe(false);
+      expect(body.error?.code).toBe('VALIDATION_ERROR');
+    });
+
+    it('returns 400 when fee_rate_default_bps out of range', async () => {
+      const res = await app.inject({
+        method: 'PATCH',
+        url: '/api/v1/finance/fee-settings',
+        payload: { fee_rate_default_bps: 15000, reason: 'Test' },
+      });
+      expect(res.statusCode).toBe(400);
+    });
+
+    it('returns 200 on valid payload (or 500 if table/RPC missing)', async () => {
+      const res = await app.inject({
+        method: 'PATCH',
+        url: '/api/v1/finance/fee-settings',
+        payload: { fee_rate_default_bps: 1000, reason: 'Test fixture reset' },
+      });
+      expect([200, 500]).toContain(res.statusCode);
+      if (res.statusCode === 200) {
+        const body = JSON.parse(res.body);
+        expect(body.ok).toBe(true);
+      }
+    });
   });
 
   const runFinanceIntegration = process.env.RUN_FINANCE_INTEGRATION === '1' && process.env.SUPABASE_URL && !process.env.SUPABASE_URL.includes('placeholder');

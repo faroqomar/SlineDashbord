@@ -5,35 +5,75 @@ import { useState } from "react";
 
 export function useDisputeDetailViewModel(disputeId: string) {
   const queryClient = useQueryClient();
-  const [isResolving, setIsResolving] = useState(false);
+  const [decisionModalOpen, setDecisionModalOpen] = useState(false);
 
   const { data: dispute, isLoading, error } = useQuery({
-    queryKey: ['disputes', 'detail', disputeId],
+    queryKey: ["disputes", "detail", disputeId],
     queryFn: () => disputesApi.getDisputeDetails(disputeId),
-    enabled: !!disputeId
+    enabled: !!disputeId,
+  });
+
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: ["disputes", "detail", disputeId] });
+    queryClient.invalidateQueries({ queryKey: ["disputes", "list"] });
+  };
+
+  const acceptMutation = useMutation({
+    mutationFn: () => disputesApi.acceptDispute(disputeId),
+    onSuccess: () => {
+      invalidate();
+      toast.success("Dispute accepted");
+      setDecisionModalOpen(false);
+    },
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Failed to accept dispute");
+    },
+  });
+
+  const cancelMutation = useMutation({
+    mutationFn: (reason: string) => disputesApi.cancelDispute(disputeId, reason),
+    onSuccess: () => {
+      invalidate();
+      toast.success("Dispute canceled");
+      setDecisionModalOpen(false);
+    },
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Failed to cancel dispute");
+    },
   });
 
   const resolveMutation = useMutation({
-    mutationFn: (data: { status: string, resolution: string, decision?: string }) => 
+    mutationFn: (data: { reason: string; outcome?: string; booking_id?: string }) =>
       disputesApi.resolveDispute(disputeId, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['disputes', 'detail', disputeId] });
-      queryClient.invalidateQueries({ queryKey: ['disputes', 'kanban'] });
-      toast.success("Dispute resolved successfully");
-      setIsResolving(false);
+      invalidate();
+      toast.success("Dispute resolved");
+      setDecisionModalOpen(false);
     },
-    onError: (err: any) => {
-      toast.error(err.message || "Failed to resolve dispute");
-    }
+    onError: (err: unknown) => {
+      toast.error(err instanceof Error ? err.message : "Failed to resolve dispute");
+    },
   });
+
+  const actionAvailability = dispute?.action_availability ?? {
+    can_accept: false,
+    can_cancel: false,
+    can_resolve: false,
+    requires_booking_id: false,
+  };
 
   return {
     dispute,
     isLoading,
     error,
-    isResolving,
-    setIsResolving,
+    actionAvailability,
+    decisionModalOpen,
+    setDecisionModalOpen,
+    accept: acceptMutation.mutate,
+    cancel: cancelMutation.mutate,
     resolve: resolveMutation.mutate,
-    isResolvingAction: resolveMutation.isPending
+    isAccepting: acceptMutation.isPending,
+    isCanceling: cancelMutation.isPending,
+    isResolving: resolveMutation.isPending,
   };
 }

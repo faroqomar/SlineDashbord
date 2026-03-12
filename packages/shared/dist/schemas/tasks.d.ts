@@ -12,6 +12,8 @@ export interface TaskDTO {
     deadline?: string;
     category?: string;
     task_type?: 'tender' | 'booking';
+    /** Admin list: count of task_requests (bids) for this task. Optional until backend rollout. */
+    offers_count?: number;
     client: {
         id: string;
         full_name: string;
@@ -36,13 +38,13 @@ export declare const GetTasksSchema: z.ZodObject<{
     limit: z.ZodDefault<z.ZodNumber>;
     query: z.ZodDefault<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    status: string;
     page: number;
+    status: string;
     limit: number;
     query: string;
 }, {
-    status?: string | undefined;
     page?: number | undefined;
+    status?: string | undefined;
     limit?: number | undefined;
     query?: string | undefined;
 }>;
@@ -51,13 +53,13 @@ export declare const UpdateTaskStatusSchema: z.ZodObject<{
     status: z.ZodEnum<["open", "assigned", "in_progress", "completed", "canceled", "review", "disputed", "under_review"]>;
     reason: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    status: "completed" | "in_progress" | "canceled" | "open" | "assigned" | "review" | "disputed" | "under_review";
-    reason: string;
+    status: "open" | "assigned" | "in_progress" | "completed" | "canceled" | "review" | "disputed" | "under_review";
     id: string;
+    reason: string;
 }, {
-    status: "completed" | "in_progress" | "canceled" | "open" | "assigned" | "review" | "disputed" | "under_review";
-    reason: string;
+    status: "open" | "assigned" | "in_progress" | "completed" | "canceled" | "review" | "disputed" | "under_review";
     id: string;
+    reason: string;
 }>;
 export declare const TaskQueueAnalyticsDaySchema: z.ZodObject<{
     date: z.ZodString;
@@ -101,7 +103,6 @@ export declare const TaskQueueAnalyticsDataSchema: z.ZodObject<{
     generated_at: z.ZodString;
     is_stale: z.ZodOptional<z.ZodBoolean>;
 }, "strip", z.ZodTypeAny, {
-    generated_at: string;
     range: "7d";
     days: {
         date: string;
@@ -112,9 +113,9 @@ export declare const TaskQueueAnalyticsDataSchema: z.ZodObject<{
         completed: number;
         posted: number;
     };
+    generated_at: string;
     is_stale?: boolean | undefined;
 }, {
-    generated_at: string;
     range: "7d";
     days: {
         date: string;
@@ -125,6 +126,7 @@ export declare const TaskQueueAnalyticsDataSchema: z.ZodObject<{
         completed: number;
         posted: number;
     };
+    generated_at: string;
     is_stale?: boolean | undefined;
 }>;
 export type TaskQueueAnalyticsData = z.infer<typeof TaskQueueAnalyticsDataSchema>;
@@ -158,7 +160,6 @@ export declare const TaskQueueAnalyticsResponseSchema: z.ZodObject<{
         generated_at: z.ZodString;
         is_stale: z.ZodOptional<z.ZodBoolean>;
     }, "strip", z.ZodTypeAny, {
-        generated_at: string;
         range: "7d";
         days: {
             date: string;
@@ -169,9 +170,9 @@ export declare const TaskQueueAnalyticsResponseSchema: z.ZodObject<{
             completed: number;
             posted: number;
         };
+        generated_at: string;
         is_stale?: boolean | undefined;
     }, {
-        generated_at: string;
         range: "7d";
         days: {
             date: string;
@@ -182,12 +183,12 @@ export declare const TaskQueueAnalyticsResponseSchema: z.ZodObject<{
             completed: number;
             posted: number;
         };
+        generated_at: string;
         is_stale?: boolean | undefined;
     }>;
 }, "strip", z.ZodTypeAny, {
     ok: true;
     data: {
-        generated_at: string;
         range: "7d";
         days: {
             date: string;
@@ -198,12 +199,12 @@ export declare const TaskQueueAnalyticsResponseSchema: z.ZodObject<{
             completed: number;
             posted: number;
         };
+        generated_at: string;
         is_stale?: boolean | undefined;
     };
 }, {
     ok: true;
     data: {
-        generated_at: string;
         range: "7d";
         days: {
             date: string;
@@ -214,6 +215,7 @@ export declare const TaskQueueAnalyticsResponseSchema: z.ZodObject<{
             completed: number;
             posted: number;
         };
+        generated_at: string;
         is_stale?: boolean | undefined;
     };
 }>;

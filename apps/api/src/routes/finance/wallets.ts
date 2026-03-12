@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
   FreezeWalletSchema,
+  UnfreezeWalletSchema,
   AdjustWalletInputSchema,
   FINANCE_WRITE_ROLES,
   WALLET_ADJUST_DANGEROUS_MIN,
@@ -10,6 +11,7 @@ import {
 } from '@sline/shared';
 import { requireAdminRole } from '../../middleware/rbac.js';
 import { withAudit } from '../../audit.js';
+import { getFinanceMetricsSnapshot } from './metrics-summary.js';
 
 export async function registerWalletRoutes(
   fastify: FastifyInstance,
@@ -24,7 +26,7 @@ export async function registerWalletRoutes(
     if (!validation.success) {
       return reply.status(400).send(failure('VALIDATION_ERROR', 'Invalid input', validation.error.format()));
     }
-    return withAudit(request, 'admin.finance.wallet_freeze', 'profile', userId, async () => {
+    const result = await withAudit(request, 'admin.finance.wallet_freeze', 'profile', userId, async () => {
       const { error } = await supabase.rpc('admin_process_wallet_freeze', {
         p_user_id: validation.data.targetUserId,
         p_freeze: true,
@@ -34,17 +36,35 @@ export async function registerWalletRoutes(
       if (error) return failure('DATABASE_ERROR', error.message);
       return success({ userId: validation.data.targetUserId });
     });
+    return reply.send(result);
+  });
+
+  fastify.post('/wallets/:userId/unfreeze', {
+    preHandler: [requireAdminRole(FINANCE_WRITE_ROLES)],
+  }, async (request, reply) => {
+    const { userId } = request.params as { userId: string };
+    const body = request.body;
+    const validation = UnfreezeWalletSchema.safeParse({ ...(body as object), targetUserId: userId });
+    if (!validation.success) {
+      return reply.status(400).send(failure('VALIDATION_ERROR', 'Invalid input', validation.error.format()));
+    }
+    const result = await withAudit(request, 'admin.finance.wallet_unfreeze', 'profile', userId, async () => {
+      const { error } = await supabase.rpc('admin_process_wallet_freeze', {
+        p_user_id: validation.data.targetUserId,
+        p_freeze: false,
+        p_reason: validation.data.reason,
+        p_admin_id: (request as any).user.id,
+      });
+      if (error) return failure('DATABASE_ERROR', error.message);
+      return success({ userId: validation.data.targetUserId });
+    });
+    return reply.send(result);
   });
 
   fastify.get('/metrics', { preHandler: [requireAdminRole(['admin', 'super_admin'])] }, async (request, reply) => {
-    const { data, error } = await supabase.from('vw_financial_metrics_realtime').select('*').single();
-    if (error) return reply.status(500).send(failure('DATABASE_ERROR', error.message));
-    return reply.send(success({
-      platform_cash: data?.platform_cash_iqd || 0,
-      escrow_held: data?.escrow_held_iqd || 0,
-      lifetime_revenue: data?.revenue_iqd || 0,
-      pending_withdrawals: 0,
-    }));
+    const { data, error } = await getFinanceMetricsSnapshot(supabase);
+    if (error || !data) return reply.status(500).send(failure('DATABASE_ERROR', error ?? 'Failed to load finance metrics'));
+    return reply.send(success(data));
   });
 
   fastify.post('/wallets/:userId/adjust', {
@@ -67,21 +87,7 @@ export async function registerWalletRoutes(
     if (!isDangerous) {
       return reply.status(501).send(failure('NOT_IMPLEMENTED', 'Single-admin wallet adjust not implemented; use approval flow for all adjusts'));
     }
-    const { error } = await supabase.rpc('admin_adjust_wallet', {
-      p_approval_id: validation.data.approval_id,
-      p_actor_id: userId,
-      p_target_user_id: targetUserId,
-      p_amount_cents: amountCents,
-      p_reason: validation.data.reason,
-      p_idempotency_key: idempotencyKey,
-    });
-    if (error) {
-      if (error.message?.includes('not found')) return reply.status(404).send(failure('NOT_FOUND', 'Approval not found'));
-      if (error.message?.includes('not approved')) return reply.status(403).send(failure('FORBIDDEN', 'Approval not approved'));
-      if (error.message?.includes('Only the requester')) return reply.status(403).send(failure('FORBIDDEN', 'Only the requester may execute this approval'));
-      if (error.message?.includes('already consumed')) return reply.status(409).send(failure('CONFLICT', 'Approval already consumed'));
-      return reply.status(500).send(failure('DATABASE_ERROR', error.message));
-    }
-    return reply.send(success({ userId: targetUserId }));
+    // Wallet-adjust execute is unavailable: admin_adjust_wallet only consumes approval + audit; no ledger mutation. See Docs/CANONICAL_FINANCE_DEPENDENCY_MATRIX.md
+    return reply.status(501).send(failure('NOT_IMPLEMENTED', 'Wallet adjust execute is not available; ledger mutation not yet implemented. Use approval queue for request/approve only.'));
   });
 }

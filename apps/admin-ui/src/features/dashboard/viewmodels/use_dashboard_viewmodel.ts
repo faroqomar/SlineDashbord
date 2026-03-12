@@ -10,6 +10,7 @@ export function useDashboardViewModel() {
 
   return {
     stats: query.data?.stats,
+    financeSummary: query.data?.financeSummary,
     pulse: query.data?.pulse,
     kpiTrends: query.data?.kpiTrends,
     recentActivity: query.data?.recentActivity,

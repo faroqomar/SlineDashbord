@@ -1,6 +1,6 @@
 'use client';
 
-import { Settings, ShieldAlert, Megaphone, Save, Info, AlertTriangle, CheckCircle, XCircle, UserMinus, HardDrive, Smartphone, Tablet } from "lucide-react";
+import { Settings, ShieldAlert, Megaphone, Save, Info, AlertTriangle, CheckCircle, XCircle, UserMinus, HardDrive, Smartphone, Tablet, Percent, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,9 @@ import { useSettingsViewModel } from "../viewmodels/use_settings_viewmodel";
 import type { SystemConfig, AppBanner } from "../models/settings.schema";
 import { useState } from "react";
 import { Separator } from "@/components/ui/separator";
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
+import { financeApi } from "@/features/finance/services/finance_api";
 
 interface SettingsScreenProps {
   initialConfigs: SystemConfig[];
@@ -23,6 +26,16 @@ export function SettingsScreen({ initialConfigs, canManage }: SettingsScreenProp
   const [bnrText, setBnrText] = useState(vm.banner.text);
   const [iosVer, setIosVer] = useState(vm.appVersion.ios);
   const [andVer, setAndVer] = useState(vm.appVersion.android);
+
+  const feeSettingsQuery = useQuery({
+    queryKey: ['finance', 'fee-settings'],
+    queryFn: () => financeApi.getFeeSettings(),
+  });
+  const feeSettings = feeSettingsQuery.data;
+  const feeRatePct = feeSettings ? (feeSettings.fee_rate_default_bps / 100).toFixed(1) : '—';
+  const feeUpdatedAt = feeSettings?.updated_at
+    ? new Date(feeSettings.updated_at).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' })
+    : '—';
 
   if (!canManage) {
     return (
@@ -222,6 +235,36 @@ export function SettingsScreen({ initialConfigs, canManage }: SettingsScreenProp
                 </div>
                 </div>
             </CardContent>
+            </Card>
+
+            {/* Platform fee (read-only mirror; edit in Finance) */}
+            <Card className="border-primary/10 shadow-sm overflow-hidden h-fit">
+                <CardHeader className="bg-muted/30 pb-4 border-b">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <Percent className="w-5 h-5 text-primary" />
+                            <CardTitle>Platform fee</CardTitle>
+                        </div>
+                        <Button variant="outline" size="sm" asChild>
+                            <Link to="/finance">
+                                <ExternalLink className="w-3.5 h-3.5 mr-1.5" /> Edit in Finance
+                            </Link>
+                        </Button>
+                    </div>
+                    <CardDescription>
+                        Default commission rate (basis points). Read-only here; change it from the Finance page.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-6 space-y-2">
+                    {feeSettingsQuery.isLoading ? (
+                        <p className="text-sm text-muted-foreground">Loading…</p>
+                    ) : (
+                        <>
+                            <p className="text-2xl font-bold">{feeRatePct}%</p>
+                            <p className="text-xs text-muted-foreground">Updated {feeUpdatedAt}</p>
+                        </>
+                    )}
+                </CardContent>
             </Card>
 
             <Card className="bg-muted/20 border-dashed">

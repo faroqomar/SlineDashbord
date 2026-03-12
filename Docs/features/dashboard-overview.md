@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Show high-level platform status and trends for admin operators with live KPI cards, pulse strip, charts, and recent activity.
+Show high-level platform status and trends for admin operators with live KPI cards, pulse strip, charts, recent activity, and a clear split between user-held funds and company-owned funds.
 
 ## Route / Screen
 
@@ -18,7 +18,8 @@ Show high-level platform status and trends for admin operators with live KPI car
 
 ## Dashboard Payload
 
-- `stats`: active users, platform revenue, open disputes, active jobs
+- `stats`: active users, fee revenue only, open disputes, active jobs
+- `financeSummary`: separated user-held liabilities and company-owned funds
 - `pulse`: open reports, open cases, active tasks, open disputes, bookings today, system status
 - `kpiTrends`: trend direction + delta labels for key metrics
 - `recentActivity`: latest activity feed
@@ -29,6 +30,7 @@ Show high-level platform status and trends for admin operators with live KPI car
 
 - `packages/shared/src/schemas/dashboard.ts`
   - `DashboardOverviewDataSchema`
+  - `DashboardFinanceSummarySchema`
   - `DashboardPulseSchema`
   - `DashboardKpiTrendsSchema`
 
@@ -36,6 +38,7 @@ Show high-level platform status and trends for admin operators with live KPI car
 
 - Endpoint protected by admin RBAC middleware.
 - Read-only aggregation route; no privileged mutation from dashboard overview.
+- Financial data follows the accounting rule: user wallet / escrow liabilities are never combined with platform fee revenue.
 
 ## Verification
 

@@ -23,13 +23,18 @@ import {
   DialogDescription,
   DialogFooter
 } from "../../../components/ui/dialog";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { TaskStatus } from "../models/task.schema";
 import { Textarea } from "../../../components/ui/textarea";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useLocation } from "@tanstack/react-router";
 import { Skeleton } from "../../../components/ui/skeleton";
 import { cn } from "../../../lib/utils";
 import { TASK_QUEUE_HERO_SERIES, TASK_QUEUE_KPI_VISUAL } from "../models/task-queue-ui.mock";
+import { useSetSearchParams } from "../../../lib/navigation-shim";
+import { createScopedLogger } from "../../../lib/appLogger";
+import { TaskAppPreview } from "./components/TaskAppPreview";
+
+const log = createScopedLogger("Tasks:Screen");
 
 function toPolylinePoints(values: readonly number[], width: number, height: number) {
   const maxValue = Math.max(...values);
@@ -79,10 +84,37 @@ function TaskQueueSkeletonView() {
 export function TasksScreen() {
   const vm = useTasksViewModel();
   const navigate = useNavigate();
+  const location = useLocation();
+  const setSearchParams = useSetSearchParams();
   const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<{ id: string; status: TaskStatus } | null>(null);
   const [updateReason, setUpdateReason] = useState("");
-  const [viewMode, setViewMode] = useState<'table' | 'app'>('table');
+  // Derive view from URL when on /tasks to avoid useSearch({ from }) route-id mismatch
+  const viewMode = ((): "table" | "app" => {
+    if (location.pathname !== "/tasks") return "table";
+    const params = new URLSearchParams(location.search);
+    return params.get("view") === "app" ? "app" : "table";
+  })();
+  const [carouselIndex, setCarouselIndex] = useState(0);
+
+  const setViewMode = (mode: "table" | "app") => {
+    log.info("view mode change", { mode });
+    const next = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
+    next.set("view", mode);
+    setSearchParams(next);
+  };
+
+  useEffect(() => {
+    setCarouselIndex(0);
+    log.debug("carousel index reset", { page: vm.filters.page, tasksLength: vm.tasks.length });
+  }, [vm.filters.page, vm.tasks.length]);
+
+  const handleAppPreviewPrev = () => {
+    setCarouselIndex((i) => Math.max(0, i - 1));
+  };
+  const handleAppPreviewNext = () => {
+    setCarouselIndex((i) => Math.min(vm.tasks.length - 1, i + 1));
+  };
 
   const handleStatusClick = (taskId: string, status: TaskStatus) => {
     setPendingStatus({ id: taskId, status });
@@ -291,10 +323,14 @@ export function TasksScreen() {
               onUpdateStatus={handleStatusClick}
             />
           ) : (
-            <div className="rounded-xl border border-dashed border-[#344356] bg-[#09101d] p-8 text-center">
-              <p className="text-sm font-medium text-[#dbe3ef]">App View (Mock)</p>
-              <p className="mt-1 text-xs text-[#8b98af]">Switch back to Table view for real task data interactions.</p>
-            </div>
+            <TaskAppPreview
+              tasks={vm.tasks}
+              currentIndex={carouselIndex}
+              onPrev={handleAppPreviewPrev}
+              onNext={handleAppPreviewNext}
+              isLoading={vm.isLoading}
+              totalTasks={vm.totalTasks}
+            />
           )}
 
           <div className="mt-4 flex items-center justify-between">

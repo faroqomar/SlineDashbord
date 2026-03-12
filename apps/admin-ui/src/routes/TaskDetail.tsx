@@ -37,7 +37,7 @@ export function TaskDetailPage() {
     return (
       <div className="text-center py-20">
         <h2 className="text-2xl font-bold">Task not found</h2>
-        <Link to="/tasks" className="text-primary hover:underline mt-4 inline-block">
+        <Link to="/tasks" search={{ view: "table" }} className="text-primary hover:underline mt-4 inline-block">
           Back to tasks
         </Link>
       </div>
@@ -61,7 +61,7 @@ export function TaskDetailPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-            <Link to="/tasks">
+            <Link to="/tasks" search={{ view: "table" }}>
               <Button variant="ghost" size="sm" className="h-8">
                   <ArrowLeft className="mr-2 h-4 w-4" /> Back
               </Button>

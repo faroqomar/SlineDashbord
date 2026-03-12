@@ -23,7 +23,7 @@ export interface DisputesAnalytics {
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const ACTIVE_STATUSES = new Set(['open', 'in_progress']);
+const ACTIVE_STATUSES = new Set(['open', 'active']);
 
 function startOfUtcDay(date: Date): Date {
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));

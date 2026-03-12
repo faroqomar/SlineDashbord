@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Search, Loader2 } from 'lucide-react';
 import { useFinanceUserLookupVM } from '@/features/finance/viewmodels/useFinanceUserLookup.vm';
 import { UserWalletCard } from '@/features/finance/components/UserWalletCard';
-import { TransactionsTable } from '@/features/finance/components/TransactionsTable';
+import { WalletActivityTable } from '@/features/finance/components/WalletActivityTable';
 
 export function FinanceUsersPage() {
   const [inputUserId, setInputUserId] = useState('');
@@ -89,10 +89,7 @@ export function FinanceUserLookupPage() {
         <div className="space-y-2">
           <h3 className="text-lg font-semibold">Recent Activity</h3>
           <div className="rounded-md border bg-card">
-            <TransactionsTable
-              initialData={vm.timeline}
-              filters={{}}
-            />
+            <WalletActivityTable data={vm.timeline} />
           </div>
         </div>
       )}

@@ -1,12 +1,19 @@
 import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useSearch } from '@tanstack/react-router';
+import { useLocation } from '@tanstack/react-router';
 import { financeApi } from '../features/finance/services/finance_api';
 import { TransactionsTable } from '../features/finance/components/TransactionsTable';
 
 export function FinanceTransactionsPage() {
-  const search = useSearch({ from: '/finance/transactions' as any }) as any;
-  const cursor = search.cursor_created_at && search.cursor_id 
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const search = {
+    cursor_created_at: params.get('cursor_created_at') ?? undefined,
+    cursor_id: params.get('cursor_id') ?? undefined,
+    event_type: params.get('event_type') ?? undefined,
+    status: params.get('status') ?? undefined,
+  };
+  const cursor = search.cursor_created_at && search.cursor_id
     ? { created_at: String(search.cursor_created_at), journal_id: String(search.cursor_id) }
     : undefined;
 

@@ -5,6 +5,7 @@ import { registerFinanceUserRoutes } from './finance/users.js';
 import { registerWithdrawalRoutes } from './finance/withdrawals.js';
 import { registerWalletRoutes } from './finance/wallets.js';
 import { registerApprovalRoutes } from './finance/approvals.js';
+import { registerWorkflowRoutes } from './finance/workflow.js';
 /**
  * PAGE 12 — Finance RBAC role matrix
  * - GET /finance/transactions (list): admin, super_admin
@@ -20,4 +21,5 @@ export default async function financeRoutes(fastify) {
     await registerWithdrawalRoutes(fastify, supabase);
     await registerWalletRoutes(fastify, supabase);
     await registerApprovalRoutes(fastify, supabase);
+    await registerWorkflowRoutes(fastify, supabase);
 }

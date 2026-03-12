@@ -48,9 +48,11 @@ import {
 export function DisputeDetailScreen() {
     const { disputeId } = useParams({ from: '/auth/disputes/$disputeId' } as any);
     const vm = useDisputeDetailViewModel(disputeId);
-    const [resolutionNote, setResolutionNote] = useState("");
-    const [resolutionStatus, setResolutionStatus] = useState("resolved");
-    const [financialDecision, setFinancialDecision] = useState("none");
+    const [decisionAction, setDecisionAction] = useState<'cancel' | 'resolve' | null>(null);
+    const [reason, setReason] = useState("");
+    const [outcome, setOutcome] = useState<string>("no_financial");
+    const [bookingId, setBookingId] = useState<string>("");
+    const av = vm.actionAvailability;
 
     if (vm.isLoading) {
         return (
@@ -73,12 +75,16 @@ export function DisputeDetailScreen() {
 
     const { dispute } = vm;
 
+    const handleCancel = () => {
+        if (reason.trim().length < 1) return;
+        vm.cancel(reason.trim());
+    };
     const handleResolve = () => {
-        vm.resolve({
-            status: resolutionStatus,
-            resolution: resolutionNote,
-            decision: financialDecision === "none" ? undefined : financialDecision
-        });
+        if (reason.trim().length < 1) return;
+        const payload: { reason: string; outcome?: string; booking_id?: string } = { reason: reason.trim() };
+        if (outcome && outcome !== 'no_financial') payload.outcome = outcome;
+        if (av.requires_booking_id && bookingId) payload.booking_id = bookingId;
+        vm.resolve(payload);
     };
 
     return (
@@ -97,16 +103,26 @@ export function DisputeDetailScreen() {
                         <p className="text-xs text-muted-foreground font-mono italic opacity-70">CASE-{dispute.id.slice(0, 8).toUpperCase()}</p>
                     </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                     <Badge variant="outline" className={cn("px-4 py-1 border-2", 
                         dispute.status === 'open' ? "bg-red-500/10 text-red-500 border-red-500/20" :
-                        dispute.status === 'resolved' ? "bg-green-500/10 text-green-500 border-green-500/20" :
+                        dispute.status === 'resolved' || dispute.status === 'canceled' ? "bg-green-500/10 text-green-500 border-green-500/20" :
                         "bg-orange-500/10 text-orange-500 border-orange-500/20"
                     )}>
                         {dispute.status.toUpperCase()}
                     </Badge>
-                    {dispute.status !== 'resolved' && (
-                        <Button size="sm" className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 gap-2 px-6" onClick={() => vm.setIsResolving(true)}>
+                    {av.can_accept && (
+                        <Button size="sm" variant="secondary" onClick={() => vm.accept()} disabled={vm.isAccepting}>
+                            {vm.isAccepting ? "Accepting…" : "Accept (open → active)"}
+                        </Button>
+                    )}
+                    {av.can_cancel && (
+                        <Button size="sm" variant="outline" onClick={() => { setDecisionAction('cancel'); setReason(''); vm.setDecisionModalOpen(true); }} disabled={vm.isCanceling}>
+                            Cancel dispute
+                        </Button>
+                    )}
+                    {av.can_resolve && (
+                        <Button size="sm" className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 gap-2" onClick={() => { setDecisionAction('resolve'); setReason(''); setOutcome('no_financial'); setBookingId(''); vm.setDecisionModalOpen(true); }}>
                             <Scale className="h-4 w-4" /> Resolve Case
                         </Button>
                     )}
@@ -302,85 +318,70 @@ export function DisputeDetailScreen() {
                 </div>
             </div>
 
-            {/* Resolution Dialog */}
-            <Dialog open={vm.isResolving} onOpenChange={vm.setIsResolving}>
-                <DialogContent className="sm:max-w-[500px] !border-none shadow-2xl p-0 overflow-hidden bg-transparent">
-                    {/* Solid backing layer so the panel is never transparent */}
-                    <div
-                        className="absolute inset-0 rounded-lg -z-10"
-                        style={{ backgroundColor: 'hsl(var(--background))' }}
-                        aria-hidden
-                    />
-                    <div className="relative grid gap-4 p-6">
+            {/* Decision modal: Cancel or Resolve */}
+            <Dialog open={vm.decisionModalOpen} onOpenChange={(open) => { if (!open) setDecisionAction(null); vm.setDecisionModalOpen(open); }}>
+                <DialogContent className="sm:max-w-[500px]">
                     <DialogHeader>
-                        <DialogTitle className="flex items-center gap-3 text-xl font-black italic">
+                        <DialogTitle className="flex items-center gap-3">
                             <Scale className="h-6 w-6 text-primary" />
-                            Final Case Decision
+                            {decisionAction === 'cancel' ? 'Cancel dispute' : 'Resolve dispute'}
                         </DialogTitle>
                         <DialogDescription className="text-xs">
-                            This decision will be permanently logged in the audit trail.
-                            Financial triggers will be executed based on your selection.
+                            Reason is required. This will be logged in the audit trail.
                         </DialogDescription>
                     </DialogHeader>
-                    
-                    <div className="space-y-6 py-4">
+                    <div className="space-y-4 py-4">
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Investigation Decision</label>
-                            <Select value={resolutionStatus} onValueChange={setResolutionStatus}>
-                                <SelectTrigger className="bg-muted/30">
-                                    <SelectValue placeholder="Select outcome" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="resolved">Resolved with Decision</SelectItem>
-                                    <SelectItem value="dismissed">Dismiss Case (No fault)</SelectItem>
-                                    <SelectItem value="escalated">Escalate to Legal Ops</SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <label className="text-[10px] font-bold uppercase text-muted-foreground">Reason</label>
+                            <Textarea
+                                placeholder="State the reason..."
+                                className="min-h-[100px]"
+                                value={reason}
+                                onChange={(e) => setReason(e.target.value)}
+                            />
                         </div>
-
-                        {resolutionStatus === 'resolved' && (
-                             <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
-                                <label className="text-[10px] font-black uppercase text-red-500 ml-1">Financial Reconciliation Trigger</label>
-                                <Select value={financialDecision} onValueChange={setFinancialDecision}>
-                                    <SelectTrigger className="bg-red-500/5 border-red-500/20 text-red-500 font-bold">
-                                        <SelectValue placeholder="Choose financial action" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="none">No Financial Change</SelectItem>
-                                        <SelectItem value="refund_client">Refund Full Escrow to Client</SelectItem>
-                                        <SelectItem value="release_freelancer">Release Full Escrow to Freelancer</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <p className="text-[9px] text-muted-foreground italic px-1">
-                                    Escrow size: <span className="text-primary font-bold">IQD {dispute.amount?.toLocaleString()}</span>
-                                </p>
-                             </div>
+                        {decisionAction === 'resolve' && (
+                            <>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold uppercase text-muted-foreground">Financial outcome</label>
+                                    <Select value={outcome} onValueChange={setOutcome}>
+                                        <SelectTrigger><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="no_financial">No financial change</SelectItem>
+                                            <SelectItem value="refund_client">Refund to client</SelectItem>
+                                            <SelectItem value="release_freelancer">Release to freelancer</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                {av.requires_booking_id && dispute.booking_candidates?.length && (
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold uppercase text-muted-foreground">Booking (required)</label>
+                                        <Select value={bookingId} onValueChange={setBookingId}>
+                                            <SelectTrigger><SelectValue placeholder="Select booking" /></SelectTrigger>
+                                            <SelectContent>
+                                                {dispute.booking_candidates.map((b: { booking_id: string; status: string }) => (
+                                                    <SelectItem key={b.booking_id} value={b.booking_id}>{b.booking_id.slice(0, 8)} ({b.status})</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                )}
+                            </>
                         )}
-
-                        <div className="space-y-2">
-                             <label className="text-[10px] font-black uppercase text-muted-foreground ml-1">Official Resolution Reasoning</label>
-                             <Textarea 
-                                placeholder="State the facts and reasons for this decision..." 
-                                className="min-h-[120px] bg-muted/30 text-xs leading-relaxed"
-                                value={resolutionNote}
-                                onChange={(e) => setResolutionNote(e.target.value)}
-                             />
-                        </div>
                     </div>
-
-                    <DialogFooter className="gap-3">
-                        <Button variant="ghost" className="text-xs" onClick={() => vm.setIsResolving(false)}>
-                            Cancel Investigation
-                        </Button>
-                        <Button 
-                            className="bg-primary hover:bg-primary/90 text-xs px-8 shadow-md shadow-primary/20"
-                            onClick={handleResolve}
-                            disabled={vm.isResolvingAction || resolutionNote.length < 10}
-                        >
-                            {vm.isResolvingAction ? "Executing Decision..." : "Execute Case Resolution"}
-                        </Button>
+                    <DialogFooter>
+                        <Button variant="ghost" onClick={() => vm.setDecisionModalOpen(false)}>Close</Button>
+                        {decisionAction === 'cancel' && (
+                            <Button onClick={handleCancel} disabled={vm.isCanceling || reason.trim().length < 1}>
+                                {vm.isCanceling ? 'Canceling…' : 'Cancel dispute'}
+                            </Button>
+                        )}
+                        {decisionAction === 'resolve' && (
+                            <Button onClick={handleResolve} disabled={vm.isResolving || reason.trim().length < 1 || (av.requires_booking_id && !bookingId)}>
+                                {vm.isResolving ? 'Resolving…' : 'Resolve'}
+                            </Button>
+                        )}
                     </DialogFooter>
-                    </div>
                 </DialogContent>
             </Dialog>
         </div>

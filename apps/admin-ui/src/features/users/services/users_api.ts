@@ -1,7 +1,8 @@
 import { request } from '@/lib/api';
 import type { UsersKpiCounts, UsersStatusTab, UsersTabCounts } from '@sline/shared';
 import type { UserInvestigationResponse } from '@sline/shared';
-import type { JournalLedgerEntry, WalletSummary } from '@/features/finance/models/finance.model';
+import type { WalletSummary } from '@/features/finance/models/finance.model';
+import type { WalletActivityEntry } from '@sline/shared';
 
 export interface UserDTO {
   id: string;
@@ -100,7 +101,7 @@ type ListResult = {
 type IdResult = { userId: string };
 export interface UserWalletLookupDTO {
   wallet: WalletSummary | null;
-  timeline: { data: JournalLedgerEntry[]; nextCursor?: undefined };
+  timeline: { data: WalletActivityEntry[]; nextCursor?: undefined };
 }
 
 function mapProfileToUserDTO(

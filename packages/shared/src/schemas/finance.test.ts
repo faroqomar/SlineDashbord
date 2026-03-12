@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { ApproveWithdrawalSchema, RejectWithdrawalSchema, WalletSummarySchema } from './finance.js';
+import {
+  ApproveWithdrawalSchema,
+  FinanceMetricsSummarySchema,
+  RejectWithdrawalSchema,
+  WalletSummarySchema,
+} from './finance.js';
 
 const validUuid = '00000000-0000-0000-0000-000000000001';
 
@@ -56,6 +61,26 @@ describe('finance schemas (PAGE 03 contracts)', () => {
         is_wallet_frozen: true,
       };
       expect(WalletSummarySchema.safeParse(w).success).toBe(true);
+    });
+  });
+
+  describe('FinanceMetricsSummarySchema', () => {
+    it('separates user-held funds from company-owned funds', () => {
+      const summary = {
+        platform_cash_position: 120000,
+        userFunds: {
+          held_in_escrow: 45000,
+          total_wallet_balances: 65000,
+          total_owed_to_users: 110000,
+        },
+        companyFunds: {
+          total_fee_revenue: 10000,
+          net_platform_earnings: 10000,
+          actual_company_owned_balance: 10000,
+        },
+      };
+
+      expect(FinanceMetricsSummarySchema.safeParse(summary).success).toBe(true);
     });
   });
 });

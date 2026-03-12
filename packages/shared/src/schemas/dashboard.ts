@@ -5,11 +5,25 @@ export type DashboardSystemStatus = z.infer<typeof DashboardSystemStatusEnum>;
 
 export const DashboardStatsSchema = z.object({
   activeUsers: z.number().int().nonnegative(),
-  platformRevenue: z.number(),
+  feeRevenue: z.number(),
   openDisputes: z.number().int().nonnegative(),
   activeJobs: z.number().int().nonnegative(),
 });
 export type DashboardStats = z.infer<typeof DashboardStatsSchema>;
+
+export const DashboardFinanceSummarySchema = z.object({
+  userFunds: z.object({
+    heldInEscrow: z.number(),
+    totalWalletBalances: z.number(),
+    totalOwedToUsers: z.number(),
+  }),
+  companyFunds: z.object({
+    totalFeeRevenue: z.number(),
+    netPlatformEarnings: z.number(),
+    actualCompanyOwnedBalance: z.number(),
+  }),
+});
+export type DashboardFinanceSummary = z.infer<typeof DashboardFinanceSummarySchema>;
 
 export const DashboardActivityItemSchema = z.object({
   id: z.string(),
@@ -60,7 +74,7 @@ export type DashboardKpiTrend = z.infer<typeof DashboardKpiTrendSchema>;
 
 export const DashboardKpiTrendsSchema = z.object({
   activeUsers: DashboardKpiTrendSchema,
-  platformRevenue: DashboardKpiTrendSchema,
+  feeRevenue: DashboardKpiTrendSchema,
   activeJobs: DashboardKpiTrendSchema,
   openDisputes: DashboardKpiTrendSchema,
   comparisonWindow: z.string().max(64),
@@ -69,6 +83,7 @@ export type DashboardKpiTrends = z.infer<typeof DashboardKpiTrendsSchema>;
 
 export const DashboardOverviewDataSchema = z.object({
   stats: DashboardStatsSchema,
+  financeSummary: DashboardFinanceSummarySchema,
   pulse: DashboardPulseSchema,
   kpiTrends: DashboardKpiTrendsSchema,
   recentActivity: z.array(DashboardActivityItemSchema),

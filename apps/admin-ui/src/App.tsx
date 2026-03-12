@@ -182,10 +182,13 @@ const settingsRoute = createRoute({
   ),
 });
 
-// Tasks Route
+// Tasks Route (search: view=table|app for App View persistence)
 const tasksRoute = createRoute({
   getParentRoute: () => authLayoutRoute,
   path: '/tasks',
+  validateSearch: (search: Record<string, unknown>) => ({
+    view: search?.view === 'app' ? 'app' : 'table',
+  }),
   component: TasksPage,
 });
 

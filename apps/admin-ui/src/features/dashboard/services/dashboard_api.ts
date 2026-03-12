@@ -2,9 +2,22 @@ import { request } from "../../../lib/api";
 
 export interface DashboardStats {
   activeUsers: number;
-  platformRevenue: number;
+  feeRevenue: number;
   openDisputes: number;
   activeJobs: number;
+}
+
+export interface DashboardFinanceSummary {
+  userFunds: {
+    heldInEscrow: number;
+    totalWalletBalances: number;
+    totalOwedToUsers: number;
+  };
+  companyFunds: {
+    totalFeeRevenue: number;
+    netPlatformEarnings: number;
+    actualCompanyOwnedBalance: number;
+  };
 }
 
 export type DashboardSystemStatus = 'operational' | 'degraded' | 'down';
@@ -29,7 +42,7 @@ export interface DashboardKpiTrend {
 
 export interface DashboardKpiTrends {
   activeUsers: DashboardKpiTrend;
-  platformRevenue: DashboardKpiTrend;
+  feeRevenue: DashboardKpiTrend;
   activeJobs: DashboardKpiTrend;
   openDisputes: DashboardKpiTrend;
   comparisonWindow: string;
@@ -55,6 +68,7 @@ export interface ChartData {
 
 export interface DashboardOverview {
   stats: DashboardStats;
+  financeSummary: DashboardFinanceSummary;
   pulse: DashboardPulse;
   kpiTrends: DashboardKpiTrends;
   recentActivity: DashboardActivity[];

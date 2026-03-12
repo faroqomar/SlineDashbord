@@ -3,7 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import {
   UserLookupSchema,
   WalletSummarySchema,
-  JournalLedgerEntrySchema,
+  WalletActivityEntrySchema,
   FINANCE_WRITE_ROLES,
   failure,
   success,
@@ -20,6 +20,7 @@ export async function registerFinanceUserRoutes(
     if (!validation.success) {
       return reply.status(400).send(failure('VALIDATION_ERROR', 'Invalid userId', validation.error.format()));
     }
+    // vw_wallet_activity_user must expose user_id for filtering; if missing, app repo view/RPC must be updated (see Docs/CANONICAL_FINANCE_DEPENDENCY_MATRIX.md).
     const [balanceRes, timelineRes] = await Promise.all([
       supabase.from('vw_wallet_balances_user').select('*').eq('user_id', validation.data.userId).maybeSingle(),
       supabase
@@ -43,8 +44,9 @@ export async function registerFinanceUserRoutes(
       : null;
     const timelineData = timelineRes.data || [];
     const timeline = timelineData.map((r: Record<string, unknown>) => {
-      const parsed = JournalLedgerEntrySchema.safeParse(r);
-      return parsed.success ? parsed.data : r;
+      const row = { ...r, created_at: typeof r.created_at === 'string' ? r.created_at : (r.created_at as Date)?.toISOString?.() ?? '' };
+      const parsed = WalletActivityEntrySchema.safeParse(row);
+      return parsed.success ? parsed.data : row;
     });
     return reply.send(
       success({

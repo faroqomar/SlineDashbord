@@ -44,7 +44,7 @@ export function useTasksViewModel(initialFilters: TaskFilters = { page: 1, pageS
   }, []);
 
   const changeFilters = (newFilters: Partial<TaskFilters>) => {
-    setFilters((prev: TaskFilters) => ({ ...prev, ...newFilters, page: newFilters.page ?? 1 }));
+    setFilters((prev: TaskFilters) => ({ ...prev, ...newFilters, page: newFilters.page ?? prev.page ?? 1 }));
   };
 
   const handleUpdateStatus = async (taskId: string, status: TaskStatus, reason: string) => {

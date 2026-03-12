@@ -138,3 +138,97 @@ export const WalletSummarySchema = z.object({
   is_wallet_frozen: z.boolean().optional(),
 });
 export type WalletSummary = z.infer<typeof WalletSummarySchema>;
+
+export const UserHeldFundsSummarySchema = z.object({
+  held_in_escrow: z.number(),
+  total_wallet_balances: z.number(),
+  total_owed_to_users: z.number(),
+});
+export type UserHeldFundsSummary = z.infer<typeof UserHeldFundsSummarySchema>;
+
+export const CompanyFundsSummarySchema = z.object({
+  total_fee_revenue: z.number(),
+  net_platform_earnings: z.number(),
+  actual_company_owned_balance: z.number(),
+});
+export type CompanyFundsSummary = z.infer<typeof CompanyFundsSummarySchema>;
+
+export const FinanceMetricsSummarySchema = z.object({
+  platform_cash_position: z.number(),
+  userFunds: UserHeldFundsSummarySchema,
+  companyFunds: CompanyFundsSummarySchema,
+});
+export type FinanceMetricsSummary = z.infer<typeof FinanceMetricsSummarySchema>;
+
+/** Wallet activity row from vw_wallet_activity_user. Use this (not JournalLedgerEntry) for wallet activity; preserves spent semantics e.g. gateway_escrow. */
+export const WalletActivityEntrySchema = z.object({
+  journal_entry_id: z.string().uuid(),
+  created_at: z.string(),
+  event_type: z.string(),
+  amount_gross: z.number(),
+  amount_net: z.number(),
+  fee_amount: z.number(),
+  currency: z.string(),
+  related_entity_type: z.string().nullable().optional(),
+  related_entity_id: z.string().uuid().nullable().optional(),
+  counterparty_user_id: z.string().uuid().nullable().optional(),
+  status: z.string(),
+  user_id: z.string().uuid().optional(),
+});
+export type WalletActivityEntry = z.infer<typeof WalletActivityEntrySchema>;
+
+// --- Finance workflow (read-only) ---
+export const WORKFLOW_BUCKETS = ['delivered_awaiting_client', 'disputed_money', 'stuck_direct_offer', 'held_funds', 'withdrawals_pending'] as const;
+export type WorkflowBucket = (typeof WORKFLOW_BUCKETS)[number];
+
+export const FinanceWorkflowOverviewSchema = z.object({
+  platform_cash: z.number(),
+  escrow_held: z.number(),
+  delivered_awaiting_count: z.number().optional(),
+  disputed_count: z.number().optional(),
+  stuck_direct_offer_count: z.number().optional(),
+  pending_withdrawals_count: z.number().optional(),
+  /** True when counts are stub (not yet from real queries). */
+  stub: z.boolean().optional(),
+});
+export type FinanceWorkflowOverview = z.infer<typeof FinanceWorkflowOverviewSchema>;
+
+export const FinanceWorkflowCaseSchema = z.object({
+  entityType: z.string(),
+  entityId: z.string().uuid(),
+  bucket: z.enum(WORKFLOW_BUCKETS),
+  summary: z.string().optional(),
+  amount_cents: z.number().optional(),
+  created_at: z.string().optional(),
+});
+export type FinanceWorkflowCase = z.infer<typeof FinanceWorkflowCaseSchema>;
+
+export const FinanceWorkflowCaseDetailSchema = z.object({
+  entityType: z.string(),
+  entityId: z.string().uuid(),
+  bucket: z.enum(WORKFLOW_BUCKETS),
+  state: z.record(z.unknown()).optional(),
+  journal_links: z.array(z.object({ journal_id: z.string().uuid(), event_type: z.string() })).optional(),
+  payer_user_id: z.string().uuid().nullable().optional(),
+  payee_user_id: z.string().uuid().nullable().optional(),
+  available_actions: z.array(z.string()).optional(),
+});
+export type FinanceWorkflowCaseDetail = z.infer<typeof FinanceWorkflowCaseDetailSchema>;
+
+// --- Platform fee settings (admin-controlled; single source: platform_settings) ---
+
+/** GET /api/v1/finance/fee-settings response. */
+export const PlatformFeeSettingsSchema = z.object({
+  fee_rate_default_bps: z.number().int().min(0).max(10000),
+  max_fee_rate_bps: z.number().int().min(0).max(10000),
+  updated_at: z.string(),
+  updated_by: z.string().uuid().nullable().optional(),
+});
+export type PlatformFeeSettings = z.infer<typeof PlatformFeeSettingsSchema>;
+
+/** PATCH /api/v1/finance/fee-settings body; reason required. */
+export const UpdatePlatformFeeSettingsBodySchema = z.object({
+  fee_rate_default_bps: z.number().int().min(0).max(10000),
+  reason: z.string().min(1, 'Reason is required').max(500, 'Reason too long'),
+});
+export type UpdatePlatformFeeSettingsBody = z.infer<typeof UpdatePlatformFeeSettingsBodySchema>;
