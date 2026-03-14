@@ -43,15 +43,26 @@ describe('dashboard schemas', () => {
           activeJobs: 9,
         },
         financeSummary: {
+          platformCashPosition: 10500,
           userFunds: {
             heldInEscrow: 6000,
             totalWalletBalances: 2400,
             totalOwedToUsers: 8400,
+            freelancerPayablesAvailable: 1800,
+            pendingPayouts: 600,
+            freelancerPayablesTotal: 2400,
+            otherUserWalletLiabilities: 0,
+            totalPlatformObligations: 8400,
           },
           companyFunds: {
             totalFeeRevenue: 10500,
             netPlatformEarnings: 10500,
             actualCompanyOwnedBalance: 10500,
+            platformRevenue: 10500,
+            actualCompanyOwnedCash: 10500,
+          },
+          reconciliation: {
+            gapToPlatformRevenue: 0,
           },
         },
         pulse: {

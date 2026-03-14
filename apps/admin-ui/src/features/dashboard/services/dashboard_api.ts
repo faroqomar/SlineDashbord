@@ -8,15 +8,26 @@ export interface DashboardStats {
 }
 
 export interface DashboardFinanceSummary {
+  platformCashPosition: number;
   userFunds: {
     heldInEscrow: number;
     totalWalletBalances: number;
     totalOwedToUsers: number;
+    freelancerPayablesAvailable: number;
+    pendingPayouts: number;
+    freelancerPayablesTotal: number;
+    otherUserWalletLiabilities: number;
+    totalPlatformObligations: number;
   };
   companyFunds: {
     totalFeeRevenue: number;
     netPlatformEarnings: number;
     actualCompanyOwnedBalance: number;
+    platformRevenue: number;
+    actualCompanyOwnedCash: number;
+  };
+  reconciliation: {
+    gapToPlatformRevenue: number;
   };
 }
 

@@ -106,6 +106,8 @@ export const JournalLedgerEntrySchema = z.object({
   created_at: z.string(),
   event_type: z.string(),
   status: z.string(),
+  related_entity_type: z.string().nullable().optional(),
+  related_entity_id: z.string().uuid().nullable().optional(),
   entity_type: z.string().nullable().optional(),
   entity_id: z.string().uuid().nullable().optional(),
   payer_user_id: z.string().uuid().nullable().optional(),
@@ -116,6 +118,12 @@ export const JournalLedgerEntrySchema = z.object({
   initiator_user_id: z.string().uuid().nullable().optional(),
   meta_masked: z.any().optional(),
   meta_full: z.any().optional(),
+  escrow_delta_iqd: z.number().optional(),
+  user_available_delta_iqd: z.number().optional(),
+  freelancer_payables_available_delta_iqd: z.number().optional(),
+  pending_payouts_delta_iqd: z.number().optional(),
+  platform_revenue_delta_iqd: z.number().optional(),
+  platform_cash_delta_iqd: z.number().optional(),
 });
 export type JournalLedgerEntry = z.infer<typeof JournalLedgerEntrySchema>;
 
@@ -134,6 +142,8 @@ export const WalletSummarySchema = z.object({
   available_balance: z.number(),
   held_balance: z.number(),
   pending_withdrawal_balance: z.number(),
+  freelancer_payables_balance: z.number().optional(),
+  other_wallet_liabilities_balance: z.number().optional(),
   currency: z.string(),
   is_wallet_frozen: z.boolean().optional(),
 });
@@ -143,6 +153,12 @@ export const UserHeldFundsSummarySchema = z.object({
   held_in_escrow: z.number(),
   total_wallet_balances: z.number(),
   total_owed_to_users: z.number(),
+  freelancer_payables_available: z.number(),
+  pending_payouts: z.number(),
+  freelancer_payables_total: z.number(),
+  total_user_wallet_liabilities: z.number(),
+  other_user_wallet_liabilities: z.number(),
+  total_platform_obligations: z.number(),
 });
 export type UserHeldFundsSummary = z.infer<typeof UserHeldFundsSummarySchema>;
 
@@ -150,13 +166,21 @@ export const CompanyFundsSummarySchema = z.object({
   total_fee_revenue: z.number(),
   net_platform_earnings: z.number(),
   actual_company_owned_balance: z.number(),
+  platform_revenue: z.number(),
+  actual_company_owned_cash: z.number(),
 });
 export type CompanyFundsSummary = z.infer<typeof CompanyFundsSummarySchema>;
+
+export const FinanceReconciliationSummarySchema = z.object({
+  gap_to_platform_revenue: z.number(),
+});
+export type FinanceReconciliationSummary = z.infer<typeof FinanceReconciliationSummarySchema>;
 
 export const FinanceMetricsSummarySchema = z.object({
   platform_cash_position: z.number(),
   userFunds: UserHeldFundsSummarySchema,
   companyFunds: CompanyFundsSummarySchema,
+  reconciliation: FinanceReconciliationSummarySchema,
 });
 export type FinanceMetricsSummary = z.infer<typeof FinanceMetricsSummarySchema>;
 

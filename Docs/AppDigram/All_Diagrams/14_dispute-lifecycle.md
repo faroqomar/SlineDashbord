@@ -9,9 +9,9 @@
 | Field | Value |
 |-------|--------|
 | **Diagram name (exact)** | 14_dispute-lifecycle |
-| **Version** | v2 (implemented) — 2026-03-08 |
+| **Version** | v3 (dashboard-admin implemented) — 2026-03-14 |
 | **Owner/author** | SLine architecture / system auditor |
-| **Last verified** | 2026-03-08 |
+| **Last verified** | 2026-03-14 |
 
 ---
 
@@ -24,9 +24,9 @@
 
 ### • Scope
 
-- **What’s included:** Dispute state machine (open, active, resolved, canceled); submit via `rpc_submit_dispute` (task + direct_offer, eligibility + single open/active per entity); escrow guard in `rpc_approve_delivery` and `rpc_finalize_auto_approval`; RLS (deny UPDATE/DELETE on disputes, participant-only on dispute_messages/dispute_evidence); UI gates (Approve/Review disabled when open dispute); `vw_unified_work_items` disputed override; triggers (transition guard, resolved_at).
-- **What’s explicitly excluded:** Admin UI to assign/resolve disputes (admin panel only, out of app); split refunds; realtime dispute thread; eligibility for booking-only (handled via task_id); diagram 14a “Frozen” guards on submit_delivery/request_revision (see 14a for proposed).
-- **Assumptions:** Payments are finalised only via RPC (release_with_fee); escrow release is blocked when dispute status is open or active; status changes to active/resolved/canceled are done by admin (SECURITY DEFINER or service_role), not by app users; `rpc_finalize_auto_approval` handles task and booking only (no direct_offer in that RPC).
+- **What’s included:** Dispute state machine (open, active, resolved, canceled); submit via `rpc_submit_dispute` (task + direct_offer, eligibility + single open/active per entity); admin dashboard actions accept/cancel/resolve; case creation on accept; escrow guard in `rpc_approve_delivery` and `rpc_finalize_auto_approval`; settlement targets (`booking`, `task_request`, `direct_offer`); participant RLS for dispute thread/evidence; UI gates (Approve/Review disabled when open dispute); `vw_unified_work_items` disputed override; triggers (transition guard, resolved_at).
+- **What’s explicitly excluded:** Realtime dispute thread, notifications, diagram 14a “Frozen” guards on submit_delivery/request_revision (see 14a), off-platform refunds.
+- **Assumptions:** Payments are finalised only via RPC; escrow release is blocked when dispute status is open or active; admin actions are executed via dashboard/API + SECURITY DEFINER RPC; task/tender disputes may settle against a held `task_request`.
 
 ---
 
@@ -74,14 +74,14 @@
 |-------|--------|-----------|
 | **Client** | Submit dispute (via app, rpc_submit_dispute) when entity eligible; view own disputes/messages/evidence; see Approve disabled when dispute open. | UPDATE/DELETE disputes; release escrow when dispute open/active; see other users’ private dispute data. |
 | **Freelancer** | View disputes where they are defendant; add messages/evidence (participant RLS). | UPDATE/DELETE disputes; release escrow; submit dispute (current app: client-only on booking; product may extend). |
-| **Admin** | Change dispute status (open→active, open→canceled, active→resolved) via dashboard/service_role or DEFINER RPC; trigger release/refund after resolve. | Not constrained by app RLS; must use defined transitions (trigger enforces). |
+| **Admin** | Change dispute status (open→active, open→canceled, active→resolved) via dashboard RPC; accept creates/reuses an `admin_case`; resolve can refund, release, or split settlement against booking, task_request, or direct_offer. | Must use defined transitions; cannot bypass RPC settlement rules or idempotency. |
 | **System/Cron** | Call rpc_finalize_auto_approval when review_expires_at passed; auto-approval does not run if dispute open/active (guard). | Cannot release escrow when dispute open/active. |
 
 ---
 
 ### • System Components (Where it lives)
 
-- **App entry points:** Safety & Help; “Report Issue” / submit dispute on **Booking details** (via task_id); Approve & Release gated on **Booking details**, **Work item details** (Review), **Direct offer details**; dashboard “Submit Evidence” for disputed items → Work item details with disputed banner.
+- **App entry points:** Safety & Help; “Report Issue” / submit dispute on **Booking details** (via task_id); Approve & Release gated on **Booking details**, **Work item details** (Review), **Direct offer details**; dashboard dispute detail exposes accept/cancel/resolve actions and settlement target selection.
 - **Service / ViewModel / Repository:**
   - `lib/features/safety/services/dispute_service.dart` — submitDispute (rpc_submit_dispute), hasOpenDisputeForTask, hasOpenDisputeForBooking, hasOpenDisputeForDirectOffer.
   - `lib/features/safety/viewmodels/safety_view_model.dart` — exposes hasOpenDispute* and submitDispute to UI.
@@ -89,9 +89,9 @@
 - **Database objects:**
   - **Tables:** `disputes` (status dispute_status_enum, complainant_id, defendant_id, task_id, direct_offer_id, reason, resolved_at); `dispute_messages`; `dispute_evidence`.
   - **Views:** `vw_unified_work_items` (LEFT JOIN disputes; unified_status = 'disputed' when dispute open/active).
-  - **RPCs:** `rpc_submit_dispute(p_task_id, p_direct_offer_id, p_reason, p_defendant_id)` — eligibility + one open/active per entity, INSERT status='open'; `rpc_approve_delivery(entity_type, entity_id)` — guard at start of task/booking/direct_offer branch; `rpc_finalize_auto_approval(entity_type, entity_id)` — guard for task and booking.
+  - **RPCs:** `rpc_submit_dispute(p_task_id, p_direct_offer_id, p_reason, p_defendant_id)` — eligibility + one open/active per entity, INSERT status='open'; `admin_accept_dispute`; `admin_cancel_dispute`; `admin_resolve_dispute_settlement`; `rpc_approve_delivery(entity_type, entity_id)` — guard at start of task/booking/direct_offer branch; `rpc_finalize_auto_approval(entity_type, entity_id)` — guard for task and booking.
   - **Triggers:** `trg_dispute_guard` (BEFORE UPDATE OF status, fn_dispute_guard — only open→active/canceled, active→resolved); `trg_dispute_set_resolved_at` (sets resolved_at when status → resolved).
-  - **Policies (RLS):** disputes: SELECT party-only, INSERT own (or via RPC); `disputes_deny_update`, `disputes_deny_delete` (authenticated); dispute_messages: participant-only SELECT/INSERT; dispute_evidence: participant-only SELECT, INSERT with uploader_id = auth.uid().
+  - **Policies (RLS):** disputes: SELECT party-only, INSERT own (or via RPC); `disputes_deny_update`, `disputes_deny_delete` (authenticated); dispute_messages: participant-only SELECT/INSERT; dispute_evidence: participant-only SELECT, INSERT with uploader_id = auth.uid(). Dashboard-side privileged actions bypass app RLS through server-side service role + DB RPC.
 
 ---
 
@@ -103,8 +103,10 @@
 2. **Validation:** App calls `rpc_submit_dispute(p_task_id: booking.taskId, p_reason, …)`. RPC checks auth, exactly one of task_id/direct_offer_id, non-empty reason; task branch: task in_progress/delivered OR any booking for that task active/delivered; no existing open/active dispute for that task.
 3. **DB write:** INSERT into `disputes` (complainant_id, task_id, reason, status='open', defendant_id). RETURNING id.
 4. **UI:** “Approve & Release Funds” is disabled (SafetyViewModel.hasOpenDisputeForBooking(booking.id) → true); work item details show “Review” disabled and disputed banner when opened from dashboard “Submit Evidence”.
-5. **Admin (out of app):** Assigns dispute (open → active). Later resolves (active → resolved); trigger sets resolved_at. Admin may then trigger release or refund via existing RPCs.
-6. **Final state:** Dispute resolved; escrow can be released/refunded per admin; user no longer sees Approve disabled for that entity.
+5. **Admin (dashboard):** Accepts dispute (open → active). This creates or reuses an `admin_case` so the dispute appears in Cases.
+6. **Admin (dashboard):** Resolves dispute (active → resolved) with one financial outcome: refund, payout, or split settlement.
+7. **Settlement:** The server resolves against the real held target: booking, task_request (tender), or direct_offer. Idempotency prevents duplicate settlement.
+8. **Final state:** Dispute resolved; escrow is settled; user no longer sees Approve disabled for that entity.
 
 **Common failure path**
 
@@ -121,7 +123,7 @@
 - **Meaning:** open = just created; active = admin assigned; resolved = admin concluded (resolved_at set); canceled = dismissed.
 - **Allowed transitions:** [*] → open (rpc_submit_dispute); open → active (admin); open → canceled (admin); active → resolved (admin); resolved/canceled → [*] (terminal).
 - **Forbidden transitions:** open → resolved (must go via active); active → open or canceled; any UPDATE by authenticated user (RLS deny); any transition not listed (enforced by trg_dispute_guard).
-- **Who triggers:** open: App (rpc_submit_dispute); active/canceled/resolved: Admin only (no app RPC).
+- **Who triggers:** open: App (rpc_submit_dispute); active/canceled/resolved: Admin dashboard only via Fastify + DB RPC.
 
 ---
 

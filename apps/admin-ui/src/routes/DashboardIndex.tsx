@@ -119,22 +119,26 @@ export function DashboardIndex() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <FinancialRealityCard
           icon={<Wallet className="h-5 w-5 text-sky-300" />}
-          eyebrow="User Money We Hold"
-          title="Platform-held user funds"
-          description="These balances belong to clients or providers. They are liabilities, not company revenue."
+          eyebrow="Platform Obligations"
+          title="User-owned money held by the platform"
+          description="Escrow and released freelancer funds are liabilities. They must stay separate from company earnings."
           accentClass="from-sky-500/20 to-cyan-400/5"
           metrics={[
             {
-              label: 'Held in escrow',
+              label: 'Escrow Held',
               value: financeSummary ? formatIqd(financeSummary.userFunds.heldInEscrow) : '--',
             },
             {
-              label: 'Wallet balances',
-              value: financeSummary ? formatIqd(financeSummary.userFunds.totalWalletBalances) : '--',
+              label: 'Freelancer Payables',
+              value: financeSummary ? formatIqd(financeSummary.userFunds.freelancerPayablesTotal) : '--',
             },
             {
-              label: 'Total owed to users',
-              value: financeSummary ? formatIqd(financeSummary.userFunds.totalOwedToUsers) : '--',
+              label: 'Pending Payouts',
+              value: financeSummary ? formatIqd(financeSummary.userFunds.pendingPayouts) : '--',
+            },
+            {
+              label: 'Total Platform Obligations',
+              value: financeSummary ? formatIqd(financeSummary.userFunds.totalPlatformObligations) : '--',
               emphasized: true,
             },
           ]}
@@ -142,23 +146,27 @@ export function DashboardIndex() {
 
         <FinancialRealityCard
           icon={<Landmark className="h-5 w-5 text-emerald-300" />}
-          eyebrow="Company Money We Own"
+          eyebrow="Company Funds"
           title="Platform-owned funds"
-          description="Company funds come only from fees and commissions captured by the platform."
+          description="Platform revenue is authoritative. Cash-basis position is diagnostic until platform_cash reflects the full settlement flow."
           accentClass="from-emerald-500/20 to-lime-400/5"
           metrics={[
             {
-              label: 'Total fee revenue',
-              value: financeSummary ? formatIqd(financeSummary.companyFunds.totalFeeRevenue) : '--',
-            },
-            {
-              label: 'Net platform earnings',
-              value: financeSummary ? formatIqd(financeSummary.companyFunds.netPlatformEarnings) : '--',
-            },
-            {
-              label: 'Actual company-owned balance',
-              value: financeSummary ? formatIqd(financeSummary.companyFunds.actualCompanyOwnedBalance) : '--',
+              label: 'Platform Revenue',
+              value: financeSummary ? formatIqd(financeSummary.companyFunds.platformRevenue) : '--',
               emphasized: true,
+            },
+            {
+              label: 'Platform Cash',
+              value: financeSummary ? formatIqd(financeSummary.platformCashPosition) : '--',
+            },
+            {
+              label: 'Cash-Basis Position (Diagnostic)',
+              value: financeSummary ? formatIqd(financeSummary.companyFunds.actualCompanyOwnedCash) : '--',
+            },
+            {
+              label: 'Reconciliation Gap',
+              value: financeSummary ? formatIqd(financeSummary.reconciliation.gapToPlatformRevenue) : '--',
             },
           ]}
         />

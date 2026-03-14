@@ -1,6 +1,7 @@
 import { request } from "@/lib/api";
 import type { DisputeDTO } from "../models/dispute.schema";
-import type { CreateDisputeInput } from "@sline/shared";
+import type { AdminResolveDisputeInput, AdminResolveDisputeResult, CreateDisputeInput } from "@sline/shared";
+import api from '@/lib/api';
 
 export type DisputeListResponse = {
   disputes: DisputeDTO[];
@@ -44,8 +45,13 @@ export const disputesApi = {
     return res.data;
   },
 
-  resolveDispute: async (id: string, data: { reason: string; outcome?: string; booking_id?: string }) => {
-    const res = await request<{ id: string }>('POST', `/disputes/${id}/resolve`, data);
+  resolveDispute: async (id: string, data: Omit<AdminResolveDisputeInput, 'dispute_id'>, idempotencyKey: string) => {
+    const res = await api.post<{ ok: true; data: AdminResolveDisputeResult }>(`/disputes/${id}/resolve`, data, {
+      headers: { 'Idempotency-Key': idempotencyKey },
+    }).then((r) => r.data).catch((err: any) => ({
+      ok: false as const,
+      error: { code: err.response?.data?.error?.code || 'FETCH_ERROR', message: err.response?.data?.error?.message || err.message },
+    }));
     if (!res.ok) throw new Error(res.error?.message || 'Failed to resolve dispute');
     return res.data;
   },

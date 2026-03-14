@@ -48,6 +48,8 @@ describe('finance schemas (PAGE 03 contracts)', () => {
         available_balance: 1000,
         held_balance: 200,
         pending_withdrawal_balance: 0,
+        freelancer_payables_balance: 750,
+        other_wallet_liabilities_balance: 250,
         currency: 'IQD',
       };
       expect(WalletSummarySchema.safeParse(w).success).toBe(true);
@@ -72,11 +74,22 @@ describe('finance schemas (PAGE 03 contracts)', () => {
           held_in_escrow: 45000,
           total_wallet_balances: 65000,
           total_owed_to_users: 110000,
+          freelancer_payables_available: 50000,
+          pending_payouts: 15000,
+          freelancer_payables_total: 65000,
+          total_user_wallet_liabilities: 65000,
+          other_user_wallet_liabilities: 5000,
+          total_platform_obligations: 110000,
         },
         companyFunds: {
           total_fee_revenue: 10000,
           net_platform_earnings: 10000,
           actual_company_owned_balance: 10000,
+          platform_revenue: 10000,
+          actual_company_owned_cash: 10000,
+        },
+        reconciliation: {
+          gap_to_platform_revenue: 0,
         },
       };
 

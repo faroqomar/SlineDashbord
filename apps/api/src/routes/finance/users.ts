@@ -20,24 +20,26 @@ export async function registerFinanceUserRoutes(
     if (!validation.success) {
       return reply.status(400).send(failure('VALIDATION_ERROR', 'Invalid userId', validation.error.format()));
     }
-    // vw_wallet_activity_user must expose user_id for filtering; if missing, app repo view/RPC must be updated (see Docs/CANONICAL_FINANCE_DEPENDENCY_MATRIX.md).
     const [balanceRes, timelineRes] = await Promise.all([
-      supabase.from('vw_wallet_balances_user').select('*').eq('user_id', validation.data.userId).maybeSingle(),
+      supabase.from('vw_admin_wallet_balances').select('*').eq('user_id', validation.data.userId).maybeSingle(),
       supabase
-        .from('vw_wallet_activity_user')
+        .from('vw_admin_wallet_activity')
         .select('*')
         .eq('user_id', validation.data.userId)
         .order('created_at', { ascending: false })
         .limit(20),
     ]);
     if (balanceRes.error && balanceRes.error.code !== 'PGRST116') {
-      return reply.status(501).send(failure('DATABASE_ERROR', 'Wallet views not available'));
+      return reply.status(501).send(failure('DATABASE_ERROR', 'Admin wallet views not available'));
     }
     const wallet = balanceRes.data
       ? WalletSummarySchema.safeParse({
           available_balance: (balanceRes.data as Record<string, unknown>).available_balance ?? 0,
           held_balance: (balanceRes.data as Record<string, unknown>).held_balance ?? 0,
           pending_withdrawal_balance: (balanceRes.data as Record<string, unknown>).pending_withdrawal_balance ?? 0,
+          freelancer_payables_balance: (balanceRes.data as Record<string, unknown>).freelancer_payables_balance ?? 0,
+          other_wallet_liabilities_balance:
+            (balanceRes.data as Record<string, unknown>).other_wallet_liabilities_balance ?? 0,
           currency: (balanceRes.data as Record<string, unknown>).currency ?? 'IQD',
           is_wallet_frozen: (balanceRes.data as Record<string, unknown>).is_wallet_frozen,
         })

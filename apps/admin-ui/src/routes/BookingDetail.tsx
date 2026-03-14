@@ -22,7 +22,7 @@ import { useBookingsViewModel } from '../features/bookings/viewmodels/use_bookin
 import { cn } from '@/lib/utils';
 
 export function BookingDetailPage() {
-  const { bookingId } = useParams({ from: '/bookings/$bookingId' } as any);
+  const { bookingId } = useParams({ from: '/auth/bookings/$bookingId' } as any);
   const vm = useBookingsViewModel();
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [refundDialogOpen, setRefundDialogOpen] = useState(false);

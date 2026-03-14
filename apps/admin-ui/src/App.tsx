@@ -36,6 +36,7 @@ import { request } from './lib/api';
 import { getSystemConfigs } from './features/settings/services/settings_api';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import { ThemeProvider } from './components/theme-provider';
+import { Toaster } from './components/ui/sonner';
 import './index.css';
 
 // Root Route
@@ -43,6 +44,7 @@ const rootRoute = createRootRoute({
   component: () => (
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem storageKey="sline-admin-theme">
       <Outlet />
+      <Toaster richColors position="top-right" />
     </ThemeProvider>
   ),
 });

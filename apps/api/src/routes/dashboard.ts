@@ -203,27 +203,49 @@ export default async function dashboardRoutes(fastify: FastifyInstance) {
         },
         financeSummary: financeSummary
           ? {
+              platformCashPosition: financeSummary.platform_cash_position,
               userFunds: {
                 heldInEscrow: financeSummary.userFunds.held_in_escrow,
                 totalWalletBalances: financeSummary.userFunds.total_wallet_balances,
                 totalOwedToUsers: financeSummary.userFunds.total_owed_to_users,
+                freelancerPayablesAvailable: financeSummary.userFunds.freelancer_payables_available,
+                pendingPayouts: financeSummary.userFunds.pending_payouts,
+                freelancerPayablesTotal: financeSummary.userFunds.freelancer_payables_total,
+                otherUserWalletLiabilities: financeSummary.userFunds.other_user_wallet_liabilities,
+                totalPlatformObligations: financeSummary.userFunds.total_platform_obligations,
               },
               companyFunds: {
                 totalFeeRevenue: financeSummary.companyFunds.total_fee_revenue,
                 netPlatformEarnings: financeSummary.companyFunds.net_platform_earnings,
                 actualCompanyOwnedBalance: financeSummary.companyFunds.actual_company_owned_balance,
+                platformRevenue: financeSummary.companyFunds.platform_revenue,
+                actualCompanyOwnedCash: financeSummary.companyFunds.actual_company_owned_cash,
+              },
+              reconciliation: {
+                gapToPlatformRevenue: financeSummary.reconciliation.gap_to_platform_revenue,
               },
             }
           : {
+              platformCashPosition: 0,
               userFunds: {
                 heldInEscrow: 0,
                 totalWalletBalances: 0,
                 totalOwedToUsers: 0,
+                freelancerPayablesAvailable: 0,
+                pendingPayouts: 0,
+                freelancerPayablesTotal: 0,
+                otherUserWalletLiabilities: 0,
+                totalPlatformObligations: 0,
               },
               companyFunds: {
                 totalFeeRevenue: 0,
                 netPlatformEarnings: 0,
                 actualCompanyOwnedBalance: 0,
+                platformRevenue: 0,
+                actualCompanyOwnedCash: 0,
+              },
+              reconciliation: {
+                gapToPlatformRevenue: 0,
               },
             },
         pulse: {

@@ -12,15 +12,26 @@ export const DashboardStatsSchema = z.object({
 export type DashboardStats = z.infer<typeof DashboardStatsSchema>;
 
 export const DashboardFinanceSummarySchema = z.object({
+  platformCashPosition: z.number(),
   userFunds: z.object({
     heldInEscrow: z.number(),
     totalWalletBalances: z.number(),
     totalOwedToUsers: z.number(),
+    freelancerPayablesAvailable: z.number(),
+    pendingPayouts: z.number(),
+    freelancerPayablesTotal: z.number(),
+    otherUserWalletLiabilities: z.number(),
+    totalPlatformObligations: z.number(),
   }),
   companyFunds: z.object({
     totalFeeRevenue: z.number(),
     netPlatformEarnings: z.number(),
     actualCompanyOwnedBalance: z.number(),
+    platformRevenue: z.number(),
+    actualCompanyOwnedCash: z.number(),
+  }),
+  reconciliation: z.object({
+    gapToPlatformRevenue: z.number(),
   }),
 });
 export type DashboardFinanceSummary = z.infer<typeof DashboardFinanceSummarySchema>;

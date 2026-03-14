@@ -7,6 +7,7 @@
 
 - **Feature Name**: Payments & Wallet Monitoring Module
 - **Primary Goal**: Provide SLine Admins and Finance/Support roles with complete, transparent, and auditable visibility into all financial movements across the platform (platform wallets, user wallets, task/booking payments), while keeping the app's double-entry ledger secure and append-only.
+- **Treasury Model**: Option C hybrid read model. The ledger remains the source of truth, while admin treasury pools are projected into dashboard-safe reporting views.
 - **Actors**:
   - `super_admin`: Full read access, privileged actions (adjustments, withdrawal approvals).
   - `admin` / `finance_support`: Read access to ledgers, user wallets, ability to trace transactions.
@@ -28,9 +29,18 @@ The financial system for SLine operates on a strict double-entry ledger. All mon
 
 1. **Deposit** (`deposit`): User funds their wallet via a payment gateway webhook (QiCard). Funds move into `user_available:{user_id}` and `platform_cash`.
 2. **Escrow Hold** (`escrow_hold`): A client initiates a Booking or awards a Task Request. Funds are debited from the client's `user_available` and credited to `platform_escrow`. The booking status becomes `pending` and payment status is `unpaid`.
-3. **Release with Fee** (`release_with_fee`): The task/booking is completed and delivered. Funds move from `platform_escrow` to the provider's `user_available` (net amount), with a percentage credited to `platform_revenue` (the fee).
+3. **Release with Fee** (`release_with_fee`): The task/booking/direct offer is completed and delivered. Funds move from `platform_escrow` to the provider's `user_available` (net amount), with a percentage credited to `platform_revenue` (the fee).
 4. **Refund** (`refund`): A booking or task request is declined, canceled, or expired. Funds are debited from `platform_escrow` back to the client's `user_available`.
 5. **Withdrawal Request** (`withdrawal_request`): A user decides to cash out. Funds are debited from `user_available` and credited to `user_pending_withdrawal` until an admin/system completes it.
+
+### Option C Treasury Pools
+
+- **Escrow Held**: money locked against active work.
+- **Freelancer Payables**: released freelancer balances plus pending payouts.
+- **Pending Payouts**: operational sub-bucket of payables for requested/processing withdrawals.
+- **Platform Revenue**: platform fees only.
+- **Total Platform Obligations**: escrow held plus user wallet liabilities.
+- **Actual Company-Owned Cash**: platform cash after removing user obligations.
 
 **Invariants (Must Always Hold)**:
 
@@ -70,9 +80,12 @@ The financial system for SLine operates on a strict double-entry ledger. All mon
 
 - **`vw_wallet_balances_user`** (Existing): Gives real-time user balances.
 - **`vw_wallet_activity_user`** (Existing): Gives real-time user-specific transaction histories.
-- **`vw_financial_metrics_realtime`** (Existing): Gives platform escrow, cash, and lifetime revenue.
+- **`vw_financial_metrics_realtime`** (Existing): Legacy platform cash/escrow/revenue view. Still used as fallback.
+- **`vw_treasury_pool_balances_realtime`** (**NEW**): Option C treasury projection for escrow held, freelancer payables, pending payouts, obligations, and a diagnostic cash-basis position.
+- **`vw_admin_wallet_balances`** (**NEW**): Admin-safe per-user wallet balances including release-derived freelancer payables and other wallet liabilities.
+- **`vw_admin_wallet_activity`** (**NEW**): Admin-safe per-user wallet timeline without `auth.uid()`.
 - **`vw_financial_metrics_period`** (Existing): Gives period-based metrics like GMV, Revenue, Refunds.
-- **`vw_admin_journal_ledger`** (**NEW**): A denormalized view joining `journal_entries` + `ledger_lines` + `accounts` + `profiles`. Needed for the Admin Dashboard to easily show: "User X paid User Y an amount of Z for Booking UUID on Date."
+- **`vw_admin_journal_ledger`** (**NEW / upgraded**): A denormalized view joining `journal_entries` + `ledger_lines` + `accounts` with masked/full metadata and per-journal treasury deltas.
 
 ### 3) RPCs Needed
 

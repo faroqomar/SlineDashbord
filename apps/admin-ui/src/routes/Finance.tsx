@@ -85,6 +85,7 @@ function formatProfitSource(tx: JournalLedgerEntityCompat): string {
   const entityType = getEntityType(tx);
   if (entityType === 'booking') return 'Booking';
   if (entityType === 'task_request') return 'Task';
+  if (entityType === 'direct_offer') return 'Direct Offer';
   return formatEventType(entityType ?? 'unknown');
 }
 
@@ -173,7 +174,7 @@ function FinanceRealityPanel({
         </div>
       </div>
 
-      <div className="mt-5 grid gap-3 md:grid-cols-3">
+      <div className={`mt-5 grid gap-3 ${metrics.length > 3 ? 'md:grid-cols-2 xl:grid-cols-4' : 'md:grid-cols-3'}`}>
         {metrics.map((metric) => (
           <div
             key={metric.label}
@@ -264,7 +265,7 @@ export function FinancePage() {
         (tx) => {
           const entityType = getEntityType(tx as JournalLedgerEntityCompat);
           return (
-            (entityType === 'booking' || entityType === 'task_request') &&
+            (entityType === 'booking' || entityType === 'task_request' || entityType === 'direct_offer') &&
             Number(tx.fee_amount ?? 0) > 0
           );
         }
@@ -322,7 +323,7 @@ export function FinancePage() {
               <div>
                 <h2 className="text-3xl font-bold tracking-tight text-[#e8e6e3]">Finance Dashboard</h2>
                 <p className="mt-1 max-w-3xl text-sm text-[#afa89d]">
-                  User-held wallet liabilities and platform-owned earnings are shown separately. Held wallet money is never treated as company revenue.
+                  Escrow Held, Freelancer Payables, Pending Payouts, and Platform Revenue are shown separately. Released freelancer money is never treated as company revenue.
                 </p>
               </div>
             </div>
@@ -378,17 +379,17 @@ export function FinancePage() {
           <div className="grid gap-4 md:grid-cols-2">
             <HeadlineFinanceCard
               icon={<Wallet className="h-5 w-5 text-[#72cffc]" />}
-              eyebrow="Money We Hold For Users"
-              title="Total money owed to users"
-              value={formatIqd(metrics?.userFunds.total_owed_to_users)}
-              description="Wallet balances plus escrow liabilities. This is not company money."
+              eyebrow="Platform Obligations"
+              title="Total obligations to users"
+              value={formatIqd(metrics?.userFunds.total_platform_obligations)}
+              description="Escrow held plus user wallet liabilities. This is not company money."
             />
             <HeadlineFinanceCard
               icon={<Banknote className="h-5 w-5 text-[#4ae081]" />}
-              eyebrow="Money We Actually Own"
-              title="Actual company-owned balance"
-              value={formatIqd(metrics?.companyFunds.actual_company_owned_balance)}
-              description="Derived after excluding all user-owned liabilities from platform cash."
+              eyebrow="Conservative Company Funds"
+              title="Fee-backed company earnings"
+              value={formatIqd(metrics?.companyFunds.platform_revenue)}
+              description="Platform fee revenue is the only finance-safe owned-funds headline until cash settlement coverage is complete."
             />
           </div>
         </div>
@@ -397,25 +398,30 @@ export function FinancePage() {
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         <FinanceRealityPanel
           icon={<CircleDollarSign className="h-5 w-5 text-[#72cffc]" />}
-          eyebrow="User-Held Funds"
-          title="User liabilities"
-          description="These balances belong to clients or providers and must stay isolated from company performance."
+          eyebrow="User Liabilities"
+          title="Escrow and payout obligations"
+          description="These pools belong to clients or freelancers and must stay isolated from company performance."
           toneClass="border-sky-500/30 bg-[linear-gradient(180deg,rgba(8,32,48,0.96)_0%,#0e0f13_100%)]"
           metrics={[
             {
-              label: 'Held client funds',
+              label: 'Escrow Held',
               value: formatIqd(metrics?.userFunds.held_in_escrow),
-              hint: 'Escrow currently locked in work/payment flows',
+              hint: 'Client money locked against active work',
             },
             {
-              label: 'Total wallet balances',
-              value: formatIqd(metrics?.userFunds.total_wallet_balances),
-              hint: 'Available plus pending-withdrawal user wallet balances',
+              label: 'Freelancer Payables',
+              value: formatIqd(metrics?.userFunds.freelancer_payables_total),
+              hint: 'Released freelancer funds plus pending payouts',
             },
             {
-              label: 'Total owed to users',
-              value: formatIqd(metrics?.userFunds.total_owed_to_users),
-              hint: 'All user-owned money the platform is holding',
+              label: 'Pending Payouts',
+              value: formatIqd(metrics?.userFunds.pending_payouts),
+              hint: 'Operational payout queue waiting for completion',
+            },
+            {
+              label: 'Total Platform Obligations',
+              value: formatIqd(metrics?.userFunds.total_platform_obligations),
+              hint: 'All user-owned liabilities currently held by the platform',
               emphasized: true,
             },
           ]}
@@ -425,24 +431,29 @@ export function FinancePage() {
           icon={<Landmark className="h-5 w-5 text-[#4ae081]" />}
           eyebrow="Company Funds"
           title="Platform-owned money"
-          description="Only fees and commissions contribute to company earnings in this ledger model."
+          description="Only fees and commissions contribute to company earnings. Cash-basis position remains diagnostic until platform_cash covers every settlement leg."
           toneClass="border-emerald-500/30 bg-[linear-gradient(180deg,rgba(7,34,21,0.96)_0%,#0e0f13_100%)]"
           metrics={[
             {
-              label: 'Total fee revenue',
-              value: formatIqd(metrics?.companyFunds.total_fee_revenue),
-              hint: 'Lifetime fees and commissions captured by the platform',
-            },
-            {
-              label: 'Net platform earnings',
-              value: formatIqd(metrics?.companyFunds.net_platform_earnings),
-              hint: 'Ledger earnings attributable to the company',
-            },
-            {
-              label: 'Actual company-owned balance',
-              value: formatIqd(metrics?.companyFunds.actual_company_owned_balance),
-              hint: 'Company money after removing all user liabilities',
+              label: 'Platform Revenue',
+              value: formatIqd(metrics?.companyFunds.platform_revenue),
+              hint: 'Ledger revenue captured by platform fees only',
               emphasized: true,
+            },
+            {
+              label: 'Platform Cash',
+              value: formatIqd(metrics?.platform_cash_position),
+              hint: 'Raw platform cash before subtracting obligations',
+            },
+            {
+              label: 'Cash-Basis Position (Diagnostic)',
+              value: formatIqd(metrics?.companyFunds.actual_company_owned_cash),
+              hint: 'Use for settlement diagnostics only while gateway postings do not fully populate platform_cash',
+            },
+            {
+              label: 'Reconciliation Gap',
+              value: formatIqd(metrics?.reconciliation.gap_to_platform_revenue),
+              hint: 'Difference between diagnostic cash-basis position and platform revenue',
             },
           ]}
         />
@@ -462,10 +473,10 @@ export function FinancePage() {
           hint="Requests waiting for processing or completion"
         />
         <CompactFinanceCard
-          icon={<Banknote className="h-4 w-4 text-[#9c7df9]" />}
-          label="Visible fee income"
-          value={formatIqd(profitFeeTotal)}
-          hint="Fee-bearing releases visible in the profit feed below"
+          icon={<CircleDollarSign className="h-4 w-4 text-[#9c7df9]" />}
+          label="Other wallet liabilities"
+          value={formatIqd(metrics?.userFunds.other_user_wallet_liabilities)}
+          hint="User wallet balances not classified as release-derived freelancer payables"
         />
         <PlatformFeeCard
           feeSettings={feeSettingsQuery.data}
@@ -484,7 +495,7 @@ export function FinancePage() {
               <Percent className="h-4 w-4 text-[#9c7df9]" />
               <div>
                 <h3 className="text-base font-semibold text-[#e8e6e3]">Company Fee Revenue Feed</h3>
-                <p className="text-xs text-[#9d9588]">Only platform-owned fees from booking and task releases</p>
+                <p className="text-xs text-[#9d9588]">Only platform-owned fees from booking, task, and direct-offer releases</p>
               </div>
             </div>
             <div className="text-right">
@@ -515,7 +526,7 @@ export function FinancePage() {
               ))
             ) : (
               <div className="px-5 py-10 text-center text-sm text-[#9d9588]">
-                No booking or task profit fees found.
+                No booking, task, or direct-offer profit fees found.
               </div>
             )}
           </div>

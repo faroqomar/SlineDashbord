@@ -138,10 +138,11 @@ Component → ViewModel (useXxxVM) → mutations.ts → ServiceResult<T> → toa
 
 | View                            | Purpose                                             |
 | ------------------------------- | --------------------------------------------------- |
-| `vw_admin_journal_ledger`       | Flattened journal entries with amounts and metadata |
-| `vw_financial_metrics_realtime` | Raw ledger-derived cash, escrow, and fee balances used to derive user-held vs company-owned summaries |
-| `vw_wallet_balances_user`       | Per-user wallet balances                            |
-| `vw_wallet_activity_user`       | Per-user transaction history                        |
+| `vw_admin_journal_ledger`       | Flattened journal entries with amounts, masked/full metadata, and treasury delta columns |
+| `vw_treasury_pool_balances_realtime` | Option C treasury pools: escrow held, freelancer payables, pending payouts, platform revenue, obligations, diagnostic cash-basis position |
+| `vw_financial_metrics_realtime` | Legacy fallback metrics view for platform cash, escrow, and fee balances |
+| `vw_admin_wallet_balances`      | Admin-safe per-user wallet balances                 |
+| `vw_admin_wallet_activity`      | Admin-safe per-user transaction history             |
 
 ### Tables
 
@@ -173,7 +174,7 @@ The dashboard API (`apps/api`) exposes the following finance routes. All require
 | GET | `/api/v1/finance/transactions/:journalId` | Single transaction detail | READ (support+); **reveal** = WRITE (admin, super_admin) | By default returns **masked** metadata. `?reveal=1` for admin/super_admin: inserts one row into `audit_logs` (action `admin.finance.tx_view_sensitive_meta`) then returns row with `meta_full`. UI shows confirmation dialog before reveal. |
 | GET | `/api/v1/finance/audit` | Paginated audit log list | admin, super_admin only | Query: `limit`, `cursor`, filters (`action`, `actor_user_id`, `start_date`, `end_date`). Cursor is `(created_at, id)`. Same query builder as export. |
 | GET | `/api/v1/finance/audit/export` | CSV export of audit logs | admin, super_admin only | Same filters as list; max `limit` 10000. Returns CSV with `Content-Disposition: attachment`. Export row set matches list for the same params (single `buildAuditQuery`). **Meta column is redacted** (action, related_entity_type, related_entity_id, journal_entry_id only) to avoid PII in exports. |
-| GET | `/api/v1/finance/users/:userId` | User wallet + timeline | admin, super_admin only | Reads `vw_wallet_balances_user` and `vw_wallet_activity_user`. Returns 501 if views are not deployed. |
+| GET | `/api/v1/finance/users/:userId` | User wallet + timeline | admin, super_admin only | Reads `vw_admin_wallet_balances` and `vw_admin_wallet_activity`. Returns 501 if views are not deployed. |
 
 ### UI Routes (admin-ui)
 
@@ -232,13 +233,21 @@ All use Zod from `packages/shared`, `requireAdminRole` in preHandler, and return
 
 - **User-held funds** include escrow, wallet balances, and pending withdrawals. They are liabilities owed to users and must never be shown as company revenue or company balance.
 - **Company-owned funds** come only from platform fees / commissions.
+- **Cash-basis position** is exposed as a diagnostic metric only until `platform_cash` is fully populated by every settlement leg. Do not use it as the primary owned-funds headline.
 - The finance dashboard now exposes:
   - `userFunds.held_in_escrow`
+  - `userFunds.freelancer_payables_available`
+  - `userFunds.pending_payouts`
+  - `userFunds.freelancer_payables_total`
   - `userFunds.total_wallet_balances`
   - `userFunds.total_owed_to_users`
+  - `userFunds.total_platform_obligations`
   - `companyFunds.total_fee_revenue`
+  - `companyFunds.platform_revenue`
   - `companyFunds.net_platform_earnings`
-  - `companyFunds.actual_company_owned_balance`
+  - `companyFunds.actual_company_owned_balance` (conservative revenue-backed owned-funds alias for legacy consumers)
+  - `companyFunds.actual_company_owned_cash` (diagnostic cash-basis position)
+  - `reconciliation.gap_to_platform_revenue`
 
 ---
 

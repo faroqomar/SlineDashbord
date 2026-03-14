@@ -10,12 +10,15 @@ This document maps every admin finance view and RPC used by the dashboard to its
 
 | View / object | Purpose | Dashboard repo migration | Applied on remote (project isddrknbjsgaantjojhm) |
 |---------------|---------|--------------------------|---------------------------------------------------|
-| `vw_admin_journal_ledger` | Denormalized journal for admin transaction list/detail | `supabase/migrations/20260228000000_admin_views_rpcs.sql` | Yes (admin_views_rpcs) |
+| `vw_admin_journal_ledger` | Denormalized journal for admin transaction list/detail, plus treasury deltas and masked/full meta | `supabase/migrations/20260312134507_20260320100000_finance_treasury_option_c.sql` | Yes (`version = 20260312134507`, `name = 20260320100000_finance_treasury_option_c`) |
+| `vw_treasury_pool_balances_realtime` | Option C treasury pools: escrow held, freelancer payables, pending payouts, platform revenue, obligations, diagnostic cash-basis position | `supabase/migrations/20260312134507_20260320100000_finance_treasury_option_c.sql` | Yes (`version = 20260312134507`, `name = 20260320100000_finance_treasury_option_c`) |
+| `vw_admin_wallet_balances` | Admin-safe per-user wallet balances without `auth.uid()` dependency | `supabase/migrations/20260312134507_20260320100000_finance_treasury_option_c.sql` | Yes (`version = 20260312134507`, `name = 20260320100000_finance_treasury_option_c`) |
+| `vw_admin_wallet_activity` | Admin-safe per-user wallet activity without `auth.uid()` dependency | `supabase/migrations/20260312134507_20260320100000_finance_treasury_option_c.sql` | Yes (`version = 20260312134507`, `name = 20260320100000_finance_treasury_option_c`) |
 | `vw_financial_metrics_realtime` | Platform KPIs (platform_cash, escrow_held, revenue) | App repo (finance_intelligence_views_rpcs / add_financial_views) | Yes |
 | `vw_wallet_activity_user` | Per-user wallet activity (spent semantics, counterparty) | App repo (create_wallet_views_core / recreate_wallet_views_with_correct_columns) | Yes |
 | `vw_wallet_balances_user` | Per-user available/held/pending balances | App repo (same as above) | Yes |
 
-**vw_wallet_activity_user and user_id:** The dashboard API filters timeline by `.eq('user_id', userId)`. The app repo view must expose a `user_id` column (or an equivalent) for per-user wallet activity; otherwise the API may error or return empty. If the view is RLS-filtered or parameterized differently, provide an RPC that accepts `p_user_id` and the dashboard can call that instead.
+**Current dashboard contract:** `GET /finance/metrics` now reads `vw_treasury_pool_balances_realtime` first and falls back to `vw_financial_metrics_realtime` when the Option C view is not deployed. `GET /finance/users/:userId` now expects `vw_admin_wallet_balances` and `vw_admin_wallet_activity`.
 
 ---
 
@@ -67,3 +70,10 @@ This document maps every admin finance view and RPC used by the dashboard to its
   - Backed by a view/RPC above (with migration in this repo or app repo and applied on remote), or
   - Explicitly removed from scope (wallet-adjust execute).
 - **PASS:** Proceed to Phase 1 (shared contracts + read APIs). Inline action buttons for withdrawals, freeze/unfreeze, disputed-booking resolve, and direct-offer refund are allowed; wallet-adjust execute remains hidden/501.
+
+## Option C rollout note
+
+- `supabase/migrations/20260312134507_20260320100000_finance_treasury_option_c.sql` is the dashboard-owned read-model rollout for the 3-pool treasury model.
+- A copy for the app repo is staged at `MIGRATIONS/for_sline_app/20260312134507_20260320100000_finance_treasury_option_c.sql`.
+- The filename prefix is normalized to the already-applied remote migration version `20260312134507`, while keeping the historical name suffix for traceability.
+- This rollout is read-only: it does not change `process_payment_event_ledger`, withdrawal mutation semantics, or any approval flow.

@@ -98,11 +98,28 @@ export const BookingCandidateSchema = z.object({
 });
 export type BookingCandidate = z.infer<typeof BookingCandidateSchema>;
 
+export const SettlementTargetTypeEnum = z.enum(['booking', 'task_request', 'direct_offer']);
+export type SettlementTargetType = z.infer<typeof SettlementTargetTypeEnum>;
+
+export const SettlementCandidateSchema = z.object({
+  target_type: SettlementTargetTypeEnum,
+  target_id: z.string().uuid(),
+  status: z.string(),
+  payment_status: z.string().optional(),
+  client_id: z.string().uuid().nullable().optional(),
+  provider_id: z.string().uuid().nullable().optional(),
+  amount_cents: z.number().optional(),
+  fee_rate_bps: z.number().int().min(0).optional(),
+});
+export type SettlementCandidate = z.infer<typeof SettlementCandidateSchema>;
+
 export const DisputeActionAvailabilitySchema = z.object({
   can_accept: z.boolean(),
   can_cancel: z.boolean(),
   can_resolve: z.boolean(),
   requires_booking_id: z.boolean().optional(),
+  requires_settlement_target: z.boolean().optional(),
+  supports_split_resolution: z.boolean().optional(),
 });
 export type DisputeActionAvailability = z.infer<typeof DisputeActionAvailabilitySchema>;
 
@@ -154,6 +171,7 @@ export const DisputeDetailSchema = z.object({
     uploader: z.object({ full_name: z.string() }).optional(),
   })).optional(),
   booking_candidates: z.array(BookingCandidateSchema).optional(),
+  settlement_candidates: z.array(SettlementCandidateSchema).optional(),
   action_availability: DisputeActionAvailabilitySchema.optional(),
 });
 export type DisputeDetail = z.infer<typeof DisputeDetailSchema>;
@@ -170,23 +188,87 @@ export const AdminCancelDisputeInputSchema = z.object({
 });
 export type AdminCancelDisputeInput = z.infer<typeof AdminCancelDisputeInputSchema>;
 
-export const ResolveOutcomeEnum = z.enum(['refund_client', 'release_freelancer', 'no_financial']);
+export const ResolveOutcomeEnum = z.enum(['refund_client', 'release_freelancer', 'split_settlement']);
 export type ResolveOutcome = z.infer<typeof ResolveOutcomeEnum>;
 
 export const AdminResolveDisputeInputSchema = z.object({
   dispute_id: z.string().uuid('Invalid Dispute ID'),
   reason: z.string().trim().min(1, 'Reason is required for resolve'),
-  outcome: ResolveOutcomeEnum.optional(),
+  outcome: ResolveOutcomeEnum,
   booking_id: z.string().uuid().optional(),
+  task_request_id: z.string().uuid().optional(),
+  client_refund_amount: z.number().int().min(0).optional(),
+  freelancer_payout_amount: z.number().int().min(0).optional(),
+}).superRefine((data, ctx) => {
+  if (data.booking_id && data.task_request_id) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Only one settlement target can be provided',
+      path: ['booking_id'],
+    });
+  }
+  if (data.outcome === 'split_settlement') {
+    if (data.client_refund_amount == null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'client_refund_amount is required for split settlement',
+        path: ['client_refund_amount'],
+      });
+    }
+    if (data.freelancer_payout_amount == null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'freelancer_payout_amount is required for split settlement',
+        path: ['freelancer_payout_amount'],
+      });
+    }
+    if (
+      data.client_refund_amount != null &&
+      data.freelancer_payout_amount != null &&
+      data.client_refund_amount <= 0 &&
+      data.freelancer_payout_amount <= 0
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'At least one split amount must be greater than zero',
+        path: ['client_refund_amount'],
+      });
+    }
+  } else if (data.client_refund_amount != null || data.freelancer_payout_amount != null) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Split amounts are only allowed for split_settlement',
+      path: ['outcome'],
+    });
+  }
 });
 export type AdminResolveDisputeInput = z.infer<typeof AdminResolveDisputeInputSchema>;
+
+export const AdminResolveDisputeResultSchema = z.object({
+  dispute_id: z.string().uuid(),
+  status: DisputeStatusEnum,
+  outcome: ResolveOutcomeEnum,
+  entity_type: z.enum(['booking', 'task_request', 'direct_offer']),
+  entity_id: z.string().uuid(),
+  booking_id: z.string().uuid().nullable().optional(),
+  task_request_id: z.string().uuid().nullable().optional(),
+  direct_offer_id: z.string().uuid().nullable().optional(),
+  journal_entry_ids: z.array(z.string().uuid()).min(1),
+  fee_amount: z.number().int().min(0),
+  client_refund_amount: z.number().int().min(0),
+  freelancer_payout_amount: z.number().int().min(0),
+  client_wallet_destination: z.literal('available_balance'),
+  freelancer_wallet_destination: z.literal('available_balance'),
+  idempotent: z.boolean().optional(),
+});
+export type AdminResolveDisputeResult = z.infer<typeof AdminResolveDisputeResultSchema>;
 
 // --- Legacy / existing (keep for backward compatibility during migration) ---
 export const UpdateDisputeStatusSchema = z.object({
   id: z.string().uuid("Invalid Dispute ID"),
   status: DisputeStatusEnum,
   resolution: z.string().optional(),
-  decision: z.enum(['refund_client', 'release_freelancer']).optional(),
+  decision: z.enum(['refund_client', 'release_freelancer', 'split_settlement']).optional(),
 });
 
 export const CreateDisputeInputSchema = z.object({

@@ -44,14 +44,17 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import type { ResolveOutcome } from "@sline/shared";
 
 export function DisputeDetailScreen() {
     const { disputeId } = useParams({ from: '/auth/disputes/$disputeId' } as any);
     const vm = useDisputeDetailViewModel(disputeId);
     const [decisionAction, setDecisionAction] = useState<'cancel' | 'resolve' | null>(null);
     const [reason, setReason] = useState("");
-    const [outcome, setOutcome] = useState<string>("no_financial");
-    const [bookingId, setBookingId] = useState<string>("");
+    const [outcome, setOutcome] = useState<ResolveOutcome>("refund_client");
+    const [settlementTargetId, setSettlementTargetId] = useState<string>("");
+    const [clientRefundAmount, setClientRefundAmount] = useState<string>("");
     const av = vm.actionAvailability;
 
     if (vm.isLoading) {
@@ -74,6 +77,43 @@ export function DisputeDetailScreen() {
     }
 
     const { dispute } = vm;
+    const heldSettlementCandidates = (dispute?.settlement_candidates ?? []).filter(
+        (candidate: { payment_status?: string }) => String(candidate.payment_status ?? "").toLowerCase() === "held"
+    );
+    const selectedSettlementCandidate =
+        heldSettlementCandidates.find((candidate: { target_id: string }) => candidate.target_id === settlementTargetId) ??
+        (heldSettlementCandidates.length === 1 ? heldSettlementCandidates[0] : null);
+    const splitGrossAmount = Number(selectedSettlementCandidate?.amount_cents ?? 0);
+    const splitFeeBps = Number(selectedSettlementCandidate?.fee_rate_bps ?? 0);
+    const splitFeeAmount = Math.floor((splitGrossAmount * splitFeeBps) / 10000);
+    const splitDistributableAmount = Math.max(splitGrossAmount - splitFeeAmount, 0);
+    const splitRefundValue = Math.min(Number(clientRefundAmount || 0), splitDistributableAmount);
+    const splitPayoutValue = Math.max(splitDistributableAmount - splitRefundValue, 0);
+    const splitEnteredTotal = splitRefundValue + splitPayoutValue;
+    const splitHasSettlementBasis = Boolean(selectedSettlementCandidate) && splitDistributableAmount > 0;
+    const splitAmountsValid =
+        outcome !== 'split_settlement' ||
+        (splitHasSettlementBasis && splitEnteredTotal === splitDistributableAmount && splitRefundValue >= 0);
+
+    const settlementTargetLabel = (targetType?: 'booking' | 'task_request' | 'direct_offer') => {
+        if (targetType === 'task_request') return 'tender';
+        if (targetType === 'direct_offer') return 'direct offer';
+        return 'booking';
+    };
+
+    const setSplitRefundPreset = (refundAmount: number) => {
+        const normalized = Math.min(Math.max(Math.floor(refundAmount), 0), splitDistributableAmount);
+        setClientRefundAmount(String(normalized));
+    };
+
+    const handleSplitRefundInput = (value: string) => {
+        const digitsOnly = value.replace(/[^\d]/g, '');
+        if (!digitsOnly) {
+            setClientRefundAmount('');
+            return;
+        }
+        setSplitRefundPreset(Number(digitsOnly));
+    };
 
     const handleCancel = () => {
         if (reason.trim().length < 1) return;
@@ -81,9 +121,21 @@ export function DisputeDetailScreen() {
     };
     const handleResolve = () => {
         if (reason.trim().length < 1) return;
-        const payload: { reason: string; outcome?: string; booking_id?: string } = { reason: reason.trim() };
-        if (outcome && outcome !== 'no_financial') payload.outcome = outcome;
-        if (av.requires_booking_id && bookingId) payload.booking_id = bookingId;
+        const payload: {
+            reason: string;
+            outcome: ResolveOutcome;
+            booking_id?: string;
+            task_request_id?: string;
+            client_refund_amount?: number;
+            freelancer_payout_amount?: number;
+        } = { reason: reason.trim(), outcome };
+        if (selectedSettlementCandidate?.target_type === 'booking') payload.booking_id = selectedSettlementCandidate.target_id;
+        if (selectedSettlementCandidate?.target_type === 'task_request') payload.task_request_id = selectedSettlementCandidate.target_id;
+        if (outcome === 'split_settlement') {
+            if (!splitAmountsValid) return;
+            payload.client_refund_amount = splitRefundValue;
+            payload.freelancer_payout_amount = splitPayoutValue;
+        }
         vm.resolve(payload);
     };
 
@@ -122,7 +174,7 @@ export function DisputeDetailScreen() {
                         </Button>
                     )}
                     {av.can_resolve && (
-                        <Button size="sm" className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 gap-2" onClick={() => { setDecisionAction('resolve'); setReason(''); setOutcome('no_financial'); setBookingId(''); vm.setDecisionModalOpen(true); }}>
+                        <Button size="sm" className="bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 gap-2" onClick={() => { setDecisionAction('resolve'); setReason(''); setOutcome('refund_client'); setSettlementTargetId(heldSettlementCandidates.length === 1 ? heldSettlementCandidates[0].target_id : ''); setClientRefundAmount(''); vm.setDecisionModalOpen(true); }}>
                             <Scale className="h-4 w-4" /> Resolve Case
                         </Button>
                     )}
@@ -344,26 +396,109 @@ export function DisputeDetailScreen() {
                             <>
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-bold uppercase text-muted-foreground">Financial outcome</label>
-                                    <Select value={outcome} onValueChange={setOutcome}>
+                                    <Select
+                                        value={outcome}
+                                        onValueChange={(value) => {
+                                            const nextOutcome = value as ResolveOutcome;
+                                            setOutcome(nextOutcome);
+                                            if (nextOutcome === 'split_settlement') {
+                                                setSplitRefundPreset(Math.floor(splitDistributableAmount / 2));
+                                            }
+                                        }}
+                                    >
                                         <SelectTrigger><SelectValue /></SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="no_financial">No financial change</SelectItem>
                                             <SelectItem value="refund_client">Refund to client</SelectItem>
                                             <SelectItem value="release_freelancer">Release to freelancer</SelectItem>
+                                            <SelectItem value="split_settlement">Split settlement</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
-                                {av.requires_booking_id && dispute.booking_candidates?.length && (
+                                {outcome === 'split_settlement' && (
+                                    <>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-bold uppercase text-muted-foreground">Client refund amount</label>
+                                            <Input
+                                                inputMode="numeric"
+                                                placeholder="e.g. 27000"
+                                                value={clientRefundAmount}
+                                                onChange={(e) => handleSplitRefundInput(e.target.value)}
+                                            />
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            <Button type="button" variant="outline" size="sm" onClick={() => setSplitRefundPreset(splitDistributableAmount)}>
+                                                Full refund
+                                            </Button>
+                                            <Button type="button" variant="outline" size="sm" onClick={() => setSplitRefundPreset(Math.floor(splitDistributableAmount / 2))}>
+                                                50 / 50
+                                            </Button>
+                                            <Button type="button" variant="outline" size="sm" onClick={() => setSplitRefundPreset(0)}>
+                                                Full payout
+                                            </Button>
+                                        </div>
+                                        <div className="rounded-xl border border-primary/10 bg-primary/5 p-3 text-xs text-muted-foreground">
+                                            Split settlement is calculated automatically. Enter the client refund and the freelancer payout will be derived after the platform fee is kept.
+                                        </div>
+                                        {selectedSettlementCandidate && (
+                                            <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-100">
+                                                <div>Gross held amount: <span className="font-mono">IQD {splitGrossAmount.toLocaleString()}</span></div>
+                                                <div>Platform fee ({(splitFeeBps / 100).toFixed(2)}%): <span className="font-mono">IQD {splitFeeAmount.toLocaleString()}</span></div>
+                                                <div>Client refund: <span className="font-mono">IQD {splitRefundValue.toLocaleString()}</span></div>
+                                                <div>Freelancer payout: <span className="font-mono">IQD {splitPayoutValue.toLocaleString()}</span></div>
+                                                <div>Client receives in wallet: <span className="font-mono">IQD {splitRefundValue.toLocaleString()}</span></div>
+                                                <div>Freelancer receives in wallet: <span className="font-mono">IQD {splitPayoutValue.toLocaleString()}</span></div>
+                                                <div>Platform keeps: <span className="font-mono">IQD {splitFeeAmount.toLocaleString()}</span></div>
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                                {outcome !== 'split_settlement' && (
+                                    <div className="rounded-xl border border-primary/10 bg-primary/5 p-3 text-xs text-muted-foreground">
+                                        {outcome === 'refund_client'
+                                            ? 'Refund goes to the client main wallet (`available_balance`).'
+                                            : 'Payout goes to the freelancer main wallet (`available_balance`) and the platform fee is kept in platform revenue.'}
+                                    </div>
+                                )}
+                                {av.requires_settlement_target && heldSettlementCandidates.length > 1 && (
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-bold uppercase text-muted-foreground">Booking (required)</label>
-                                        <Select value={bookingId} onValueChange={setBookingId}>
-                                            <SelectTrigger><SelectValue placeholder="Select booking" /></SelectTrigger>
+                                        <label className="text-[10px] font-bold uppercase text-muted-foreground">Settlement target (required)</label>
+                                        <Select
+                                            value={settlementTargetId}
+                                            onValueChange={(value) => {
+                                                setSettlementTargetId(value);
+                                                if (outcome === 'split_settlement') {
+                                                    const nextCandidate = heldSettlementCandidates.find((candidate: { target_id: string }) => candidate.target_id === value);
+                                                    const nextGross = Number(nextCandidate?.amount_cents ?? 0);
+                                                    const nextFeeBps = Number(nextCandidate?.fee_rate_bps ?? 0);
+                                                    const nextDistributable = Math.max(nextGross - Math.floor((nextGross * nextFeeBps) / 10000), 0);
+                                                    setClientRefundAmount(String(Math.floor(nextDistributable / 2)));
+                                                }
+                                            }}
+                                        >
+                                            <SelectTrigger><SelectValue placeholder="Select settlement target" /></SelectTrigger>
                                             <SelectContent>
-                                                {dispute.booking_candidates.map((b: { booking_id: string; status: string }) => (
-                                                    <SelectItem key={b.booking_id} value={b.booking_id}>{b.booking_id.slice(0, 8)} ({b.status})</SelectItem>
+                                                {heldSettlementCandidates.map((candidate: { target_id: string; target_type: 'booking' | 'task_request' | 'direct_offer'; status: string; payment_status?: string; amount_cents?: number }) => (
+                                                    <SelectItem key={candidate.target_id} value={candidate.target_id}>
+                                                        {settlementTargetLabel(candidate.target_type).replace(/\b\w/g, (char) => char.toUpperCase())} {candidate.target_id.slice(0, 8)} ({candidate.status}/{candidate.payment_status}){candidate.amount_cents != null ? ` · IQD ${Number(candidate.amount_cents).toLocaleString()}` : ''}
+                                                    </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
+                                    </div>
+                                )}
+                                {av.requires_settlement_target && heldSettlementCandidates.length === 1 && (
+                                    <div className="rounded-xl border border-primary/10 bg-primary/5 p-3 text-xs text-muted-foreground">
+                                        Settlement will use {settlementTargetLabel(heldSettlementCandidates[0].target_type)} <span className="font-mono">{heldSettlementCandidates[0].target_id.slice(0, 8)}</span>.
+                                    </div>
+                                )}
+                                {av.requires_settlement_target && heldSettlementCandidates.length === 0 && (
+                                    <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-200">
+                                        This dispute is active, but no held booking, tender request, or direct offer was found yet. Resolve is unavailable until the dispute has a settlement target.
+                                    </div>
+                                )}
+                                {outcome === 'split_settlement' && !splitHasSettlementBasis && (
+                                    <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-200">
+                                        Split settlement needs one held settlement target with a distributable amount greater than zero.
                                     </div>
                                 )}
                             </>
@@ -377,7 +512,19 @@ export function DisputeDetailScreen() {
                             </Button>
                         )}
                         {decisionAction === 'resolve' && (
-                            <Button onClick={handleResolve} disabled={vm.isResolving || reason.trim().length < 1 || (av.requires_booking_id && !bookingId)}>
+                            <Button
+                                onClick={handleResolve}
+                                disabled={
+                                    vm.isResolving ||
+                                    reason.trim().length < 1 ||
+                                    (av.requires_settlement_target && heldSettlementCandidates.length > 1 && !settlementTargetId) ||
+                                    (av.requires_settlement_target && heldSettlementCandidates.length === 0) ||
+                                    (outcome === 'split_settlement' &&
+                                        (!splitHasSettlementBasis ||
+                                            splitRefundValue < 0 ||
+                                            !splitAmountsValid))
+                                }
+                            >
                                 {vm.isResolving ? 'Resolving…' : 'Resolve'}
                             </Button>
                         )}

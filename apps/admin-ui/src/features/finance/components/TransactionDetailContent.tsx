@@ -34,6 +34,12 @@ function formatCurrency(value?: number | null): string {
   return `IQD ${Number(value ?? 0).toLocaleString()}`;
 }
 
+function formatSignedCurrency(value?: number | null): string {
+  const numeric = Number(value ?? 0);
+  const prefix = numeric > 0 ? '+' : '';
+  return `${prefix}${formatCurrency(numeric)}`;
+}
+
 function titleCase(value?: string | null): string {
   return (value ?? 'unknown')
     .replace(/_/g, ' ')
@@ -273,7 +279,7 @@ export function TransactionDetailContent({
           </CardContent>
         </Card>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 lg:grid-cols-3">
           <Card className="gap-4 border-border/60 bg-background/70 py-4">
             <CardHeader className="px-4 pb-0">
               <CardTitle className="flex items-center gap-2 text-sm">
@@ -311,6 +317,43 @@ export function TransactionDetailContent({
               {renderKeyValue('Payer User ID', detail.payer_user_id)}
               {renderKeyValue('Payee User ID', detail.payee_user_id)}
               {renderKeyValue('Initiator', detail.initiator?.full_name ?? detail.initiator_user_id)}
+            </CardContent>
+          </Card>
+
+          <Card className="gap-4 border-border/60 bg-background/70 py-4">
+            <CardHeader className="px-4 pb-0">
+              <CardTitle className="flex items-center gap-2 text-sm">
+                <Wallet className="h-4 w-4" />
+                Treasury Impact
+              </CardTitle>
+              <CardDescription>How this journal moved the admin finance pools.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 px-4">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Escrow Held</span>
+                <span className="font-semibold">{formatSignedCurrency(detail.escrow_delta_iqd)}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">User Available</span>
+                <span className="font-semibold">{formatSignedCurrency(detail.user_available_delta_iqd)}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Freelancer Payables</span>
+                <span className="font-semibold">{formatSignedCurrency(detail.freelancer_payables_available_delta_iqd)}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Pending Payouts</span>
+                <span className="font-semibold">{formatSignedCurrency(detail.pending_payouts_delta_iqd)}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Platform Revenue</span>
+                <span className="font-semibold">{formatSignedCurrency(detail.platform_revenue_delta_iqd)}</span>
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Platform Cash</span>
+                <span className="font-semibold">{formatSignedCurrency(detail.platform_cash_delta_iqd)}</span>
+              </div>
             </CardContent>
           </Card>
         </div>

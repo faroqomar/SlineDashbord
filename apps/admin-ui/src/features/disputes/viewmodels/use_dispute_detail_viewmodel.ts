@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { disputesApi } from "../services/disputes_api";
 import { toast } from "sonner";
 import { useState } from "react";
+import type { AdminResolveDisputeInput } from "@sline/shared";
 
 export function useDisputeDetailViewModel(disputeId: string) {
   const queryClient = useQueryClient();
@@ -13,15 +14,17 @@ export function useDisputeDetailViewModel(disputeId: string) {
     enabled: !!disputeId,
   });
 
-  const invalidate = () => {
-    queryClient.invalidateQueries({ queryKey: ["disputes", "detail", disputeId] });
-    queryClient.invalidateQueries({ queryKey: ["disputes", "list"] });
+  const invalidate = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["disputes", "detail", disputeId] }),
+      queryClient.invalidateQueries({ queryKey: ["disputes", "list"] }),
+    ]);
   };
 
   const acceptMutation = useMutation({
     mutationFn: () => disputesApi.acceptDispute(disputeId),
-    onSuccess: () => {
-      invalidate();
+    onSuccess: async () => {
+      await invalidate();
       toast.success("Dispute accepted");
       setDecisionModalOpen(false);
     },
@@ -32,8 +35,8 @@ export function useDisputeDetailViewModel(disputeId: string) {
 
   const cancelMutation = useMutation({
     mutationFn: (reason: string) => disputesApi.cancelDispute(disputeId, reason),
-    onSuccess: () => {
-      invalidate();
+    onSuccess: async () => {
+      await invalidate();
       toast.success("Dispute canceled");
       setDecisionModalOpen(false);
     },
@@ -43,10 +46,10 @@ export function useDisputeDetailViewModel(disputeId: string) {
   });
 
   const resolveMutation = useMutation({
-    mutationFn: (data: { reason: string; outcome?: string; booking_id?: string }) =>
-      disputesApi.resolveDispute(disputeId, data),
-    onSuccess: () => {
-      invalidate();
+    mutationFn: (data: Omit<AdminResolveDisputeInput, 'dispute_id'>) =>
+      disputesApi.resolveDispute(disputeId, data, crypto.randomUUID()),
+    onSuccess: async () => {
+      await invalidate();
       toast.success("Dispute resolved");
       setDecisionModalOpen(false);
     },

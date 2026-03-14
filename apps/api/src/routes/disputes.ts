@@ -6,6 +6,7 @@ import {
   AdminAcceptDisputeInputSchema,
   AdminCancelDisputeInputSchema,
   AdminResolveDisputeInputSchema,
+  AdminResolveDisputeResultSchema,
   DISPUTES_READ_ROLES,
   DISPUTES_WRITE_ROLES,
   failure,
@@ -40,8 +41,12 @@ const CATEGORY_RULES: Array<{ label: string; keywords: string[] }> = [
 function mapRpcError(error: { message?: string } | null) {
   const message = error?.message ?? 'Database error';
   const normalized = message.toLowerCase();
+  if (normalized.includes('only admin can') || normalized.includes('not authorized') || normalized.includes('forbidden')) {
+    return { status: 403, payload: failure('FORBIDDEN', message) };
+  }
   if (normalized.includes('not found')) return { status: 404, payload: failure('NOT_FOUND', message) };
   if (normalized.includes('already exists') || normalized.includes('duplicate key')) return { status: 409, payload: failure('CONFLICT', message) };
+  if (normalized.includes('must satisfy') || normalized.includes('must be non-negative')) return { status: 400, payload: failure('VALIDATION_ERROR', message) };
   if (normalized.includes('invalid') || normalized.includes('required')) return { status: 400, payload: failure('VALIDATION_ERROR', message) };
   if (normalized.includes('only open') || normalized.includes('only active') || normalized.includes('can be accepted') || normalized.includes('can be canceled') || normalized.includes('can be resolved')) return { status: 400, payload: failure('VALIDATION_ERROR', message) };
   return { status: 500, payload: failure('DATABASE_ERROR', message) };
@@ -222,10 +227,20 @@ export default async function disputeRoutes(fastify: FastifyInstance) {
 
     const taskId = dispute.task_id ?? undefined;
     let booking_candidates: Array<{ booking_id: string; status: string; client_id?: string; provider_id?: string; amount_cents?: number }> = [];
+    let settlement_candidates: Array<{
+      target_type: 'booking' | 'task_request' | 'direct_offer';
+      target_id: string;
+      status: string;
+      payment_status?: string;
+      client_id?: string | null;
+      provider_id?: string | null;
+      amount_cents?: number;
+      fee_rate_bps?: number;
+    }> = [];
     if (taskId) {
       const { data: bookings } = await supabase
         .from('bookings')
-        .select('id, status, client_id, provider_id, budget_cents')
+        .select('id, status, payment_status, client_id, provider_id, price, fee_rate_applied_bps')
         .eq('task_id', taskId);
       if (bookings?.length) {
         booking_candidates = bookings.map((b: any) => ({
@@ -233,23 +248,80 @@ export default async function disputeRoutes(fastify: FastifyInstance) {
           status: b.status,
           client_id: b.client_id,
           provider_id: b.provider_id,
-          amount_cents: b.budget_cents ?? undefined,
+          amount_cents: b.price != null ? Number(b.price) : undefined,
         }));
+        settlement_candidates.push(
+          ...bookings.map((b: any) => ({
+            target_type: 'booking' as const,
+            target_id: b.id,
+            status: b.status,
+            payment_status: b.payment_status ?? undefined,
+            client_id: b.client_id ?? null,
+            provider_id: b.provider_id ?? null,
+            amount_cents: b.price != null ? Number(b.price) : undefined,
+            fee_rate_bps: b.fee_rate_applied_bps != null ? Number(b.fee_rate_applied_bps) : undefined,
+          }))
+        );
+      }
+
+      const { data: taskRequests } = await supabase
+        .from('task_requests')
+        .select('id, status, payment_status, client_id, freelancer_id, amount, price, fee_rate_applied_bps')
+        .eq('task_id', taskId)
+        .is('deleted_at', null);
+      if (taskRequests?.length) {
+        settlement_candidates.push(
+          ...taskRequests.map((tr: any) => ({
+            target_type: 'task_request' as const,
+            target_id: tr.id,
+            status: tr.status,
+            payment_status: tr.payment_status ?? undefined,
+            client_id: tr.client_id ?? null,
+            provider_id: tr.freelancer_id ?? null,
+            amount_cents: tr.amount != null ? Number(tr.amount) : tr.price != null ? Number(tr.price) : undefined,
+            fee_rate_bps: tr.fee_rate_applied_bps != null ? Number(tr.fee_rate_applied_bps) : undefined,
+          }))
+        );
+      }
+    }
+
+    if (dispute.direct_offer_id) {
+      const { data: directOffer } = await supabase
+        .from('direct_offers')
+        .select('id, status, payment_status, client_id, freelancer_id, price, fee_rate_applied_bps')
+        .eq('id', dispute.direct_offer_id)
+        .maybeSingle();
+      if (directOffer) {
+        settlement_candidates.push({
+          target_type: 'direct_offer',
+          target_id: directOffer.id,
+          status: directOffer.status,
+          payment_status: directOffer.payment_status ?? undefined,
+          client_id: directOffer.client_id ?? null,
+          provider_id: directOffer.freelancer_id ?? null,
+          amount_cents: directOffer.price != null ? Number(directOffer.price) : undefined,
+          fee_rate_bps: directOffer.fee_rate_applied_bps != null ? Number(directOffer.fee_rate_applied_bps) : undefined,
+        });
       }
     }
 
     const status = String(dispute.status ?? '').toLowerCase();
+    const isDirectOfferDispute = Boolean(dispute.direct_offer_id);
+    const heldSettlementCandidates = settlement_candidates.filter((candidate) => String(candidate.payment_status ?? '').toLowerCase() === 'held');
     const action_availability = {
       can_accept: status === 'open',
       can_cancel: status === 'open' || status === 'active',
       can_resolve: status === 'active',
-      requires_booking_id: status === 'active' && booking_candidates.length > 1,
+      requires_booking_id: status === 'active' && !isDirectOfferDispute && heldSettlementCandidates.some((candidate) => candidate.target_type === 'booking'),
+      requires_settlement_target: status === 'active' && !isDirectOfferDispute,
+      supports_split_resolution: status === 'active',
     };
 
     const payload = {
       ...dispute,
       amount: dispute.task?.budget_cents != null ? dispute.task.budget_cents / 100 : dispute.task?.budget ?? 0,
       booking_candidates: booking_candidates.length ? booking_candidates : undefined,
+      settlement_candidates: settlement_candidates.length ? settlement_candidates : undefined,
       action_availability,
     };
     return reply.send(success(payload));
@@ -318,6 +390,10 @@ export default async function disputeRoutes(fastify: FastifyInstance) {
     const { id } = request.params as { id: string };
     const adminId = (request as any).user?.id as string | undefined;
     if (!adminId) return reply.status(401).send(failure('UNAUTHORIZED', 'Admin user required'));
+    const idempotencyKey = (request.headers['idempotency-key'] as string | undefined)?.trim();
+    if (!idempotencyKey) {
+      return reply.status(400).send(failure('VALIDATION_ERROR', 'Idempotency-Key header required'));
+    }
 
     const body = request.body as any;
     const validation = AdminResolveDisputeInputSchema.safeParse({
@@ -325,23 +401,34 @@ export default async function disputeRoutes(fastify: FastifyInstance) {
       reason: body.reason ?? body.resolution ?? '',
       outcome: body.outcome ?? body.decision,
       booking_id: body.booking_id,
+      task_request_id: body.task_request_id,
+      client_refund_amount: body.client_refund_amount,
+      freelancer_payout_amount: body.freelancer_payout_amount,
     });
     if (!validation.success) {
       return reply.status(400).send(failure('VALIDATION_ERROR', 'Invalid input', validation.error.format()));
     }
-    const { reason, outcome, booking_id } = validation.data;
+    const { reason, outcome, booking_id, task_request_id, client_refund_amount, freelancer_payout_amount } = validation.data;
 
-    const { error } = await supabase.rpc('admin_resolve_dispute', {
+    const { data, error } = await supabase.rpc('admin_resolve_dispute_settlement', {
       p_admin_id: adminId,
       p_dispute_id: id,
       p_reason: reason,
-      p_outcome: outcome ?? null,
+      p_outcome: outcome,
       p_booking_id: booking_id ?? null,
+      p_task_request_id: task_request_id ?? null,
+      p_client_refund_amount: client_refund_amount ?? null,
+      p_freelancer_payout_amount: freelancer_payout_amount ?? null,
+      p_idempotency_key: idempotencyKey,
     });
     if (error) {
       const mapped = mapRpcError(error);
       return reply.status(mapped.status).send(mapped.payload);
     }
-    return reply.send(success({ id }));
+    const parsed = AdminResolveDisputeResultSchema.safeParse(data);
+    if (!parsed.success) {
+      return reply.status(500).send(failure('DATABASE_ERROR', 'Resolve dispute returned invalid settlement payload', parsed.error.format()));
+    }
+    return reply.send(success(parsed.data));
   });
 }

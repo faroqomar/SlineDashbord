@@ -111,6 +111,35 @@ describe('PAGE 05 — Disputes create API', () => {
     expect(resolveRes.statusCode).toBe(401);
   });
 
+  it('returns 400 when resolve idempotency header is missing', async () => {
+    const disputeId = '00000000-0000-0000-0000-000000000099';
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/v1/disputes/${disputeId}/resolve`,
+      payload: { reason: 'Refund client', outcome: 'refund_client' },
+    });
+
+    expect(res.statusCode).toBe(400);
+    const body = JSON.parse(res.body);
+    expect(body.ok).toBe(false);
+    expect(body.error?.message).toMatch(/Idempotency-Key/i);
+  });
+
+  it('returns 400 for invalid split resolve payload before DB execution', async () => {
+    const disputeId = '00000000-0000-0000-0000-000000000099';
+    const res = await app.inject({
+      method: 'POST',
+      url: `/api/v1/disputes/${disputeId}/resolve`,
+      headers: { 'Idempotency-Key': 'split-test-1' },
+      payload: { reason: 'Split funds', outcome: 'split_settlement' },
+    });
+
+    expect(res.statusCode).toBe(400);
+    const body = JSON.parse(res.body);
+    expect(body.ok).toBe(false);
+    expect(body.error?.code).toBe('VALIDATION_ERROR');
+  });
+
   it('returns 201 when create succeeds, otherwise 404/409/500 depending on DB state', async () => {
     const res = await app.inject({
       method: 'POST',

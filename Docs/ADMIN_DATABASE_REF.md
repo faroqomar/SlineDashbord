@@ -13,7 +13,7 @@ This document covers how the Sline Admin Dashboard interacts with the database: 
 | `bookings`         | Booking records (payments, status) | View list/detail; cancel and refund via RPC (PAGE 07) | apps/api routes/bookings.ts |
 | `admin_cases`     | Investigation/moderation cases (PAGE 08) | Create, list, detail, assign; case-gated chat | apps/api routes/cases.ts; migration `20260302130000_admin_cases_and_chat_access.sql` (canonical; see MIGRATIONS/README) |
 | `admin_case_entities` | Links cases to tasks, users, conversations, etc. | Attach/detach entities to a case | Same migration; RLS service_role only |
-| `disputes`         | Conflict resolution | View, resolve, refund/release | apps/api routes |
+| `disputes`         | Conflict resolution | View, accept, cancel, resolve with booking/task_request/direct_offer settlement | apps/api routes/disputes.ts |
 | `audit_logs`       | Immutable ledger of admin actions | **Read** (activity feeds); **Write** only via atomic RPC/transaction with mutation | Canonical; no `admin_logs` for new code |
 | `admin_users`     | Admin identity and roles (source of truth for RBAC) | Read for RBAC; manage via super_admin | Implemented in dashboard: `supabase/migrations/20260302120000_admin_users.sql`; copy to sline_app for production (see MIGRATIONS/README.md) |
 | `support_tickets`  | User support requests | View, reply, assign, status | If feature exists |
@@ -44,6 +44,20 @@ This document covers how the Sline Admin Dashboard interacts with the database: 
 | `admin_request_approval(p_operation_type, p_target_entity_type, p_target_entity_id, p_requested_by, p_idempotency_key, p_payload?, p_reason?)` | Idempotent create approval request | `admin.approval.request` |
 | `admin_approve_or_reject_approval(p_approval_id, p_actor_id, p_decision, p_reason?)` | Second person approve/reject; requester cannot approve own request | `admin.approval.approve` / `admin.approval.reject` |
 | `admin_adjust_wallet(p_approval_id, p_actor_id, p_target_user_id, p_amount_cents, p_reason, p_idempotency_key?)` | Execute wallet adjust only if approval approved, not consumed, and actor is requester; sets `consumed_at` + audit (ledger mutation TBD in app repo) | `admin.finance.wallet_adjust` |
+| `admin_accept_dispute(p_admin_id, p_dispute_id)` | Activate dispute and create/reuse linked admin case | `admin.disputes.accept` |
+| `admin_cancel_dispute(p_admin_id, p_dispute_id, p_reason)` | Cancel open or active dispute | `admin.disputes.cancel` |
+| `admin_resolve_dispute_settlement(p_admin_id, p_dispute_id, p_reason, p_outcome, p_booking_id?, p_task_request_id?, p_client_refund_amount?, p_freelancer_payout_amount?, p_idempotency_key?)` | Resolve dispute and settle held funds atomically | `admin.disputes.resolve` |
+
+**Dispute settlement notes**
+
+- Settlement target is one of:
+  - `booking`
+  - `task_request` for tender/task-paid flows
+  - `direct_offer`
+- Split settlement keeps the full original platform fee in `platform_revenue`.
+- Client refunds credit user `available_balance`.
+- Freelancer payouts credit user `available_balance`.
+- DB-side authorization for dispute actions uses `can_manage_disputes(uuid)` and reads dashboard staff roles from `admin_users` with a profile-role fallback.
 
 **PAGE 15 — User Investigation (non-RPC audit)**  
 Investigation view, evidence-pack export, and PII reveal do not use a single DB RPC. The API performs reads/inserts then calls `writeAuditLog` for: `admin.users.investigation_view` (after GET investigation), `admin.export.evidence_pack` (after GET evidence-pack), `admin.pii.reveal` (after insert into `admin_pii_access_logs`). See `apps/api/src/routes/users.ts` and `Docs/features/user-investigation.md`.

@@ -24,6 +24,8 @@ export type VwAdminJournalLedger = {
   created_at: string;
   event_type: string;
   status: string;
+  related_entity_type?: string | null;
+  related_entity_id?: string | null;
   entity_type?: string | null;
   entity_id?: string | null;
   payer_user_id?: string | null;
@@ -31,6 +33,12 @@ export type VwAdminJournalLedger = {
   gross_amount: number;
   fee_amount: number;
   net_amount: number;
+  escrow_delta_iqd?: number;
+  user_available_delta_iqd?: number;
+  freelancer_payables_available_delta_iqd?: number;
+  pending_payouts_delta_iqd?: number;
+  platform_revenue_delta_iqd?: number;
+  platform_cash_delta_iqd?: number;
   [key: string]: unknown;
 };
 
@@ -83,6 +91,8 @@ export const JournalLedgerEntrySchema = z.object({
   created_at: z.string(),
   event_type: z.string(),
   status: z.string(),
+  related_entity_type: z.string().nullable().optional(),
+  related_entity_id: z.string().uuid().nullable().optional(),
   entity_type: z.string().nullable().optional(),
   entity_id: z.string().uuid().nullable().optional(),
   payer_user_id: z.string().uuid().nullable().optional(),
@@ -93,6 +103,12 @@ export const JournalLedgerEntrySchema = z.object({
   initiator_user_id: z.string().uuid().nullable().optional(),
   meta_masked: z.any().optional(),
   meta_full: z.any().optional(),
+  escrow_delta_iqd: z.number().optional(),
+  user_available_delta_iqd: z.number().optional(),
+  freelancer_payables_available_delta_iqd: z.number().optional(),
+  pending_payouts_delta_iqd: z.number().optional(),
+  platform_revenue_delta_iqd: z.number().optional(),
+  platform_cash_delta_iqd: z.number().optional(),
   payer: z
     .object({
       id: z.string().uuid(),
@@ -164,11 +180,22 @@ export const PlatformMetricsSchema = z.object({
     held_in_escrow: z.number(),
     total_wallet_balances: z.number(),
     total_owed_to_users: z.number(),
+    freelancer_payables_available: z.number(),
+    pending_payouts: z.number(),
+    freelancer_payables_total: z.number(),
+    total_user_wallet_liabilities: z.number(),
+    other_user_wallet_liabilities: z.number(),
+    total_platform_obligations: z.number(),
   }),
   companyFunds: z.object({
     total_fee_revenue: z.number(),
     net_platform_earnings: z.number(),
     actual_company_owned_balance: z.number(),
+    platform_revenue: z.number(),
+    actual_company_owned_cash: z.number(),
+  }),
+  reconciliation: z.object({
+    gap_to_platform_revenue: z.number(),
   }),
 });
 export type PlatformMetrics = z.infer<typeof PlatformMetricsSchema>;
@@ -189,6 +216,8 @@ export interface WalletSummary {
   available_balance: number;
   held_balance: number;
   pending_withdrawal_balance: number;
+  freelancer_payables_balance?: number;
+  other_wallet_liabilities_balance?: number;
   currency: string;
   is_wallet_frozen?: boolean;
 }
