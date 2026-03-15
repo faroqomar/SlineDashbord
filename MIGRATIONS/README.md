@@ -77,10 +77,6 @@ See `Docs/ADMIN_DATABASE_REF.md` for the RPC table and object list.
 
 ## PAGE 17 — Route parity complete / Remove legacy-source (rollback)
 
-- **Archive branch:** Before removing `legacy-source`, an archive branch is created so the Next dashboard can be restored if needed. Branch name pattern: `archive/legacy-next-dashboard-YYYYMMDD` (e.g. `archive/legacy-next-dashboard-20250303`).
-- **Rollback (if build or CI breaks after removal):**  
-  1. Restore the `legacy-source` tree from the archive branch:  
-     `git checkout archive/legacy-next-dashboard-YYYYMMDD -- legacy-source`  
-  2. Commit the restored directory.  
-  3. Document in this file or a runbook that rollback was performed and the date.
-- **Canonical dashboard after Page 17:** Admin UI = `apps/admin-ui` (Vite), API = `apps/api` (Fastify). Legacy Next app is removed; do not rely on `legacy-source` for new work. Copy to sline_app for production.
+- **Done:** `legacy-source` was removed. Support, team list, and notifications were not ported.
+- **Rollback (if needed):** Restore from git history: `git checkout <commit-before-removal> -- legacy-source`, then commit. No archive branch was required; use history.
+- **Canonical dashboard:** Admin UI = `apps/admin-ui` (Vite), API = `apps/api` (Fastify). Do not rely on `legacy-source` for new work. Copy to sline_app for production.
