@@ -17,6 +17,42 @@ describe('PAGE 02 — Tasks (activity canonical audit)', () => {
     afterAll(async () => {
         await app.close();
     });
+    describe('GET /api/v1/tasks (list)', () => {
+        it('returns 401 when no auth', async () => {
+            const noAuthApp = await buildApp();
+            const res = await noAuthApp.inject({
+                method: 'GET',
+                url: '/api/v1/tasks?page=1&limit=10',
+            });
+            await noAuthApp.close();
+            expect(res.statusCode).toBe(401);
+        });
+        it('returns 200 with tasks array and optional offers_count per task (or 500 when DB unavailable)', async () => {
+            const res = await app.inject({
+                method: 'GET',
+                url: '/api/v1/tasks?page=1&limit=10',
+            });
+            expect([200, 500]).toContain(res.statusCode);
+            const body = JSON.parse(res.body);
+            if (res.statusCode === 200 && body.ok !== false && body.data) {
+                const data = body.data;
+                expect(Array.isArray(data.tasks)).toBe(true);
+                expect(typeof data.count).toBe('number');
+                expect(typeof data.totalPages).toBe('number');
+                for (const task of data.tasks) {
+                    expect(task).toHaveProperty('id');
+                    expect(task).toHaveProperty('title');
+                    expect(task).toHaveProperty('status');
+                    expect(task).toHaveProperty('client');
+                    if (task.offers_count !== undefined) {
+                        expect(typeof task.offers_count).toBe('number');
+                        expect(Number.isInteger(task.offers_count)).toBe(true);
+                        expect(task.offers_count).toBeGreaterThanOrEqual(0);
+                    }
+                }
+            }
+        });
+    });
     describe('GET /api/v1/tasks/:id/activity', () => {
         it('returns 401 when no auth', async () => {
             const noAuthApp = await buildApp();

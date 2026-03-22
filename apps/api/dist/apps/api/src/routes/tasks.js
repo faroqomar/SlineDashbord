@@ -31,6 +31,7 @@ export default async function tasksRoutes(fastify) {
         const limit = parseInt(queryParams.limit) || 10;
         const status = queryParams.status || 'all';
         const searchQuery = queryParams.query || '';
+        request.log?.debug?.({ page, limit, status, query: searchQuery }, 'GET /tasks list');
         const from = (page - 1) * limit;
         const to = from + limit - 1;
         let queryBuilder = supabase
@@ -76,8 +77,41 @@ export default async function tasksRoutes(fastify) {
             .select('id, full_name, avatar_url')
             .in('id', Array.from(userIds));
         const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
-        const tasksWithProfiles = tasks.map(t => ({
+        const taskIds = tasks.map((t) => t.id);
+        const offersCountMap = new Map();
+        try {
+            const { data: viewRows } = await supabase
+                .from('vw_admin_task_offers_count')
+                .select('task_id, offers_count')
+                .in('task_id', taskIds);
+            if (viewRows && Array.isArray(viewRows)) {
+                for (const row of viewRows) {
+                    const r = row;
+                    offersCountMap.set(r.task_id, r.offers_count);
+                }
+            }
+        }
+        catch (_) {
+            try {
+                const { data: requestRows } = await supabase
+                    .from('task_requests')
+                    .select('task_id')
+                    .in('task_id', taskIds)
+                    .is('deleted_at', null);
+                if (requestRows && Array.isArray(requestRows)) {
+                    for (const row of requestRows) {
+                        const tid = row.task_id;
+                        offersCountMap.set(tid, (offersCountMap.get(tid) ?? 0) + 1);
+                    }
+                }
+            }
+            catch (__) {
+                request.log?.debug?.('offers count skipped (view/table may not exist)');
+            }
+        }
+        const tasksWithProfiles = tasks.map((t) => ({
             ...t,
+            offers_count: offersCountMap.get(t.id),
             client: profileMap.get(t.owner_id) || { id: t.owner_id, full_name: 'Unknown Client', avatar_url: '' },
             freelancer: t.assigned_freelancer_id ? profileMap.get(t.assigned_freelancer_id) : null
         }));
@@ -147,6 +181,7 @@ export default async function tasksRoutes(fastify) {
     });
     fastify.get('/:id', { preHandler: [requireAdminRole(['admin', 'super_admin'])] }, async (request, reply) => {
         const { id } = request.params;
+        request.log?.debug?.({ taskId: id }, 'GET /tasks/:id detail');
         const { data: task, error } = await supabase
             .from('tasks')
             .select(`*`)

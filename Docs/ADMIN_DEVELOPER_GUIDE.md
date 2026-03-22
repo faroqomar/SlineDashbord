@@ -157,7 +157,7 @@ Feature-level docs live under `Docs/features/` (see Feature Docs Protocol below)
 
 When a feature reaches v1 (shipped), add a short feature doc under `Docs/features/<feature>.md`. Include: purpose, main routes/screens, API endpoints used, ViewModels, and any special rules (e.g. idempotency, audit). This keeps the docs in sync with the codebase as features evolve.
 
-**Current feature docs**: See `Docs/features/README.md`. Examples include `users.md`, `user-investigation.md`, `global-search.md`, `dashboard-overview.md`, `logs.md`, `bookings-admin.md`, `finance.md`, `auth.md`, `disputes.md`, and others listed there.
+**Current feature docs**: See `Docs/features/README.md`. Examples include `users.md`, `user-investigation.md`, `global-search.md`, `dashboard-overview.md`, `logs.md`, `system_health.md`, `bookings-admin.md`, `finance.md`, `auth.md`, `disputes.md`, and others listed there.
 
 ---
 

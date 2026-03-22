@@ -128,7 +128,6 @@ export declare const ChatThreadResponseSchema: z.ZodObject<{
         messageCount?: number | undefined;
     }>>;
 }, "strip", z.ZodTypeAny, {
-    threadId: string;
     messages: {
         id: string;
         created_at: string;
@@ -137,6 +136,7 @@ export declare const ChatThreadResponseSchema: z.ZodObject<{
         sender_id?: string | null | undefined;
         attachments?: unknown[] | undefined;
     }[];
+    threadId: string;
     summary?: {
         threadId: string;
         participantIds?: string[] | undefined;
@@ -144,7 +144,6 @@ export declare const ChatThreadResponseSchema: z.ZodObject<{
         messageCount?: number | undefined;
     } | undefined;
 }, {
-    threadId: string;
     messages: {
         id: string;
         created_at: string;
@@ -153,6 +152,7 @@ export declare const ChatThreadResponseSchema: z.ZodObject<{
         sender_id?: string | null | undefined;
         attachments?: unknown[] | undefined;
     }[];
+    threadId: string;
     summary?: {
         threadId: string;
         participantIds?: string[] | undefined;

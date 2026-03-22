@@ -34,6 +34,11 @@ This protocol is defined by:
 - `.agent/workflows/architecture/doc_keeper.md`
 - `Docs/ADMIN_DEVELOPER_GUIDE.md` (Feature Docs Protocol)
 
+## Supporting docs (by feature)
+
+- **Logs:** `logs_plan_and_sql_verification.md`, `LOGS_CHECKLIST_AND_SUMMARY.md`, `ORCHESTRATOR_REPORT_System_Logs.md`
+- **System Health:** `SYSTEM_HEALTH_CHECKLIST_AND_SUMMARY.md`, `ORCHESTRATOR_REPORT_System_Health.md`, `SYSTEM_HEALTH_IMPLEMENTATION_STATUS.md`
+
 ---
 
 *This document is part of the Admin documentation suite. Maintained per `.agent/workflows/architecture/doc_keeper.md`. See `Docs/ADMIN_DEVELOPER_GUIDE.md` for the documentation index.*

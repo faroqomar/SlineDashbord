@@ -49,17 +49,17 @@ export declare const InvestigationBookingRefSchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     id: string;
     status?: string | undefined;
+    created_at?: string | undefined;
     task_id?: string | null | undefined;
     client_id?: string | undefined;
     provider_id?: string | undefined;
-    created_at?: string | undefined;
 }, {
     id: string;
     status?: string | undefined;
+    created_at?: string | undefined;
     task_id?: string | null | undefined;
     client_id?: string | undefined;
     provider_id?: string | undefined;
-    created_at?: string | undefined;
 }>;
 export type InvestigationBookingRef = z.infer<typeof InvestigationBookingRefSchema>;
 /** Minimal dispute reference in investigation graph. */
@@ -107,16 +107,16 @@ export declare const InvestigationConversationSummarySchema: z.ZodObject<{
     caseId: z.ZodOptional<z.ZodNullable<z.ZodString>>;
 }, "strip", z.ZodTypeAny, {
     threadId: string;
+    caseId?: string | null | undefined;
     participantIds?: string[] | undefined;
     lastMessageAt?: string | null | undefined;
     messageCount?: number | undefined;
-    caseId?: string | null | undefined;
 }, {
     threadId: string;
+    caseId?: string | null | undefined;
     participantIds?: string[] | undefined;
     lastMessageAt?: string | null | undefined;
     messageCount?: number | undefined;
-    caseId?: string | null | undefined;
 }>;
 export type InvestigationConversationSummary = z.infer<typeof InvestigationConversationSummarySchema>;
 /** Full investigation graph (GET /api/v1/users/:userId/investigation). */
@@ -134,26 +134,26 @@ export declare const UserInvestigationResponseSchema: z.ZodObject<{
         phone: z.ZodOptional<z.ZodLiteral<"[MASKED]">>;
     }, "strip", z.ZodTypeAny, {
         id: string;
-        updated_at?: string | null | undefined;
-        created_at?: string | undefined;
         full_name?: string | null | undefined;
         avatar_url?: string | null | undefined;
         account_status?: string | undefined;
-        moderation_reason?: string | null | undefined;
-        moderated_at?: string | null | undefined;
+        created_at?: string | undefined;
         email?: "[MASKED]" | undefined;
         phone?: "[MASKED]" | undefined;
+        moderation_reason?: string | null | undefined;
+        moderated_at?: string | null | undefined;
+        updated_at?: string | null | undefined;
     }, {
         id: string;
-        updated_at?: string | null | undefined;
-        created_at?: string | undefined;
         full_name?: string | null | undefined;
         avatar_url?: string | null | undefined;
         account_status?: string | undefined;
-        moderation_reason?: string | null | undefined;
-        moderated_at?: string | null | undefined;
+        created_at?: string | undefined;
         email?: "[MASKED]" | undefined;
         phone?: "[MASKED]" | undefined;
+        moderation_reason?: string | null | undefined;
+        moderated_at?: string | null | undefined;
+        updated_at?: string | null | undefined;
     }>;
     tasks: z.ZodDefault<z.ZodArray<z.ZodObject<{
         id: z.ZodString;
@@ -203,17 +203,17 @@ export declare const UserInvestigationResponseSchema: z.ZodObject<{
     }, "strip", z.ZodTypeAny, {
         id: string;
         status?: string | undefined;
+        created_at?: string | undefined;
         task_id?: string | null | undefined;
         client_id?: string | undefined;
         provider_id?: string | undefined;
-        created_at?: string | undefined;
     }, {
         id: string;
         status?: string | undefined;
+        created_at?: string | undefined;
         task_id?: string | null | undefined;
         client_id?: string | undefined;
         provider_id?: string | undefined;
-        created_at?: string | undefined;
     }>, "many">>;
     disputes: z.ZodDefault<z.ZodArray<z.ZodObject<{
         id: z.ZodString;
@@ -265,37 +265,42 @@ export declare const UserInvestigationResponseSchema: z.ZodObject<{
         caseId: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     }, "strip", z.ZodTypeAny, {
         threadId: string;
+        caseId?: string | null | undefined;
         participantIds?: string[] | undefined;
         lastMessageAt?: string | null | undefined;
         messageCount?: number | undefined;
-        caseId?: string | null | undefined;
     }, {
         threadId: string;
+        caseId?: string | null | undefined;
         participantIds?: string[] | undefined;
         lastMessageAt?: string | null | undefined;
         messageCount?: number | undefined;
-        caseId?: string | null | undefined;
     }>, "many">>;
 }, "strip", z.ZodTypeAny, {
+    disputes: {
+        id: string;
+        status?: string | undefined;
+        created_at?: string | undefined;
+    }[];
     bookings: {
         id: string;
         status?: string | undefined;
+        created_at?: string | undefined;
         task_id?: string | null | undefined;
         client_id?: string | undefined;
         provider_id?: string | undefined;
-        created_at?: string | undefined;
     }[];
     profile: {
         id: string;
-        updated_at?: string | null | undefined;
-        created_at?: string | undefined;
         full_name?: string | null | undefined;
         avatar_url?: string | null | undefined;
         account_status?: string | undefined;
-        moderation_reason?: string | null | undefined;
-        moderated_at?: string | null | undefined;
+        created_at?: string | undefined;
         email?: "[MASKED]" | undefined;
         phone?: "[MASKED]" | undefined;
+        moderation_reason?: string | null | undefined;
+        moderated_at?: string | null | undefined;
+        updated_at?: string | null | undefined;
     };
     tasks: {
         id: string;
@@ -307,11 +312,6 @@ export declare const UserInvestigationResponseSchema: z.ZodObject<{
         assigned_freelancer_id?: string | null | undefined;
     }[];
     offers: {
-        id: string;
-        status?: string | undefined;
-        created_at?: string | undefined;
-    }[];
-    disputes: {
         id: string;
         status?: string | undefined;
         created_at?: string | undefined;
@@ -329,31 +329,36 @@ export declare const UserInvestigationResponseSchema: z.ZodObject<{
     };
     conversationsSummary: {
         threadId: string;
+        caseId?: string | null | undefined;
         participantIds?: string[] | undefined;
         lastMessageAt?: string | null | undefined;
         messageCount?: number | undefined;
-        caseId?: string | null | undefined;
     }[];
 }, {
     profile: {
         id: string;
-        updated_at?: string | null | undefined;
-        created_at?: string | undefined;
         full_name?: string | null | undefined;
         avatar_url?: string | null | undefined;
         account_status?: string | undefined;
-        moderation_reason?: string | null | undefined;
-        moderated_at?: string | null | undefined;
+        created_at?: string | undefined;
         email?: "[MASKED]" | undefined;
         phone?: "[MASKED]" | undefined;
+        moderation_reason?: string | null | undefined;
+        moderated_at?: string | null | undefined;
+        updated_at?: string | null | undefined;
     };
+    disputes?: {
+        id: string;
+        status?: string | undefined;
+        created_at?: string | undefined;
+    }[] | undefined;
     bookings?: {
         id: string;
         status?: string | undefined;
+        created_at?: string | undefined;
         task_id?: string | null | undefined;
         client_id?: string | undefined;
         provider_id?: string | undefined;
-        created_at?: string | undefined;
     }[] | undefined;
     tasks?: {
         id: string;
@@ -365,11 +370,6 @@ export declare const UserInvestigationResponseSchema: z.ZodObject<{
         assigned_freelancer_id?: string | null | undefined;
     }[] | undefined;
     offers?: {
-        id: string;
-        status?: string | undefined;
-        created_at?: string | undefined;
-    }[] | undefined;
-    disputes?: {
         id: string;
         status?: string | undefined;
         created_at?: string | undefined;
@@ -387,10 +387,10 @@ export declare const UserInvestigationResponseSchema: z.ZodObject<{
     } | undefined;
     conversationsSummary?: {
         threadId: string;
+        caseId?: string | null | undefined;
         participantIds?: string[] | undefined;
         lastMessageAt?: string | null | undefined;
         messageCount?: number | undefined;
-        caseId?: string | null | undefined;
     }[] | undefined;
 }>;
 export type UserInvestigationResponse = z.infer<typeof UserInvestigationResponseSchema>;
@@ -404,34 +404,34 @@ export declare const UserConversationsResponseSchema: z.ZodObject<{
         caseId: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     }, "strip", z.ZodTypeAny, {
         threadId: string;
+        caseId?: string | null | undefined;
         participantIds?: string[] | undefined;
         lastMessageAt?: string | null | undefined;
         messageCount?: number | undefined;
-        caseId?: string | null | undefined;
     }, {
         threadId: string;
+        caseId?: string | null | undefined;
         participantIds?: string[] | undefined;
         lastMessageAt?: string | null | undefined;
         messageCount?: number | undefined;
-        caseId?: string | null | undefined;
     }>, "many">;
     nextCursor: z.ZodOptional<z.ZodNullable<z.ZodString>>;
 }, "strip", z.ZodTypeAny, {
     conversations: {
         threadId: string;
+        caseId?: string | null | undefined;
         participantIds?: string[] | undefined;
         lastMessageAt?: string | null | undefined;
         messageCount?: number | undefined;
-        caseId?: string | null | undefined;
     }[];
     nextCursor?: string | null | undefined;
 }, {
     conversations: {
         threadId: string;
+        caseId?: string | null | undefined;
         participantIds?: string[] | undefined;
         lastMessageAt?: string | null | undefined;
         messageCount?: number | undefined;
-        caseId?: string | null | undefined;
     }[];
     nextCursor?: string | null | undefined;
 }>;
@@ -447,8 +447,8 @@ export declare const EvidencePackExportQuerySchema: z.ZodObject<{
     cursor?: string | undefined;
 }, {
     limit?: number | undefined;
-    format?: "csv" | "json" | undefined;
     cursor?: string | undefined;
+    format?: "csv" | "json" | undefined;
 }>;
 export type EvidencePackExportQuery = z.infer<typeof EvidencePackExportQuerySchema>;
 /** Evidence-pack export response metadata (streamed body is csv/json). */
@@ -458,13 +458,13 @@ export declare const EvidencePackExportReceiptSchema: z.ZodObject<{
     rowCount: z.ZodNumber;
     exportedAt: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    format: "csv" | "json";
     userId: string;
+    format: "csv" | "json";
     rowCount: number;
     exportedAt: string;
 }, {
-    format: "csv" | "json";
     userId: string;
+    format: "csv" | "json";
     rowCount: number;
     exportedAt: string;
 }>;

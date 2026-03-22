@@ -1,0 +1,52 @@
+
+> build
+> turbo run build
+
+• turbo 2.8.20
+
+   • Packages in scope: @sline/admin-ui, @sline/api, @sline/shared
+   • Running build in 3 packages
+   • Remote caching disabled
+
+@sline/shared:build: cache miss, executing 62086f24f19530ba
+@sline/shared:build: 
+@sline/shared:build: > @sline/shared@0.1.0 build
+@sline/shared:build: > tsc
+@sline/shared:build: 
+@sline/api:build: cache miss, executing d140e59264b0d38e
+@sline/admin-ui:build: cache miss, executing 26e5ef051477b288
+@sline/admin-ui:build: 
+@sline/admin-ui:build: > @sline/admin-ui@0.1.0 build
+@sline/admin-ui:build: > tsc && vite build
+@sline/admin-ui:build: 
+@sline/api:build: 
+@sline/api:build: > @sline/api@0.1.0 build
+@sline/api:build: > tsc
+@sline/api:build: 
+@sline/admin-ui:build: vite v6.4.1 building for production...
+@sline/admin-ui:build: transforming...
+@sline/admin-ui:build: ../../node_modules/next-themes/dist/index.module.js (1:1576): A comment
+@sline/admin-ui:build: 
+@sline/admin-ui:build: "/*#__PURE__*/"
+@sline/admin-ui:build: 
+@sline/admin-ui:build: in "../../node_modules/next-themes/dist/index.module.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+@sline/admin-ui:build: ../../node_modules/next-themes/dist/index.module.js (1:2992): A comment
+@sline/admin-ui:build: 
+@sline/admin-ui:build: "/*#__PURE__*/"
+@sline/admin-ui:build: 
+@sline/admin-ui:build: in "../../node_modules/next-themes/dist/index.module.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+@sline/admin-ui:build: ✓ 3272 modules transformed.
+@sline/admin-ui:build: rendering chunks...
+@sline/admin-ui:build: computing gzip size...
+@sline/admin-ui:build: dist/index.html                           0.98 kB │ gzip:   0.50 kB
+@sline/admin-ui:build: dist/assets/index-D7-LfI1I.css          165.00 kB │ gzip:  25.98 kB
+@sline/admin-ui:build: dist/assets/ui-vendor-ByaeDtiJ.js       108.82 kB │ gzip:  33.95 kB
+@sline/admin-ui:build: dist/assets/router-query-BNMEvyJ7.js    277.62 kB │ gzip:  87.55 kB
+@sline/admin-ui:build: dist/assets/recharts-CLSe4EM_.js        393.38 kB │ gzip: 107.86 kB
+@sline/admin-ui:build: dist/assets/index-BRj0kasC.js         1,083.85 kB │ gzip: 285.09 kB
+@sline/admin-ui:build: ✓ built in 5.54s
+
+ Tasks:    3 successful, 3 total
+Cached:    0 cached, 3 total
+  Time:    37.546s 
+

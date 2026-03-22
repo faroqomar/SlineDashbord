@@ -44,33 +44,33 @@ export declare const AdminCaseSchema: z.ZodObject<{
     tags: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
 }, "strip", z.ZodTypeAny, {
     id: string;
-    subject: string;
     created_at: string;
+    subject: string;
     status?: string | undefined;
+    updated_at?: string | undefined;
+    severity?: "low" | "high" | "critical" | "medium" | null | undefined;
     priority?: string | undefined;
     source?: string | undefined;
+    sla_due_at?: string | null | undefined;
     assignee_id?: string | null | undefined;
     case_code?: string | undefined;
     links_count?: number | undefined;
-    updated_at?: string | undefined;
     assignee_name?: string | null | undefined;
-    severity?: "low" | "medium" | "high" | "critical" | null | undefined;
-    sla_due_at?: string | null | undefined;
     tags?: string[] | undefined;
 }, {
     id: string;
-    subject: string;
     created_at: string;
+    subject: string;
     status?: string | undefined;
+    updated_at?: string | undefined;
+    severity?: "low" | "high" | "critical" | "medium" | null | undefined;
     priority?: string | undefined;
     source?: string | undefined;
+    sla_due_at?: string | null | undefined;
     assignee_id?: string | null | undefined;
     case_code?: string | undefined;
     links_count?: number | undefined;
-    updated_at?: string | undefined;
     assignee_name?: string | null | undefined;
-    severity?: "low" | "medium" | "high" | "critical" | null | undefined;
-    sla_due_at?: string | null | undefined;
     tags?: string[] | undefined;
 }>;
 export type AdminCase = z.infer<typeof AdminCaseSchema>;
@@ -82,17 +82,17 @@ export declare const AdminCaseCreateInputSchema: z.ZodObject<{
     assignee_id: z.ZodOptional<z.ZodString>;
     idempotency_key: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    priority: "low" | "medium" | "high" | "urgent";
-    source: string;
     subject: string;
-    assignee_id?: string | undefined;
+    priority: "low" | "high" | "urgent" | "medium";
+    source: string;
     idempotency_key?: string | undefined;
+    assignee_id?: string | undefined;
 }, {
     subject: string;
-    priority?: "low" | "medium" | "high" | "urgent" | undefined;
+    idempotency_key?: string | undefined;
+    priority?: "low" | "high" | "urgent" | "medium" | undefined;
     source?: string | undefined;
     assignee_id?: string | undefined;
-    idempotency_key?: string | undefined;
 }>;
 export type AdminCaseCreateInput = z.infer<typeof AdminCaseCreateInputSchema>;
 /** Attach entity to case input. */
@@ -100,10 +100,10 @@ export declare const AdminCaseAttachEntityInputSchema: z.ZodObject<{
     entity_type: z.ZodEnum<["task", "user", "conversation", "booking", "dispute", "report"]>;
     entity_id: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    entity_type: "task" | "user" | "conversation" | "booking" | "dispute" | "report";
+    entity_type: "task" | "booking" | "user" | "conversation" | "dispute" | "report";
     entity_id: string;
 }, {
-    entity_type: "task" | "user" | "conversation" | "booking" | "dispute" | "report";
+    entity_type: "task" | "booking" | "user" | "conversation" | "dispute" | "report";
     entity_id: string;
 }>;
 export type AdminCaseAttachEntityInput = z.infer<typeof AdminCaseAttachEntityInputSchema>;
@@ -117,20 +117,20 @@ export declare const AdminCasesListQuerySchema: z.ZodObject<{
     source: z.ZodDefault<z.ZodString>;
     sort: z.ZodDefault<z.ZodEnum<["created_desc", "created_asc"]>>;
 }, "strip", z.ZodTypeAny, {
-    sort: "created_desc" | "created_asc";
-    status: "open" | "in_progress" | "closed" | "all" | "escalated";
     page: number;
+    sort: "created_desc" | "created_asc";
+    status: "all" | "open" | "in_progress" | "closed" | "escalated";
     limit: number;
-    priority: "all" | "low" | "medium" | "high" | "critical";
+    priority: "all" | "low" | "high" | "critical" | "medium";
     source: string;
     q?: string | undefined;
 }, {
-    sort?: "created_desc" | "created_asc" | undefined;
-    status?: "open" | "in_progress" | "closed" | "all" | "escalated" | undefined;
     page?: number | undefined;
+    sort?: "created_desc" | "created_asc" | undefined;
+    status?: "all" | "open" | "in_progress" | "closed" | "escalated" | undefined;
     limit?: number | undefined;
+    priority?: "all" | "low" | "high" | "critical" | "medium" | undefined;
     q?: string | undefined;
-    priority?: "all" | "low" | "medium" | "high" | "critical" | undefined;
     source?: string | undefined;
 }>;
 export type AdminCasesListQuery = z.infer<typeof AdminCasesListQuerySchema>;
@@ -153,33 +153,33 @@ export declare const AdminCaseListResponseSchema: z.ZodObject<{
         tags: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
     }, "strip", z.ZodTypeAny, {
         id: string;
-        subject: string;
         created_at: string;
+        subject: string;
         status?: string | undefined;
+        updated_at?: string | undefined;
+        severity?: "low" | "high" | "critical" | "medium" | null | undefined;
         priority?: string | undefined;
         source?: string | undefined;
+        sla_due_at?: string | null | undefined;
         assignee_id?: string | null | undefined;
         case_code?: string | undefined;
         links_count?: number | undefined;
-        updated_at?: string | undefined;
         assignee_name?: string | null | undefined;
-        severity?: "low" | "medium" | "high" | "critical" | null | undefined;
-        sla_due_at?: string | null | undefined;
         tags?: string[] | undefined;
     }, {
         id: string;
-        subject: string;
         created_at: string;
+        subject: string;
         status?: string | undefined;
+        updated_at?: string | undefined;
+        severity?: "low" | "high" | "critical" | "medium" | null | undefined;
         priority?: string | undefined;
         source?: string | undefined;
+        sla_due_at?: string | null | undefined;
         assignee_id?: string | null | undefined;
         case_code?: string | undefined;
         links_count?: number | undefined;
-        updated_at?: string | undefined;
         assignee_name?: string | null | undefined;
-        severity?: "low" | "medium" | "high" | "critical" | null | undefined;
-        sla_due_at?: string | null | undefined;
         tags?: string[] | undefined;
     }>, "many">;
     total: z.ZodNumber;
@@ -187,44 +187,44 @@ export declare const AdminCaseListResponseSchema: z.ZodObject<{
     limit: z.ZodNumber;
     totalPages: z.ZodOptional<z.ZodNumber>;
 }, "strip", z.ZodTypeAny, {
-    total: number;
     page: number;
     limit: number;
+    total: number;
     cases: {
         id: string;
-        subject: string;
         created_at: string;
+        subject: string;
         status?: string | undefined;
+        updated_at?: string | undefined;
+        severity?: "low" | "high" | "critical" | "medium" | null | undefined;
         priority?: string | undefined;
         source?: string | undefined;
+        sla_due_at?: string | null | undefined;
         assignee_id?: string | null | undefined;
         case_code?: string | undefined;
         links_count?: number | undefined;
-        updated_at?: string | undefined;
         assignee_name?: string | null | undefined;
-        severity?: "low" | "medium" | "high" | "critical" | null | undefined;
-        sla_due_at?: string | null | undefined;
         tags?: string[] | undefined;
     }[];
     totalPages?: number | undefined;
 }, {
-    total: number;
     page: number;
     limit: number;
+    total: number;
     cases: {
         id: string;
-        subject: string;
         created_at: string;
+        subject: string;
         status?: string | undefined;
+        updated_at?: string | undefined;
+        severity?: "low" | "high" | "critical" | "medium" | null | undefined;
         priority?: string | undefined;
         source?: string | undefined;
+        sla_due_at?: string | null | undefined;
         assignee_id?: string | null | undefined;
         case_code?: string | undefined;
         links_count?: number | undefined;
-        updated_at?: string | undefined;
         assignee_name?: string | null | undefined;
-        severity?: "low" | "medium" | "high" | "critical" | null | undefined;
-        sla_due_at?: string | null | undefined;
         tags?: string[] | undefined;
     }[];
     totalPages?: number | undefined;
@@ -267,14 +267,14 @@ export declare const AdminCasesKpiItemSchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     value: number;
     id: "open" | "in_progress" | "total" | "escalated";
-    delta: string;
     trend: "up" | "down" | "neutral";
+    delta: string;
     sparkline: number[];
 }, {
     value: number;
     id: "open" | "in_progress" | "total" | "escalated";
-    delta: string;
     trend: "up" | "down" | "neutral";
+    delta: string;
     sparkline: number[];
 }>;
 export type AdminCasesKpiItem = z.infer<typeof AdminCasesKpiItemSchema>;
@@ -310,14 +310,14 @@ export declare const AdminCasesHeroSeriesSchema: z.ZodObject<{
     }, "strip", z.ZodTypeAny, {
         value: number;
         id: "open" | "in_progress" | "total" | "escalated";
-        delta: string;
         trend: "up" | "down" | "neutral";
+        delta: string;
         sparkline: number[];
     }, {
         value: number;
         id: "open" | "in_progress" | "total" | "escalated";
-        delta: string;
         trend: "up" | "down" | "neutral";
+        delta: string;
         sparkline: number[];
     }>, "many">;
     is_stale: z.ZodOptional<z.ZodBoolean>;
@@ -335,12 +335,12 @@ export declare const AdminCasesHeroSeriesSchema: z.ZodObject<{
     kpis: {
         value: number;
         id: "open" | "in_progress" | "total" | "escalated";
-        delta: string;
         trend: "up" | "down" | "neutral";
+        delta: string;
         sparkline: number[];
     }[];
-    is_stale?: boolean | undefined;
     generated_at?: string | undefined;
+    is_stale?: boolean | undefined;
 }, {
     closed: {
         value: number;
@@ -354,12 +354,12 @@ export declare const AdminCasesHeroSeriesSchema: z.ZodObject<{
     kpis: {
         value: number;
         id: "open" | "in_progress" | "total" | "escalated";
-        delta: string;
         trend: "up" | "down" | "neutral";
+        delta: string;
         sparkline: number[];
     }[];
-    is_stale?: boolean | undefined;
     generated_at?: string | undefined;
+    is_stale?: boolean | undefined;
 }>;
 export type AdminCasesHeroSeries = z.infer<typeof AdminCasesHeroSeriesSchema>;
 /** Attached entity row in case detail. */
@@ -373,20 +373,20 @@ export declare const AdminCaseEntitySchema: z.ZodObject<{
     created_at: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     id: string;
-    entity_type: "task" | "user" | "conversation" | "booking" | "dispute" | "report";
-    entity_id: string;
     case_id: string;
+    entity_type: "task" | "booking" | "user" | "conversation" | "dispute" | "report";
+    entity_id: string;
     meta: Record<string, unknown>;
     created_at?: string | undefined;
     label?: string | null | undefined;
 }, {
     id: string;
-    entity_type: "task" | "user" | "conversation" | "booking" | "dispute" | "report";
-    entity_id: string;
     case_id: string;
+    entity_type: "task" | "booking" | "user" | "conversation" | "dispute" | "report";
+    entity_id: string;
     created_at?: string | undefined;
-    label?: string | null | undefined;
     meta?: Record<string, unknown> | undefined;
+    label?: string | null | undefined;
 }>;
 export type AdminCaseEntity = z.infer<typeof AdminCaseEntitySchema>;
 /** Case note visibility. */
@@ -404,17 +404,17 @@ export declare const AdminCaseNoteSchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     id: string;
     created_at: string;
-    note: string;
-    visibility: "internal" | "system";
     case_id: string;
     admin_user_id: string;
+    note: string;
+    visibility: "internal" | "system";
     updated_at?: string | undefined;
 }, {
     id: string;
     created_at: string;
-    note: string;
     case_id: string;
     admin_user_id: string;
+    note: string;
     updated_at?: string | undefined;
     visibility?: "internal" | "system" | undefined;
 }>;
@@ -431,22 +431,22 @@ export declare const AdminCaseEvidenceSchema: z.ZodObject<{
     meta: z.ZodDefault<z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>>;
 }, "strip", z.ZodTypeAny, {
     id: string;
+    case_id: string;
     entity_type: string;
     entity_id: string;
-    case_id: string;
     meta: Record<string, unknown>;
     evidence_type: string;
     created_at?: string | undefined;
     title?: string | null | undefined;
 }, {
     id: string;
+    case_id: string;
     entity_type: string;
     entity_id: string;
-    case_id: string;
     evidence_type: string;
     created_at?: string | undefined;
-    meta?: Record<string, unknown> | undefined;
     title?: string | null | undefined;
+    meta?: Record<string, unknown> | undefined;
 }>;
 export type AdminCaseEvidence = z.infer<typeof AdminCaseEvidenceSchema>;
 /** Timeline event emitted while case lifecycle changes. */
@@ -503,20 +503,20 @@ export declare const AdminCaseDetailSchema: z.ZodObject<{
         created_at: z.ZodOptional<z.ZodString>;
     }, "strip", z.ZodTypeAny, {
         id: string;
-        entity_type: "task" | "user" | "conversation" | "booking" | "dispute" | "report";
-        entity_id: string;
         case_id: string;
+        entity_type: "task" | "booking" | "user" | "conversation" | "dispute" | "report";
+        entity_id: string;
         meta: Record<string, unknown>;
         created_at?: string | undefined;
         label?: string | null | undefined;
     }, {
         id: string;
-        entity_type: "task" | "user" | "conversation" | "booking" | "dispute" | "report";
-        entity_id: string;
         case_id: string;
+        entity_type: "task" | "booking" | "user" | "conversation" | "dispute" | "report";
+        entity_id: string;
         created_at?: string | undefined;
-        label?: string | null | undefined;
         meta?: Record<string, unknown> | undefined;
+        label?: string | null | undefined;
     }>, "many">>;
     evidence: z.ZodDefault<z.ZodArray<z.ZodObject<{
         id: z.ZodString;
@@ -529,22 +529,22 @@ export declare const AdminCaseDetailSchema: z.ZodObject<{
         meta: z.ZodDefault<z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>>;
     }, "strip", z.ZodTypeAny, {
         id: string;
+        case_id: string;
         entity_type: string;
         entity_id: string;
-        case_id: string;
         meta: Record<string, unknown>;
         evidence_type: string;
         created_at?: string | undefined;
         title?: string | null | undefined;
     }, {
         id: string;
+        case_id: string;
         entity_type: string;
         entity_id: string;
-        case_id: string;
         evidence_type: string;
         created_at?: string | undefined;
-        meta?: Record<string, unknown> | undefined;
         title?: string | null | undefined;
+        meta?: Record<string, unknown> | undefined;
     }>, "many">>;
     notes: z.ZodDefault<z.ZodArray<z.ZodObject<{
         id: z.ZodString;
@@ -557,17 +557,17 @@ export declare const AdminCaseDetailSchema: z.ZodObject<{
     }, "strip", z.ZodTypeAny, {
         id: string;
         created_at: string;
-        note: string;
-        visibility: "internal" | "system";
         case_id: string;
         admin_user_id: string;
+        note: string;
+        visibility: "internal" | "system";
         updated_at?: string | undefined;
     }, {
         id: string;
         created_at: string;
-        note: string;
         case_id: string;
         admin_user_id: string;
+        note: string;
         updated_at?: string | undefined;
         visibility?: "internal" | "system" | undefined;
     }>, "many">>;
@@ -598,36 +598,18 @@ export declare const AdminCaseDetailSchema: z.ZodObject<{
     }>, "many">>;
 }, "strip", z.ZodTypeAny, {
     id: string;
-    subject: string;
     created_at: string;
-    entities: {
-        id: string;
-        entity_type: "task" | "user" | "conversation" | "booking" | "dispute" | "report";
-        entity_id: string;
-        case_id: string;
-        meta: Record<string, unknown>;
-        created_at?: string | undefined;
-        label?: string | null | undefined;
-    }[];
     evidence: {
         id: string;
+        case_id: string;
         entity_type: string;
         entity_id: string;
-        case_id: string;
         meta: Record<string, unknown>;
         evidence_type: string;
         created_at?: string | undefined;
         title?: string | null | undefined;
     }[];
-    notes: {
-        id: string;
-        created_at: string;
-        note: string;
-        visibility: "internal" | "system";
-        case_id: string;
-        admin_user_id: string;
-        updated_at?: string | undefined;
-    }[];
+    subject: string;
     timeline: {
         id: string;
         created_at: string;
@@ -637,60 +619,55 @@ export declare const AdminCaseDetailSchema: z.ZodObject<{
         reason?: string | null | undefined;
         actor_user_id?: string | null | undefined;
     }[];
+    entities: {
+        id: string;
+        case_id: string;
+        entity_type: "task" | "booking" | "user" | "conversation" | "dispute" | "report";
+        entity_id: string;
+        meta: Record<string, unknown>;
+        created_at?: string | undefined;
+        label?: string | null | undefined;
+    }[];
+    notes: {
+        id: string;
+        created_at: string;
+        case_id: string;
+        admin_user_id: string;
+        note: string;
+        visibility: "internal" | "system";
+        updated_at?: string | undefined;
+    }[];
     status?: string | undefined;
+    updated_at?: string | undefined;
+    severity?: "low" | "high" | "critical" | "medium" | null | undefined;
     priority?: string | undefined;
     source?: string | undefined;
+    sla_due_at?: string | null | undefined;
     assignee_id?: string | null | undefined;
     case_code?: string | undefined;
     links_count?: number | undefined;
-    updated_at?: string | undefined;
     assignee_name?: string | null | undefined;
-    severity?: "low" | "medium" | "high" | "critical" | null | undefined;
-    sla_due_at?: string | null | undefined;
     tags?: string[] | undefined;
 }, {
     id: string;
-    subject: string;
     created_at: string;
+    subject: string;
     status?: string | undefined;
-    priority?: string | undefined;
-    source?: string | undefined;
-    assignee_id?: string | null | undefined;
-    case_code?: string | undefined;
-    links_count?: number | undefined;
     updated_at?: string | undefined;
-    assignee_name?: string | null | undefined;
-    severity?: "low" | "medium" | "high" | "critical" | null | undefined;
-    sla_due_at?: string | null | undefined;
-    tags?: string[] | undefined;
-    entities?: {
-        id: string;
-        entity_type: "task" | "user" | "conversation" | "booking" | "dispute" | "report";
-        entity_id: string;
-        case_id: string;
-        created_at?: string | undefined;
-        label?: string | null | undefined;
-        meta?: Record<string, unknown> | undefined;
-    }[] | undefined;
+    severity?: "low" | "high" | "critical" | "medium" | null | undefined;
     evidence?: {
         id: string;
+        case_id: string;
         entity_type: string;
         entity_id: string;
-        case_id: string;
         evidence_type: string;
         created_at?: string | undefined;
-        meta?: Record<string, unknown> | undefined;
         title?: string | null | undefined;
+        meta?: Record<string, unknown> | undefined;
     }[] | undefined;
-    notes?: {
-        id: string;
-        created_at: string;
-        note: string;
-        case_id: string;
-        admin_user_id: string;
-        updated_at?: string | undefined;
-        visibility?: "internal" | "system" | undefined;
-    }[] | undefined;
+    priority?: string | undefined;
+    source?: string | undefined;
+    sla_due_at?: string | null | undefined;
     timeline?: {
         id: string;
         created_at: string;
@@ -700,6 +677,29 @@ export declare const AdminCaseDetailSchema: z.ZodObject<{
         meta?: Record<string, unknown> | undefined;
         actor_user_id?: string | null | undefined;
     }[] | undefined;
+    assignee_id?: string | null | undefined;
+    case_code?: string | undefined;
+    links_count?: number | undefined;
+    assignee_name?: string | null | undefined;
+    tags?: string[] | undefined;
+    entities?: {
+        id: string;
+        case_id: string;
+        entity_type: "task" | "booking" | "user" | "conversation" | "dispute" | "report";
+        entity_id: string;
+        created_at?: string | undefined;
+        meta?: Record<string, unknown> | undefined;
+        label?: string | null | undefined;
+    }[] | undefined;
+    notes?: {
+        id: string;
+        created_at: string;
+        case_id: string;
+        admin_user_id: string;
+        note: string;
+        updated_at?: string | undefined;
+        visibility?: "internal" | "system" | undefined;
+    }[] | undefined;
 }>;
 export type AdminCaseDetail = z.infer<typeof AdminCaseDetailSchema>;
 /** Assign case input. */
@@ -707,11 +707,11 @@ export declare const AdminCaseAssignInputSchema: z.ZodObject<{
     assignee_id: z.ZodNullable<z.ZodString>;
     reason: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    assignee_id: string | null;
     reason: string;
+    assignee_id: string | null;
 }, {
-    assignee_id: string | null;
     reason: string;
+    assignee_id: string | null;
 }>;
 export type AdminCaseAssignInput = z.infer<typeof AdminCaseAssignInputSchema>;
 /** Status transition input. */
@@ -719,10 +719,10 @@ export declare const AdminCaseStatusInputSchema: z.ZodObject<{
     status: z.ZodEnum<["open", "in_progress", "pending", "closed"]>;
     reason: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    status: "open" | "in_progress" | "pending" | "closed";
+    status: "open" | "in_progress" | "closed" | "pending";
     reason: string;
 }, {
-    status: "open" | "in_progress" | "pending" | "closed";
+    status: "open" | "in_progress" | "closed" | "pending";
     reason: string;
 }>;
 export type AdminCaseStatusInput = z.infer<typeof AdminCaseStatusInputSchema>;

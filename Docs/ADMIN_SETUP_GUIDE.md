@@ -59,10 +59,18 @@ npm run dev
 
 This typically starts both the API and the admin-ui (e.g. via Turbo). Alternatively:
 
-- `npm run dev:api` — start Fastify (e.g. port 3001).
-- `npm run dev:admin` — start Vite dev server (e.g. port 5173).
+- `npm run dev:api` — start Fastify (e.g. port 3010).
+- `npm run dev:admin` — start Vite dev server (e.g. port 3000).
 
 Ensure the UI is configured to call the API (same origin or correct `VITE_API_BASE_URL` and CORS). Log in via the auth flow so cookies are set for API requests.
+
+## Root scripts
+
+From the repo root:
+
+- `npm run build` — build all workspaces (shared, admin-ui, api).
+- `npm run lint` — run typecheck across workspaces (`turbo run typecheck`).
+- `npm run e2e` — run Playwright E2E tests for admin-ui (`npm run test:e2e -w @sline/admin-ui`).
 
 ---
 
@@ -71,7 +79,7 @@ Ensure the UI is configured to call the API (same origin or correct `VITE_API_BA
 - **API**: Deploy Fastify to a Node host (e.g. Railway, Fly, or behind a reverse proxy). Set env vars (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, JWT secret, CORS). Do not expose Service Role key to the client.
 - **admin-ui**: Build with `npm run build -w @sline/admin-ui` (or equivalent). Serve the built static files (e.g. from `apps/admin-ui/dist`) via a static host or the same host as the API (e.g. same origin so `/api/v1` is proxied to Fastify).
 - **Secrets separation**: API secrets only in the API environment. No `VITE_*` secrets. Use a single domain and proxy, or configure CORS and `VITE_API_BASE_URL` for cross-origin.
-- **Build gates**: Before release, run build + typecheck for admin-ui and api, and the forbidden-import scan for admin-ui.
+- **Build gates**: Before release, run `npm run build` and `npm run lint` (typecheck) at root; run the forbidden-import scan in admin-ui (`npm run forbidden-imports -w @sline/admin-ui`). Optionally run `npm run e2e` for E2E coverage.
 
 ---
 

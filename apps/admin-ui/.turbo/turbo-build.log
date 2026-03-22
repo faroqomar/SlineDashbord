@@ -2,56 +2,25 @@
 > @sline/admin-ui@0.1.0 build
 > tsc && vite build
 
-src/components/ui/calendar.tsx(13,8): error TS2307: Cannot find module 'react-day-picker' or its corresponding type declarations.
-src/components/ui/calendar.tsx(43,31): error TS7006: Parameter 'date' implicitly has an 'any' type.
-src/components/ui/calendar.tsx(135,18): error TS7031: Binding element 'className' implicitly has an 'any' type.
-src/components/ui/calendar.tsx(135,29): error TS7031: Binding element 'rootRef' implicitly has an 'any' type.
-src/components/ui/calendar.tsx(145,21): error TS7031: Binding element 'className' implicitly has an 'any' type.
-src/components/ui/calendar.tsx(145,32): error TS7031: Binding element 'orientation' implicitly has an 'any' type.
-src/components/ui/calendar.tsx(166,24): error TS7031: Binding element 'children' implicitly has an 'any' type.
-src/components/ui/sonner.tsx(4,3): error TS2724: '"lucide-react"' has no exported member named 'CircleCheckIcon'. Did you mean 'FileCheckIcon'?
-src/components/ui/sonner.tsx(7,3): error TS2724: '"lucide-react"' has no exported member named 'OctagonXIcon'. Did you mean 'OctagonIcon'?
-src/components/ui/sonner.tsx(8,3): error TS2724: '"lucide-react"' has no exported member named 'TriangleAlertIcon'. Did you mean 'TriangleIcon'?
-src/features/analytics/services/analytics_actions.ts(3,35): error TS2307: Cannot find module '@/lib/supabase/admin' or its corresponding type declarations.
-src/features/core/security/security_guards.ts(2,50): error TS2307: Cannot find module '@/lib/supabase/server' or its corresponding type declarations.
-src/features/core/security/security_guards.ts(3,52): error TS2307: Cannot find module '@/lib/supabase/admin' or its corresponding type declarations.
-src/features/core/services/health_actions.ts(3,35): error TS2307: Cannot find module '@/lib/supabase/admin' or its corresponding type declarations.
-src/features/finance/models/finance.model.ts(2,26): error TS2307: Cannot find module '@/types/supabase' or its corresponding type declarations.
-src/features/logs/services/log_actions.ts(3,35): error TS2307: Cannot find module '@/lib/supabase/admin' or its corresponding type declarations.
-src/features/settings/services/settings_actions.ts(3,35): error TS2307: Cannot find module '@/lib/supabase/admin' or its corresponding type declarations.
-src/features/settings/viewmodels/use_settings_viewmodel.ts(22,21): error TS2345: Argument of type '() => Promise<void>' is not assignable to parameter of type 'TransitionFunction'.
-  Type 'Promise<void>' is not assignable to type 'VoidOrUndefinedOnly'.
-src/features/support/services/support_actions.ts(3,35): error TS2307: Cannot find module '@/lib/supabase/admin' or its corresponding type declarations.
-src/features/support/view/components/TicketList.tsx(10,29): error TS2307: Cannot find module '@/components/dashboard/StatusBadge' or its corresponding type declarations.
-src/features/support/view/components/TicketNotes.tsx(3,24): error TS2307: Cannot find module '@/data/mock/complaints' or its corresponding type declarations.
-src/features/support/view/components/TicketNotes.tsx(40,38): error TS7006: Parameter 'note' implicitly has an 'any' type.
-src/features/support/viewmodels/useSupportDashboard.vm.ts(81,25): error TS2345: Argument of type '() => Promise<void>' is not assignable to parameter of type 'TransitionFunction'.
-  Type 'Promise<void>' is not assignable to type 'VoidOrUndefinedOnly'.
-src/features/team/services/team_actions.ts(3,35): error TS2307: Cannot find module '@/lib/supabase/admin' or its corresponding type declarations.
-src/features/team/services/team_actions.ts(29,33): error TS7006: Parameter 'a' implicitly has an 'any' type.
-src/features/team/services/team_actions.ts(36,46): error TS7006: Parameter 'p' implicitly has an 'any' type.
-src/features/team/services/team_actions.ts(38,45): error TS7006: Parameter 'admin' implicitly has an 'any' type.
-src/features/team/services/team_actions.ts(43,29): error TS2339: Property 'full_name' does not exist on type '{}'.
-src/features/team/services/team_actions.ts(44,30): error TS2339: Property 'avatar_url' does not exist on type '{}'.
-src/features/team/services/team_actions.ts(46,26): error TS2339: Property 'status' does not exist on type '{}'.
-src/features/team/views/components/AdminTable.tsx(44,21): error TS2345: Argument of type '() => Promise<void>' is not assignable to parameter of type 'TransitionFunction'.
-  Type 'Promise<void>' is not assignable to type 'VoidOrUndefinedOnly'.
-src/features/team/views/components/InviteAdminDialog.tsx(39,21): error TS2345: Argument of type '() => Promise<void>' is not assignable to parameter of type 'TransitionFunction'.
-  Type 'Promise<void>' is not assignable to type 'VoidOrUndefinedOnly'.
-src/features/users/services/user_actions.ts(3,35): error TS2307: Cannot find module '@/lib/supabase/admin' or its corresponding type declarations.
-src/features/users/views/UsersScreen.tsx(14,28): error TS2307: Cannot find module '@/components/users/UserSearch' or its corresponding type declarations.
-src/features/users/views/UsersScreen.tsx(15,36): error TS2307: Cannot find module '@/components/users/PaginationControls' or its corresponding type declarations.
-src/features/users/views/UsersScreen.tsx(16,33): error TS2307: Cannot find module '@/components/users/UserActionsMenu' or its corresponding type declarations.
-src/lib/api.ts(2,45): error TS2307: Cannot find module '@sline/shared' or its corresponding type declarations.
-src/routes/FinanceTransactions.tsx(8,30): error TS2820: Type '"/finance/transactions"' is not assignable to type 'ConstrainLiteral<"/finance/transactions", "__root__" | "/login" | "/auth" | "/auth/" | "/auth/users" | "/auth/users/$userId" | "/auth/finance" | "/auth/finance/transactions" | "/auth/finance/withdrawals" | ... 4 more ... | "/auth/tasks/$taskId", "__root__" | ... 12 more ... | "/auth/tasks/$taskId">'. Did you mean '"/auth/finance/transactions"'?
-src/routes/FinanceWithdrawals.tsx(8,30): error TS2820: Type '"/finance/withdrawals"' is not assignable to type 'ConstrainLiteral<"/finance/withdrawals", "__root__" | "/login" | "/auth" | "/auth/" | "/auth/users" | "/auth/users/$userId" | "/auth/finance" | "/auth/finance/transactions" | "/auth/finance/withdrawals" | ... 4 more ... | "/auth/tasks/$taskId", "__root__" | ... 12 more ... | "/auth/tasks/$taskId">'. Did you mean '"/auth/finance/withdrawals"'?
-src/routes/FinanceWithdrawals.tsx(32,11): error TS2322: Type '{ initialData: any; nextCursor: any; filters: { status: any; limit: number; }; }' is not assignable to type 'IntrinsicAttributes & WithdrawalsTableProps'.
-  Property 'filters' does not exist on type 'IntrinsicAttributes & WithdrawalsTableProps'.
-src/routes/UserDetail.tsx(16,34): error TS2322: Type '"/users/$userId"' is not assignable to type 'ConstrainLiteral<"/users/$userId", "__root__" | "/login" | "/auth" | "/auth/" | "/auth/users" | "/auth/users/$userId" | "/auth/finance" | "/auth/finance/transactions" | "/auth/finance/withdrawals" | ... 4 more ... | "/auth/tasks/$taskId", "__root__" | ... 12 more ... | "/auth/tasks/$taskId">'.
-npm error Lifecycle script `build` failed with error:
-npm error code 2
-npm error path /Users/eros/Dev/Eros_Projects/SlineDashbord/apps/admin-ui
-npm error workspace @sline/admin-ui@0.1.0
-npm error location /Users/eros/Dev/Eros_Projects/SlineDashbord/apps/admin-ui
-npm error command failed
-npm error command sh -c tsc && vite build
+vite v6.4.1 building for production...
+transforming...
+../../node_modules/next-themes/dist/index.module.js (1:1576): A comment
+
+"/*#__PURE__*/"
+
+in "../../node_modules/next-themes/dist/index.module.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+../../node_modules/next-themes/dist/index.module.js (1:2992): A comment
+
+"/*#__PURE__*/"
+
+in "../../node_modules/next-themes/dist/index.module.js" contains an annotation that Rollup cannot interpret due to the position of the comment. The comment will be removed to avoid issues.
+✓ 3272 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                           0.98 kB │ gzip:   0.50 kB
+dist/assets/index-D7-LfI1I.css          165.00 kB │ gzip:  25.98 kB
+dist/assets/ui-vendor-ByaeDtiJ.js       108.82 kB │ gzip:  33.95 kB
+dist/assets/router-query-BNMEvyJ7.js    277.62 kB │ gzip:  87.55 kB
+dist/assets/recharts-CLSe4EM_.js        393.38 kB │ gzip: 107.86 kB
+dist/assets/index-BRj0kasC.js         1,083.85 kB │ gzip: 285.09 kB
+✓ built in 5.54s

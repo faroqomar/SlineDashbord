@@ -8,6 +8,18 @@ export default defineConfig({
     react() as any,
     tailwindcss(),
   ],
+  build: {
+    chunkSizeWarningLimit: 1100,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'router-query': ['@tanstack/react-router', '@tanstack/react-query'],
+          'recharts': ['recharts'],
+          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select', '@radix-ui/react-tabs'],
+        },
+      },
+    },
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

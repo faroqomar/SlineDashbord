@@ -14,7 +14,7 @@ This document covers how the Sline Admin Dashboard interacts with the database: 
 | `admin_cases`     | Investigation/moderation cases (PAGE 08) | Create, list, detail, assign; case-gated chat | apps/api routes/cases.ts; migration `20260302130000_admin_cases_and_chat_access.sql` (canonical; see MIGRATIONS/README) |
 | `admin_case_entities` | Links cases to tasks, users, conversations, etc. | Attach/detach entities to a case | Same migration; RLS service_role only |
 | `disputes`         | Conflict resolution | View, accept, cancel, resolve with booking/task_request/direct_offer settlement | apps/api routes/disputes.ts |
-| `audit_logs`       | Immutable ledger of admin actions | **Read** (activity feeds); **Write** only via atomic RPC/transaction with mutation | Canonical; no `admin_logs` for new code |
+| `audit_logs`       | Immutable ledger of admin actions | **Read** (activity feeds, **System Logs** via `GET /api/v1/logs` and `/api/v1/logs/export`); **Write** only via atomic RPC/transaction with mutation | Canonical; no `admin_logs` for new code; see `Docs/features/logs.md` |
 | `admin_users`     | Admin identity and roles (source of truth for RBAC) | Read for RBAC; manage via super_admin | Implemented in dashboard: `supabase/migrations/20260302120000_admin_users.sql`; copy to sline_app for production (see MIGRATIONS/README.md) |
 | `support_tickets`  | User support requests | View, reply, assign, status | If feature exists |
 | `system_config`    | Global flags (maintenance, banners, min_app_version) | Read/update via API (service role) | PAGE 13; migration `MIGRATIONS/for_sline_app/20260303100000_system_config.sql` |

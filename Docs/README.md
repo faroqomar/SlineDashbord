@@ -19,7 +19,7 @@ Documentation suite for the SLine Admin Dashboard (Vite SPA + Fastify API). Defi
 ## Other references
 
 - **[APP_TEST_CHECKLIST.md](./APP_TEST_CHECKLIST.md)** — Build, test, run locally, auth, optional feature smoke and integration tests. Referenced from `ADMIN_SETUP_GUIDE.md`.
-- **Feature docs** — When a feature reaches v1, add `Docs/features/<feature>.md`. See [features/README.md](./features/README.md) and the Feature Docs Protocol in `ADMIN_DEVELOPER_GUIDE.md`.
+- **Feature docs** — When a feature reaches v1, add `Docs/features/<feature>.md`. See [features/README.md](./features/README.md) and the Feature Docs Protocol in `ADMIN_DEVELOPER_GUIDE.md`. Per-feature checklists and reports (e.g. System Health: `SYSTEM_HEALTH_CHECKLIST_AND_SUMMARY.md`, `ORCHESTRATOR_REPORT_System_Health.md`) are listed under Supporting docs in `features/README.md`.
 - **Git coverage matrix** — [GIT_DOC_COVERAGE_2026-03-05.md](./GIT_DOC_COVERAGE_2026-03-05.md) maps active source changes to documentation coverage.
 
 ---

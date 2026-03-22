@@ -31,19 +31,19 @@ export declare const ReportReporterSummarySchema: z.ZodObject<{
     total_reports_count: z.ZodOptional<z.ZodNumber>;
     relationship_to_entity: z.ZodNullable<z.ZodOptional<z.ZodString>>;
 }, "strip", z.ZodTypeAny, {
-    user_id?: string | null | undefined;
     full_name?: string | null | undefined;
-    username?: string | null | undefined;
     avatar_url?: string | null | undefined;
+    user_id?: string | null | undefined;
+    username?: string | null | undefined;
     trust_level?: string | null | undefined;
     valid_reports_count?: number | undefined;
     total_reports_count?: number | undefined;
     relationship_to_entity?: string | null | undefined;
 }, {
-    user_id?: string | null | undefined;
     full_name?: string | null | undefined;
-    username?: string | null | undefined;
     avatar_url?: string | null | undefined;
+    user_id?: string | null | undefined;
+    username?: string | null | undefined;
     trust_level?: string | null | undefined;
     valid_reports_count?: number | undefined;
     total_reports_count?: number | undefined;
@@ -61,7 +61,7 @@ export declare const ReportEntitySummarySchema: z.ZodObject<{
     link_hint: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     meta: z.ZodDefault<z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>>;
 }, "strip", z.ZodTypeAny, {
-    entity_type: "task" | "user" | "chat" | "booking";
+    entity_type: "task" | "booking" | "user" | "chat";
     meta: Record<string, unknown>;
     status?: string | null | undefined;
     avatar_url?: string | null | undefined;
@@ -70,11 +70,11 @@ export declare const ReportEntitySummarySchema: z.ZodObject<{
     participants?: string[] | undefined;
     link_hint?: string | null | undefined;
 }, {
-    entity_type: "task" | "user" | "chat" | "booking";
+    entity_type: "task" | "booking" | "user" | "chat";
     status?: string | null | undefined;
-    meta?: Record<string, unknown> | undefined;
     avatar_url?: string | null | undefined;
     title?: string | null | undefined;
+    meta?: Record<string, unknown> | undefined;
     subtitle?: string | null | undefined;
     participants?: string[] | undefined;
     link_hint?: string | null | undefined;
@@ -90,9 +90,9 @@ export declare const ReportTimelineItemSchema: z.ZodObject<{
     created_at: z.ZodString;
     meta: z.ZodDefault<z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>>;
 }, "strip", z.ZodTypeAny, {
-    meta: Record<string, unknown>;
     id: string;
     created_at: string;
+    meta: Record<string, unknown>;
     event: string;
     reason?: string | null | undefined;
     actor_user_id?: string | null | undefined;
@@ -125,34 +125,34 @@ export declare const ReportRowSchema: z.ZodObject<{
     updated_at: z.ZodString;
     meta: z.ZodDefault<z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>>;
 }, "strip", z.ZodTypeAny, {
-    status: "open" | "triaged" | "escalated" | "closed";
-    entity_type: "task" | "user" | "chat" | "booking";
-    entity_id: string;
-    reporter_user_id: string | null;
-    meta: Record<string, unknown>;
+    status: "open" | "closed" | "triaged" | "escalated";
     id: string;
     created_at: string;
     updated_at: string;
+    entity_type: "task" | "booking" | "user" | "chat";
+    entity_id: string;
+    meta: Record<string, unknown>;
+    reporter_user_id: string | null;
     reason?: string | undefined;
     case_id?: string | null | undefined;
-    resolution?: "dismissed" | "resolved" | "case_opened" | "case_attached" | null | undefined;
     category?: string | undefined;
-    severity?: "low" | "medium" | "high" | "critical" | null | undefined;
+    severity?: "low" | "high" | "critical" | "medium" | null | undefined;
+    resolution?: "resolved" | "dismissed" | "case_opened" | "case_attached" | null | undefined;
     assigned_admin_id?: string | null | undefined;
     sla_due_at?: string | null | undefined;
 }, {
-    status: "open" | "triaged" | "escalated" | "closed";
-    entity_type: "task" | "user" | "chat" | "booking";
-    entity_id: string;
-    reporter_user_id: string | null;
+    status: "open" | "closed" | "triaged" | "escalated";
     id: string;
     created_at: string;
     updated_at: string;
+    entity_type: "task" | "booking" | "user" | "chat";
+    entity_id: string;
+    reporter_user_id: string | null;
     reason?: string | undefined;
     case_id?: string | null | undefined;
-    resolution?: "dismissed" | "resolved" | "case_opened" | "case_attached" | null | undefined;
     category?: string | undefined;
-    severity?: "low" | "medium" | "high" | "critical" | null | undefined;
+    severity?: "low" | "high" | "critical" | "medium" | null | undefined;
+    resolution?: "resolved" | "dismissed" | "case_opened" | "case_attached" | null | undefined;
     meta?: Record<string, unknown> | undefined;
     assigned_admin_id?: string | null | undefined;
     sla_due_at?: string | null | undefined;
@@ -170,25 +170,25 @@ export declare const ReportActionRowSchema: z.ZodObject<{
     status_after: z.ZodOptional<z.ZodEnum<["open", "triaged", "escalated", "closed"]>>;
     created_at: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    action: string;
     id: string;
     created_at: string;
+    action: string;
     report_id: string;
     admin_user_id: string;
     reason?: string | null | undefined;
     case_id?: string | null | undefined;
-    resolution?: "dismissed" | "resolved" | "case_opened" | "case_attached" | null | undefined;
-    status_after?: "open" | "triaged" | "escalated" | "closed" | undefined;
+    resolution?: "resolved" | "dismissed" | "case_opened" | "case_attached" | null | undefined;
+    status_after?: "open" | "closed" | "triaged" | "escalated" | undefined;
 }, {
-    action: string;
     id: string;
     created_at: string;
+    action: string;
     report_id: string;
     admin_user_id: string;
     reason?: string | null | undefined;
     case_id?: string | null | undefined;
-    resolution?: "dismissed" | "resolved" | "case_opened" | "case_attached" | null | undefined;
-    status_after?: "open" | "triaged" | "escalated" | "closed" | undefined;
+    resolution?: "resolved" | "dismissed" | "case_opened" | "case_attached" | null | undefined;
+    status_after?: "open" | "closed" | "triaged" | "escalated" | undefined;
 }>;
 export type ReportActionRow = z.infer<typeof ReportActionRowSchema>;
 /** List item for GET /reports response. */
@@ -215,19 +215,19 @@ export declare const ReportListItemSchema: z.ZodObject<{
         total_reports_count: z.ZodOptional<z.ZodNumber>;
         relationship_to_entity: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     }, "strip", z.ZodTypeAny, {
-        user_id?: string | null | undefined;
         full_name?: string | null | undefined;
-        username?: string | null | undefined;
         avatar_url?: string | null | undefined;
+        user_id?: string | null | undefined;
+        username?: string | null | undefined;
         trust_level?: string | null | undefined;
         valid_reports_count?: number | undefined;
         total_reports_count?: number | undefined;
         relationship_to_entity?: string | null | undefined;
     }, {
-        user_id?: string | null | undefined;
         full_name?: string | null | undefined;
-        username?: string | null | undefined;
         avatar_url?: string | null | undefined;
+        user_id?: string | null | undefined;
+        username?: string | null | undefined;
         trust_level?: string | null | undefined;
         valid_reports_count?: number | undefined;
         total_reports_count?: number | undefined;
@@ -243,7 +243,7 @@ export declare const ReportListItemSchema: z.ZodObject<{
         link_hint: z.ZodNullable<z.ZodOptional<z.ZodString>>;
         meta: z.ZodDefault<z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>>;
     }, "strip", z.ZodTypeAny, {
-        entity_type: "task" | "user" | "chat" | "booking";
+        entity_type: "task" | "booking" | "user" | "chat";
         meta: Record<string, unknown>;
         status?: string | null | undefined;
         avatar_url?: string | null | undefined;
@@ -252,11 +252,11 @@ export declare const ReportListItemSchema: z.ZodObject<{
         participants?: string[] | undefined;
         link_hint?: string | null | undefined;
     }, {
-        entity_type: "task" | "user" | "chat" | "booking";
+        entity_type: "task" | "booking" | "user" | "chat";
         status?: string | null | undefined;
-        meta?: Record<string, unknown> | undefined;
         avatar_url?: string | null | undefined;
         title?: string | null | undefined;
+        meta?: Record<string, unknown> | undefined;
         subtitle?: string | null | undefined;
         participants?: string[] | undefined;
         link_hint?: string | null | undefined;
@@ -264,32 +264,32 @@ export declare const ReportListItemSchema: z.ZodObject<{
     created_at: z.ZodString;
     updated_at: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    status: "open" | "triaged" | "escalated" | "closed";
-    entity_type: "task" | "user" | "chat" | "booking";
-    entity_id: string;
-    reporter_user_id: string | null;
+    status: "open" | "closed" | "triaged" | "escalated";
     id: string;
     created_at: string;
     updated_at: string;
+    entity_type: "task" | "booking" | "user" | "chat";
+    entity_id: string;
+    reporter_user_id: string | null;
     reason?: string | null | undefined;
     case_id?: string | null | undefined;
-    resolution?: "dismissed" | "resolved" | "case_opened" | "case_attached" | null | undefined;
     category?: string | null | undefined;
-    severity?: "low" | "medium" | "high" | "critical" | null | undefined;
+    severity?: "low" | "high" | "critical" | "medium" | null | undefined;
+    resolution?: "resolved" | "dismissed" | "case_opened" | "case_attached" | null | undefined;
     assigned_admin_id?: string | null | undefined;
     sla_due_at?: string | null | undefined;
     reporter?: {
-        user_id?: string | null | undefined;
         full_name?: string | null | undefined;
-        username?: string | null | undefined;
         avatar_url?: string | null | undefined;
+        user_id?: string | null | undefined;
+        username?: string | null | undefined;
         trust_level?: string | null | undefined;
         valid_reports_count?: number | undefined;
         total_reports_count?: number | undefined;
         relationship_to_entity?: string | null | undefined;
     } | undefined;
     entity?: {
-        entity_type: "task" | "user" | "chat" | "booking";
+        entity_type: "task" | "booking" | "user" | "chat";
         meta: Record<string, unknown>;
         status?: string | null | undefined;
         avatar_url?: string | null | undefined;
@@ -299,36 +299,36 @@ export declare const ReportListItemSchema: z.ZodObject<{
         link_hint?: string | null | undefined;
     } | undefined;
 }, {
-    status: "open" | "triaged" | "escalated" | "closed";
-    entity_type: "task" | "user" | "chat" | "booking";
-    entity_id: string;
-    reporter_user_id: string | null;
+    status: "open" | "closed" | "triaged" | "escalated";
     id: string;
     created_at: string;
     updated_at: string;
+    entity_type: "task" | "booking" | "user" | "chat";
+    entity_id: string;
+    reporter_user_id: string | null;
     reason?: string | null | undefined;
     case_id?: string | null | undefined;
-    resolution?: "dismissed" | "resolved" | "case_opened" | "case_attached" | null | undefined;
     category?: string | null | undefined;
-    severity?: "low" | "medium" | "high" | "critical" | null | undefined;
+    severity?: "low" | "high" | "critical" | "medium" | null | undefined;
+    resolution?: "resolved" | "dismissed" | "case_opened" | "case_attached" | null | undefined;
     assigned_admin_id?: string | null | undefined;
     sla_due_at?: string | null | undefined;
     reporter?: {
-        user_id?: string | null | undefined;
         full_name?: string | null | undefined;
-        username?: string | null | undefined;
         avatar_url?: string | null | undefined;
+        user_id?: string | null | undefined;
+        username?: string | null | undefined;
         trust_level?: string | null | undefined;
         valid_reports_count?: number | undefined;
         total_reports_count?: number | undefined;
         relationship_to_entity?: string | null | undefined;
     } | undefined;
     entity?: {
-        entity_type: "task" | "user" | "chat" | "booking";
+        entity_type: "task" | "booking" | "user" | "chat";
         status?: string | null | undefined;
-        meta?: Record<string, unknown> | undefined;
         avatar_url?: string | null | undefined;
         title?: string | null | undefined;
+        meta?: Record<string, unknown> | undefined;
         subtitle?: string | null | undefined;
         participants?: string[] | undefined;
         link_hint?: string | null | undefined;
@@ -359,19 +359,19 @@ export declare const ReportDetailSchema: z.ZodObject<{
         total_reports_count: z.ZodOptional<z.ZodNumber>;
         relationship_to_entity: z.ZodNullable<z.ZodOptional<z.ZodString>>;
     }, "strip", z.ZodTypeAny, {
-        user_id?: string | null | undefined;
         full_name?: string | null | undefined;
-        username?: string | null | undefined;
         avatar_url?: string | null | undefined;
+        user_id?: string | null | undefined;
+        username?: string | null | undefined;
         trust_level?: string | null | undefined;
         valid_reports_count?: number | undefined;
         total_reports_count?: number | undefined;
         relationship_to_entity?: string | null | undefined;
     }, {
-        user_id?: string | null | undefined;
         full_name?: string | null | undefined;
-        username?: string | null | undefined;
         avatar_url?: string | null | undefined;
+        user_id?: string | null | undefined;
+        username?: string | null | undefined;
         trust_level?: string | null | undefined;
         valid_reports_count?: number | undefined;
         total_reports_count?: number | undefined;
@@ -387,7 +387,7 @@ export declare const ReportDetailSchema: z.ZodObject<{
         link_hint: z.ZodNullable<z.ZodOptional<z.ZodString>>;
         meta: z.ZodDefault<z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>>;
     }, "strip", z.ZodTypeAny, {
-        entity_type: "task" | "user" | "chat" | "booking";
+        entity_type: "task" | "booking" | "user" | "chat";
         meta: Record<string, unknown>;
         status?: string | null | undefined;
         avatar_url?: string | null | undefined;
@@ -396,11 +396,11 @@ export declare const ReportDetailSchema: z.ZodObject<{
         participants?: string[] | undefined;
         link_hint?: string | null | undefined;
     }, {
-        entity_type: "task" | "user" | "chat" | "booking";
+        entity_type: "task" | "booking" | "user" | "chat";
         status?: string | null | undefined;
-        meta?: Record<string, unknown> | undefined;
         avatar_url?: string | null | undefined;
         title?: string | null | undefined;
+        meta?: Record<string, unknown> | undefined;
         subtitle?: string | null | undefined;
         participants?: string[] | undefined;
         link_hint?: string | null | undefined;
@@ -415,9 +415,9 @@ export declare const ReportDetailSchema: z.ZodObject<{
         created_at: z.ZodString;
         meta: z.ZodDefault<z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>>;
     }, "strip", z.ZodTypeAny, {
-        meta: Record<string, unknown>;
         id: string;
         created_at: string;
+        meta: Record<string, unknown>;
         event: string;
         reason?: string | null | undefined;
         actor_user_id?: string | null | undefined;
@@ -445,75 +445,75 @@ export declare const ReportDetailSchema: z.ZodObject<{
         status_after: z.ZodOptional<z.ZodEnum<["open", "triaged", "escalated", "closed"]>>;
         created_at: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        action: string;
         id: string;
         created_at: string;
+        action: string;
         report_id: string;
         admin_user_id: string;
         reason?: string | null | undefined;
         case_id?: string | null | undefined;
-        resolution?: "dismissed" | "resolved" | "case_opened" | "case_attached" | null | undefined;
-        status_after?: "open" | "triaged" | "escalated" | "closed" | undefined;
+        resolution?: "resolved" | "dismissed" | "case_opened" | "case_attached" | null | undefined;
+        status_after?: "open" | "closed" | "triaged" | "escalated" | undefined;
     }, {
-        action: string;
         id: string;
         created_at: string;
+        action: string;
         report_id: string;
         admin_user_id: string;
         reason?: string | null | undefined;
         case_id?: string | null | undefined;
-        resolution?: "dismissed" | "resolved" | "case_opened" | "case_attached" | null | undefined;
-        status_after?: "open" | "triaged" | "escalated" | "closed" | undefined;
+        resolution?: "resolved" | "dismissed" | "case_opened" | "case_attached" | null | undefined;
+        status_after?: "open" | "closed" | "triaged" | "escalated" | undefined;
     }>, "many">>;
 }, "strip", z.ZodTypeAny, {
-    status: "open" | "triaged" | "escalated" | "closed";
-    entity_type: "task" | "user" | "chat" | "booking";
-    entity_id: string;
-    reporter_user_id: string | null;
+    status: "open" | "closed" | "triaged" | "escalated";
     id: string;
     created_at: string;
     updated_at: string;
+    entity_type: "task" | "booking" | "user" | "chat";
+    entity_id: string;
     evidence: Record<string, unknown>[];
+    reporter_user_id: string | null;
     timeline: {
-        meta: Record<string, unknown>;
         id: string;
         created_at: string;
+        meta: Record<string, unknown>;
         event: string;
         reason?: string | null | undefined;
         actor_user_id?: string | null | undefined;
         actor_name?: string | null | undefined;
     }[];
     actions: {
-        action: string;
         id: string;
         created_at: string;
+        action: string;
         report_id: string;
         admin_user_id: string;
         reason?: string | null | undefined;
         case_id?: string | null | undefined;
-        resolution?: "dismissed" | "resolved" | "case_opened" | "case_attached" | null | undefined;
-        status_after?: "open" | "triaged" | "escalated" | "closed" | undefined;
+        resolution?: "resolved" | "dismissed" | "case_opened" | "case_attached" | null | undefined;
+        status_after?: "open" | "closed" | "triaged" | "escalated" | undefined;
     }[];
     reason?: string | null | undefined;
     case_id?: string | null | undefined;
-    resolution?: "dismissed" | "resolved" | "case_opened" | "case_attached" | null | undefined;
     category?: string | null | undefined;
-    severity?: "low" | "medium" | "high" | "critical" | null | undefined;
+    severity?: "low" | "high" | "critical" | "medium" | null | undefined;
+    resolution?: "resolved" | "dismissed" | "case_opened" | "case_attached" | null | undefined;
     meta?: Record<string, unknown> | null | undefined;
     assigned_admin_id?: string | null | undefined;
     sla_due_at?: string | null | undefined;
     reporter?: {
-        user_id?: string | null | undefined;
         full_name?: string | null | undefined;
-        username?: string | null | undefined;
         avatar_url?: string | null | undefined;
+        user_id?: string | null | undefined;
+        username?: string | null | undefined;
         trust_level?: string | null | undefined;
         valid_reports_count?: number | undefined;
         total_reports_count?: number | undefined;
         relationship_to_entity?: string | null | undefined;
     } | undefined;
     entity?: {
-        entity_type: "task" | "user" | "chat" | "booking";
+        entity_type: "task" | "booking" | "user" | "chat";
         meta: Record<string, unknown>;
         status?: string | null | undefined;
         avatar_url?: string | null | undefined;
@@ -523,42 +523,42 @@ export declare const ReportDetailSchema: z.ZodObject<{
         link_hint?: string | null | undefined;
     } | undefined;
 }, {
-    status: "open" | "triaged" | "escalated" | "closed";
-    entity_type: "task" | "user" | "chat" | "booking";
-    entity_id: string;
-    reporter_user_id: string | null;
+    status: "open" | "closed" | "triaged" | "escalated";
     id: string;
     created_at: string;
     updated_at: string;
+    entity_type: "task" | "booking" | "user" | "chat";
+    entity_id: string;
+    reporter_user_id: string | null;
     reason?: string | null | undefined;
     case_id?: string | null | undefined;
-    resolution?: "dismissed" | "resolved" | "case_opened" | "case_attached" | null | undefined;
     category?: string | null | undefined;
-    severity?: "low" | "medium" | "high" | "critical" | null | undefined;
+    severity?: "low" | "high" | "critical" | "medium" | null | undefined;
+    resolution?: "resolved" | "dismissed" | "case_opened" | "case_attached" | null | undefined;
+    evidence?: Record<string, unknown>[] | undefined;
     meta?: Record<string, unknown> | null | undefined;
     assigned_admin_id?: string | null | undefined;
     sla_due_at?: string | null | undefined;
     reporter?: {
-        user_id?: string | null | undefined;
         full_name?: string | null | undefined;
-        username?: string | null | undefined;
         avatar_url?: string | null | undefined;
+        user_id?: string | null | undefined;
+        username?: string | null | undefined;
         trust_level?: string | null | undefined;
         valid_reports_count?: number | undefined;
         total_reports_count?: number | undefined;
         relationship_to_entity?: string | null | undefined;
     } | undefined;
     entity?: {
-        entity_type: "task" | "user" | "chat" | "booking";
+        entity_type: "task" | "booking" | "user" | "chat";
         status?: string | null | undefined;
-        meta?: Record<string, unknown> | undefined;
         avatar_url?: string | null | undefined;
         title?: string | null | undefined;
+        meta?: Record<string, unknown> | undefined;
         subtitle?: string | null | undefined;
         participants?: string[] | undefined;
         link_hint?: string | null | undefined;
     } | undefined;
-    evidence?: Record<string, unknown>[] | undefined;
     timeline?: {
         id: string;
         created_at: string;
@@ -569,15 +569,15 @@ export declare const ReportDetailSchema: z.ZodObject<{
         actor_name?: string | null | undefined;
     }[] | undefined;
     actions?: {
-        action: string;
         id: string;
         created_at: string;
+        action: string;
         report_id: string;
         admin_user_id: string;
         reason?: string | null | undefined;
         case_id?: string | null | undefined;
-        resolution?: "dismissed" | "resolved" | "case_opened" | "case_attached" | null | undefined;
-        status_after?: "open" | "triaged" | "escalated" | "closed" | undefined;
+        resolution?: "resolved" | "dismissed" | "case_opened" | "case_attached" | null | undefined;
+        status_after?: "open" | "closed" | "triaged" | "escalated" | undefined;
     }[] | undefined;
 }>;
 export type ReportDetail = z.infer<typeof ReportDetailSchema>;
@@ -594,21 +594,21 @@ export declare const ListReportsQuerySchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     page: number;
     limit: number;
-    status?: "open" | "triaged" | "escalated" | "closed" | undefined;
-    entity_type?: "task" | "user" | "chat" | "booking" | undefined;
-    severity?: "low" | "medium" | "high" | "critical" | undefined;
+    status?: "open" | "closed" | "triaged" | "escalated" | undefined;
+    entity_type?: "task" | "booking" | "user" | "chat" | undefined;
+    severity?: "low" | "high" | "critical" | "medium" | undefined;
+    q?: string | undefined;
     assigned_admin_id?: string | undefined;
     assigned_to_me?: boolean | undefined;
-    q?: string | undefined;
 }, {
-    status?: "open" | "triaged" | "escalated" | "closed" | undefined;
-    entity_type?: "task" | "user" | "chat" | "booking" | undefined;
-    severity?: "low" | "medium" | "high" | "critical" | undefined;
+    page?: number | undefined;
+    status?: "open" | "closed" | "triaged" | "escalated" | undefined;
+    entity_type?: "task" | "booking" | "user" | "chat" | undefined;
+    limit?: number | undefined;
+    severity?: "low" | "high" | "critical" | "medium" | undefined;
+    q?: string | undefined;
     assigned_admin_id?: string | undefined;
     assigned_to_me?: boolean | undefined;
-    q?: string | undefined;
-    page?: number | undefined;
-    limit?: number | undefined;
 }>;
 export type ListReportsQuery = z.infer<typeof ListReportsQuerySchema>;
 /** Body for POST /reports/:reportId/triage */
@@ -617,12 +617,12 @@ export declare const TriageReportInputSchema: z.ZodObject<{
     reason: z.ZodString;
     case_id: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    action: "dismiss" | "warn_user" | "escalate" | "close" | "close_resolved";
     reason: string;
+    action: "dismiss" | "warn_user" | "escalate" | "close" | "close_resolved";
     case_id?: string | undefined;
 }, {
-    action: "dismiss" | "warn_user" | "escalate" | "close" | "close_resolved";
     reason: string;
+    action: "dismiss" | "warn_user" | "escalate" | "close" | "close_resolved";
     case_id?: string | undefined;
 }>;
 export type TriageReportInput = z.infer<typeof TriageReportInputSchema>;
@@ -632,10 +632,10 @@ export declare const CloseReportInputSchema: z.ZodObject<{
     resolution: z.ZodDefault<z.ZodEnum<["resolved", "dismissed"]>>;
 }, "strip", z.ZodTypeAny, {
     reason: string;
-    resolution: "dismissed" | "resolved";
+    resolution: "resolved" | "dismissed";
 }, {
     reason: string;
-    resolution?: "dismissed" | "resolved" | undefined;
+    resolution?: "resolved" | "dismissed" | undefined;
 }>;
 export type CloseReportInput = z.infer<typeof CloseReportInputSchema>;
 /** Body for POST /reports/:reportId/dismiss */
@@ -656,12 +656,12 @@ export declare const EscalateReportInputSchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     reason: string;
     case_id?: string | undefined;
-    priority?: "low" | "medium" | "high" | "urgent" | undefined;
+    priority?: "low" | "high" | "urgent" | "medium" | undefined;
     assignee_id?: string | undefined;
 }, {
     reason: string;
     case_id?: string | undefined;
-    priority?: "low" | "medium" | "high" | "urgent" | undefined;
+    priority?: "low" | "high" | "urgent" | "medium" | undefined;
     assignee_id?: string | undefined;
 }>;
 export type EscalateReportInput = z.infer<typeof EscalateReportInputSchema>;
@@ -676,20 +676,20 @@ export declare const CreateReportInputSchema: z.ZodObject<{
     meta: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
 }, "strip", z.ZodTypeAny, {
     reason: string;
-    entity_type: "task" | "user" | "chat" | "booking";
+    entity_type: "task" | "booking" | "user" | "chat";
     entity_id: string;
     category?: string | undefined;
-    severity?: "low" | "medium" | "high" | "critical" | undefined;
-    reporter_user_id?: string | undefined;
+    severity?: "low" | "high" | "critical" | "medium" | undefined;
     meta?: Record<string, unknown> | undefined;
+    reporter_user_id?: string | undefined;
 }, {
     reason: string;
-    entity_type: "task" | "user" | "chat" | "booking";
+    entity_type: "task" | "booking" | "user" | "chat";
     entity_id: string;
     category?: string | undefined;
-    severity?: "low" | "medium" | "high" | "critical" | undefined;
-    reporter_user_id?: string | undefined;
+    severity?: "low" | "high" | "critical" | "medium" | undefined;
     meta?: Record<string, unknown> | undefined;
+    reporter_user_id?: string | undefined;
 }>;
 export type CreateReportInput = z.infer<typeof CreateReportInputSchema>;
 /** Generic ack payload for report mutations. */
@@ -700,14 +700,14 @@ export declare const ReportMutationAckSchema: z.ZodObject<{
     case_id: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     id: string;
+    status?: "open" | "closed" | "triaged" | "escalated" | undefined;
     case_id?: string | undefined;
-    status?: "open" | "triaged" | "escalated" | "closed" | undefined;
-    resolution?: "dismissed" | "resolved" | "case_opened" | "case_attached" | null | undefined;
+    resolution?: "resolved" | "dismissed" | "case_opened" | "case_attached" | null | undefined;
 }, {
     id: string;
+    status?: "open" | "closed" | "triaged" | "escalated" | undefined;
     case_id?: string | undefined;
-    status?: "open" | "triaged" | "escalated" | "closed" | undefined;
-    resolution?: "dismissed" | "resolved" | "case_opened" | "case_attached" | null | undefined;
+    resolution?: "resolved" | "dismissed" | "case_opened" | "case_attached" | null | undefined;
 }>;
 export type ReportMutationAck = z.infer<typeof ReportMutationAckSchema>;
 /** Response for POST /reports create flow. */
@@ -716,13 +716,13 @@ export declare const CreateReportResponseSchema: z.ZodObject<{
     status: z.ZodEnum<["open", "triaged", "escalated", "closed"]>;
     resolution: z.ZodNullable<z.ZodOptional<z.ZodEnum<["dismissed", "resolved", "case_opened", "case_attached"]>>>;
 }, "strip", z.ZodTypeAny, {
-    status: "open" | "triaged" | "escalated" | "closed";
+    status: "open" | "closed" | "triaged" | "escalated";
     id: string;
-    resolution?: "dismissed" | "resolved" | "case_opened" | "case_attached" | null | undefined;
+    resolution?: "resolved" | "dismissed" | "case_opened" | "case_attached" | null | undefined;
 }, {
-    status: "open" | "triaged" | "escalated" | "closed";
+    status: "open" | "closed" | "triaged" | "escalated";
     id: string;
-    resolution?: "dismissed" | "resolved" | "case_opened" | "case_attached" | null | undefined;
+    resolution?: "resolved" | "dismissed" | "case_opened" | "case_attached" | null | undefined;
 }>;
 export type CreateReportResponse = z.infer<typeof CreateReportResponseSchema>;
 export declare const ReportsTrendPointSchema: z.ZodObject<{
@@ -730,12 +730,12 @@ export declare const ReportsTrendPointSchema: z.ZodObject<{
     incoming: z.ZodNumber;
     resolved: z.ZodNumber;
 }, "strip", z.ZodTypeAny, {
-    resolved: number;
     date: string;
+    resolved: number;
     incoming: number;
 }, {
-    resolved: number;
     date: string;
+    resolved: number;
     incoming: number;
 }>;
 export type ReportsTrendPoint = z.infer<typeof ReportsTrendPointSchema>;
@@ -747,28 +747,28 @@ export declare const ReportsTrendResponseSchema: z.ZodObject<{
         incoming: z.ZodNumber;
         resolved: z.ZodNumber;
     }, "strip", z.ZodTypeAny, {
-        resolved: number;
         date: string;
+        resolved: number;
         incoming: number;
     }, {
-        resolved: number;
         date: string;
+        resolved: number;
         incoming: number;
     }>, "many">;
 }, "strip", z.ZodTypeAny, {
     window: "7d";
     timezone: "UTC";
     points: {
-        resolved: number;
         date: string;
+        resolved: number;
         incoming: number;
     }[];
 }, {
     window: "7d";
     timezone: "UTC";
     points: {
-        resolved: number;
         date: string;
+        resolved: number;
         incoming: number;
     }[];
 }>;
@@ -782,13 +782,13 @@ export declare const ReportsKpiCardAnalyticsSchema: z.ZodObject<{
     delta_percent: z.ZodNullable<z.ZodNumber>;
     trend: z.ZodArray<z.ZodNumber, "many">;
 }, "strip", z.ZodTypeAny, {
-    key: "open" | "escalated" | "closed" | "total";
+    key: "open" | "closed" | "total" | "escalated";
     count: number;
     delta_absolute: number;
     delta_percent: number | null;
     trend: number[];
 }, {
-    key: "open" | "escalated" | "closed" | "total";
+    key: "open" | "closed" | "total" | "escalated";
     count: number;
     delta_absolute: number;
     delta_percent: number | null;
@@ -805,13 +805,13 @@ export declare const ReportsKpisResponseSchema: z.ZodObject<{
         delta_percent: z.ZodNullable<z.ZodNumber>;
         trend: z.ZodArray<z.ZodNumber, "many">;
     }, "strip", z.ZodTypeAny, {
-        key: "open" | "escalated" | "closed" | "total";
+        key: "open" | "closed" | "total" | "escalated";
         count: number;
         delta_absolute: number;
         delta_percent: number | null;
         trend: number[];
     }, {
-        key: "open" | "escalated" | "closed" | "total";
+        key: "open" | "closed" | "total" | "escalated";
         count: number;
         delta_absolute: number;
         delta_percent: number | null;
@@ -821,7 +821,7 @@ export declare const ReportsKpisResponseSchema: z.ZodObject<{
     window: "7d";
     comparison_window: "previous_7d";
     cards: {
-        key: "open" | "escalated" | "closed" | "total";
+        key: "open" | "closed" | "total" | "escalated";
         count: number;
         delta_absolute: number;
         delta_percent: number | null;
@@ -831,7 +831,7 @@ export declare const ReportsKpisResponseSchema: z.ZodObject<{
     window: "7d";
     comparison_window: "previous_7d";
     cards: {
-        key: "open" | "escalated" | "closed" | "total";
+        key: "open" | "closed" | "total" | "escalated";
         count: number;
         delta_absolute: number;
         delta_percent: number | null;
@@ -863,19 +863,19 @@ export declare const ListReportsResponseSchema: z.ZodObject<{
             total_reports_count: z.ZodOptional<z.ZodNumber>;
             relationship_to_entity: z.ZodNullable<z.ZodOptional<z.ZodString>>;
         }, "strip", z.ZodTypeAny, {
-            user_id?: string | null | undefined;
             full_name?: string | null | undefined;
-            username?: string | null | undefined;
             avatar_url?: string | null | undefined;
+            user_id?: string | null | undefined;
+            username?: string | null | undefined;
             trust_level?: string | null | undefined;
             valid_reports_count?: number | undefined;
             total_reports_count?: number | undefined;
             relationship_to_entity?: string | null | undefined;
         }, {
-            user_id?: string | null | undefined;
             full_name?: string | null | undefined;
-            username?: string | null | undefined;
             avatar_url?: string | null | undefined;
+            user_id?: string | null | undefined;
+            username?: string | null | undefined;
             trust_level?: string | null | undefined;
             valid_reports_count?: number | undefined;
             total_reports_count?: number | undefined;
@@ -891,7 +891,7 @@ export declare const ListReportsResponseSchema: z.ZodObject<{
             link_hint: z.ZodNullable<z.ZodOptional<z.ZodString>>;
             meta: z.ZodDefault<z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>>;
         }, "strip", z.ZodTypeAny, {
-            entity_type: "task" | "user" | "chat" | "booking";
+            entity_type: "task" | "booking" | "user" | "chat";
             meta: Record<string, unknown>;
             status?: string | null | undefined;
             avatar_url?: string | null | undefined;
@@ -900,11 +900,11 @@ export declare const ListReportsResponseSchema: z.ZodObject<{
             participants?: string[] | undefined;
             link_hint?: string | null | undefined;
         }, {
-            entity_type: "task" | "user" | "chat" | "booking";
+            entity_type: "task" | "booking" | "user" | "chat";
             status?: string | null | undefined;
-            meta?: Record<string, unknown> | undefined;
             avatar_url?: string | null | undefined;
             title?: string | null | undefined;
+            meta?: Record<string, unknown> | undefined;
             subtitle?: string | null | undefined;
             participants?: string[] | undefined;
             link_hint?: string | null | undefined;
@@ -912,32 +912,32 @@ export declare const ListReportsResponseSchema: z.ZodObject<{
         created_at: z.ZodString;
         updated_at: z.ZodString;
     }, "strip", z.ZodTypeAny, {
-        status: "open" | "triaged" | "escalated" | "closed";
-        entity_type: "task" | "user" | "chat" | "booking";
-        entity_id: string;
-        reporter_user_id: string | null;
+        status: "open" | "closed" | "triaged" | "escalated";
         id: string;
         created_at: string;
         updated_at: string;
+        entity_type: "task" | "booking" | "user" | "chat";
+        entity_id: string;
+        reporter_user_id: string | null;
         reason?: string | null | undefined;
         case_id?: string | null | undefined;
-        resolution?: "dismissed" | "resolved" | "case_opened" | "case_attached" | null | undefined;
         category?: string | null | undefined;
-        severity?: "low" | "medium" | "high" | "critical" | null | undefined;
+        severity?: "low" | "high" | "critical" | "medium" | null | undefined;
+        resolution?: "resolved" | "dismissed" | "case_opened" | "case_attached" | null | undefined;
         assigned_admin_id?: string | null | undefined;
         sla_due_at?: string | null | undefined;
         reporter?: {
-            user_id?: string | null | undefined;
             full_name?: string | null | undefined;
-            username?: string | null | undefined;
             avatar_url?: string | null | undefined;
+            user_id?: string | null | undefined;
+            username?: string | null | undefined;
             trust_level?: string | null | undefined;
             valid_reports_count?: number | undefined;
             total_reports_count?: number | undefined;
             relationship_to_entity?: string | null | undefined;
         } | undefined;
         entity?: {
-            entity_type: "task" | "user" | "chat" | "booking";
+            entity_type: "task" | "booking" | "user" | "chat";
             meta: Record<string, unknown>;
             status?: string | null | undefined;
             avatar_url?: string | null | undefined;
@@ -947,36 +947,36 @@ export declare const ListReportsResponseSchema: z.ZodObject<{
             link_hint?: string | null | undefined;
         } | undefined;
     }, {
-        status: "open" | "triaged" | "escalated" | "closed";
-        entity_type: "task" | "user" | "chat" | "booking";
-        entity_id: string;
-        reporter_user_id: string | null;
+        status: "open" | "closed" | "triaged" | "escalated";
         id: string;
         created_at: string;
         updated_at: string;
+        entity_type: "task" | "booking" | "user" | "chat";
+        entity_id: string;
+        reporter_user_id: string | null;
         reason?: string | null | undefined;
         case_id?: string | null | undefined;
-        resolution?: "dismissed" | "resolved" | "case_opened" | "case_attached" | null | undefined;
         category?: string | null | undefined;
-        severity?: "low" | "medium" | "high" | "critical" | null | undefined;
+        severity?: "low" | "high" | "critical" | "medium" | null | undefined;
+        resolution?: "resolved" | "dismissed" | "case_opened" | "case_attached" | null | undefined;
         assigned_admin_id?: string | null | undefined;
         sla_due_at?: string | null | undefined;
         reporter?: {
-            user_id?: string | null | undefined;
             full_name?: string | null | undefined;
-            username?: string | null | undefined;
             avatar_url?: string | null | undefined;
+            user_id?: string | null | undefined;
+            username?: string | null | undefined;
             trust_level?: string | null | undefined;
             valid_reports_count?: number | undefined;
             total_reports_count?: number | undefined;
             relationship_to_entity?: string | null | undefined;
         } | undefined;
         entity?: {
-            entity_type: "task" | "user" | "chat" | "booking";
+            entity_type: "task" | "booking" | "user" | "chat";
             status?: string | null | undefined;
-            meta?: Record<string, unknown> | undefined;
             avatar_url?: string | null | undefined;
             title?: string | null | undefined;
+            meta?: Record<string, unknown> | undefined;
             subtitle?: string | null | undefined;
             participants?: string[] | undefined;
             link_hint?: string | null | undefined;
@@ -990,32 +990,32 @@ export declare const ListReportsResponseSchema: z.ZodObject<{
     limit: number;
     total: number;
     reports: {
-        status: "open" | "triaged" | "escalated" | "closed";
-        entity_type: "task" | "user" | "chat" | "booking";
-        entity_id: string;
-        reporter_user_id: string | null;
+        status: "open" | "closed" | "triaged" | "escalated";
         id: string;
         created_at: string;
         updated_at: string;
+        entity_type: "task" | "booking" | "user" | "chat";
+        entity_id: string;
+        reporter_user_id: string | null;
         reason?: string | null | undefined;
         case_id?: string | null | undefined;
-        resolution?: "dismissed" | "resolved" | "case_opened" | "case_attached" | null | undefined;
         category?: string | null | undefined;
-        severity?: "low" | "medium" | "high" | "critical" | null | undefined;
+        severity?: "low" | "high" | "critical" | "medium" | null | undefined;
+        resolution?: "resolved" | "dismissed" | "case_opened" | "case_attached" | null | undefined;
         assigned_admin_id?: string | null | undefined;
         sla_due_at?: string | null | undefined;
         reporter?: {
-            user_id?: string | null | undefined;
             full_name?: string | null | undefined;
-            username?: string | null | undefined;
             avatar_url?: string | null | undefined;
+            user_id?: string | null | undefined;
+            username?: string | null | undefined;
             trust_level?: string | null | undefined;
             valid_reports_count?: number | undefined;
             total_reports_count?: number | undefined;
             relationship_to_entity?: string | null | undefined;
         } | undefined;
         entity?: {
-            entity_type: "task" | "user" | "chat" | "booking";
+            entity_type: "task" | "booking" | "user" | "chat";
             meta: Record<string, unknown>;
             status?: string | null | undefined;
             avatar_url?: string | null | undefined;
@@ -1030,36 +1030,36 @@ export declare const ListReportsResponseSchema: z.ZodObject<{
     limit: number;
     total: number;
     reports: {
-        status: "open" | "triaged" | "escalated" | "closed";
-        entity_type: "task" | "user" | "chat" | "booking";
-        entity_id: string;
-        reporter_user_id: string | null;
+        status: "open" | "closed" | "triaged" | "escalated";
         id: string;
         created_at: string;
         updated_at: string;
+        entity_type: "task" | "booking" | "user" | "chat";
+        entity_id: string;
+        reporter_user_id: string | null;
         reason?: string | null | undefined;
         case_id?: string | null | undefined;
-        resolution?: "dismissed" | "resolved" | "case_opened" | "case_attached" | null | undefined;
         category?: string | null | undefined;
-        severity?: "low" | "medium" | "high" | "critical" | null | undefined;
+        severity?: "low" | "high" | "critical" | "medium" | null | undefined;
+        resolution?: "resolved" | "dismissed" | "case_opened" | "case_attached" | null | undefined;
         assigned_admin_id?: string | null | undefined;
         sla_due_at?: string | null | undefined;
         reporter?: {
-            user_id?: string | null | undefined;
             full_name?: string | null | undefined;
-            username?: string | null | undefined;
             avatar_url?: string | null | undefined;
+            user_id?: string | null | undefined;
+            username?: string | null | undefined;
             trust_level?: string | null | undefined;
             valid_reports_count?: number | undefined;
             total_reports_count?: number | undefined;
             relationship_to_entity?: string | null | undefined;
         } | undefined;
         entity?: {
-            entity_type: "task" | "user" | "chat" | "booking";
+            entity_type: "task" | "booking" | "user" | "chat";
             status?: string | null | undefined;
-            meta?: Record<string, unknown> | undefined;
             avatar_url?: string | null | undefined;
             title?: string | null | undefined;
+            meta?: Record<string, unknown> | undefined;
             subtitle?: string | null | undefined;
             participants?: string[] | undefined;
             link_hint?: string | null | undefined;

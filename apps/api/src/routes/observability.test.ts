@@ -44,8 +44,14 @@ describe('PAGE 14 — Observability / System Health', () => {
       if (parsed.success) {
         expect(parsed.data.ok).toBe(true);
         expect(Array.isArray(parsed.data.data.services)).toBe(true);
-        expect(parsed.data.data.services.length).toBeGreaterThan(0);
-        // queueStatus and errorRates may be present or N/A
+        expect(parsed.data.data.services.length).toBe(12);
+        expect(parsed.data.data.summary).toBeDefined();
+        const s = parsed.data.data.summary;
+        expect((s?.operationalCount ?? 0) + (s?.degradedCount ?? 0) + (s?.maintenanceCount ?? 0)).toBe(12);
+        expect(s?.maintenanceCount ?? 0).toBe(0);
+        expect(parsed.data.data.kpis).toBeDefined();
+        expect(Array.isArray(parsed.data.data.uptime90Day)).toBe(true);
+        expect(parsed.data.data.uptime90Day?.length).toBe(90);
         expect(parsed.data.data.queueStatus).toBeDefined();
       }
     });

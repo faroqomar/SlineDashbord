@@ -7,7 +7,7 @@ describe('logs schemas', () => {
     expect(parsed.success).toBe(true);
     if (parsed.success) {
       expect(parsed.data.page).toBe(1);
-      expect(parsed.data.limit).toBe(20);
+      expect(parsed.data.limit).toBe(10);
     }
   });
 
@@ -21,13 +21,22 @@ describe('logs schemas', () => {
           actorName: 'Admin User',
           entityType: 'case',
           entityId: '00000000-0000-0000-0000-000000000003',
-          status: 'success',
+          level: 'info',
+          source: 'dashboard',
+          message: 'Case created',
+          eventCode: null,
+          requestId: null,
+          href: null,
           createdAt: new Date().toISOString(),
           meta: { source: 'dashboard' },
         },
       ],
       count: 1,
       totalPages: 1,
+      page: 1,
+      sourceOptions: ['dashboard'],
+      summary: { total: 1, critical: 0, error: 0, warning: 0, info: 1, debug: 0 },
+      hourlyBuckets: [],
     });
 
     expect(parsed.success).toBe(true);

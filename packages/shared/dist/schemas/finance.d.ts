@@ -3,8 +3,8 @@ export declare const ApproveWithdrawalSchema: z.ZodObject<{
     requestId: z.ZodString;
     reason: z.ZodDefault<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    requestId: string;
     reason: string;
+    requestId: string;
 }, {
     requestId: string;
     reason?: string | undefined;
@@ -14,11 +14,11 @@ export declare const RejectWithdrawalSchema: z.ZodObject<{
     requestId: z.ZodString;
     reason: z.ZodString;
 }, "strip", z.ZodTypeAny, {
-    requestId: string;
     reason: string;
+    requestId: string;
 }, {
-    requestId: string;
     reason: string;
+    requestId: string;
 }>;
 export type RejectWithdrawalInput = z.infer<typeof RejectWithdrawalSchema>;
 export declare const FreezeWalletSchema: z.ZodObject<{
@@ -192,6 +192,8 @@ export declare const JournalLedgerEntrySchema: z.ZodObject<{
     created_at: z.ZodString;
     event_type: z.ZodString;
     status: z.ZodString;
+    related_entity_type: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+    related_entity_id: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     entity_type: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     entity_id: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     payer_user_id: z.ZodOptional<z.ZodNullable<z.ZodString>>;
@@ -202,11 +204,17 @@ export declare const JournalLedgerEntrySchema: z.ZodObject<{
     initiator_user_id: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     meta_masked: z.ZodOptional<z.ZodAny>;
     meta_full: z.ZodOptional<z.ZodAny>;
+    escrow_delta_iqd: z.ZodOptional<z.ZodNumber>;
+    user_available_delta_iqd: z.ZodOptional<z.ZodNumber>;
+    freelancer_payables_available_delta_iqd: z.ZodOptional<z.ZodNumber>;
+    pending_payouts_delta_iqd: z.ZodOptional<z.ZodNumber>;
+    platform_revenue_delta_iqd: z.ZodOptional<z.ZodNumber>;
+    platform_cash_delta_iqd: z.ZodOptional<z.ZodNumber>;
 }, "strip", z.ZodTypeAny, {
     status: string;
+    created_at: string;
     event_type: string;
     journal_id: string;
-    created_at: string;
     gross_amount: number;
     fee_amount: number;
     net_amount: number;
@@ -214,14 +222,22 @@ export declare const JournalLedgerEntrySchema: z.ZodObject<{
     payee_user_id?: string | null | undefined;
     entity_type?: string | null | undefined;
     entity_id?: string | null | undefined;
+    related_entity_type?: string | null | undefined;
+    related_entity_id?: string | null | undefined;
     initiator_user_id?: string | null | undefined;
     meta_masked?: any;
     meta_full?: any;
+    escrow_delta_iqd?: number | undefined;
+    user_available_delta_iqd?: number | undefined;
+    freelancer_payables_available_delta_iqd?: number | undefined;
+    pending_payouts_delta_iqd?: number | undefined;
+    platform_revenue_delta_iqd?: number | undefined;
+    platform_cash_delta_iqd?: number | undefined;
 }, {
     status: string;
+    created_at: string;
     event_type: string;
     journal_id: string;
-    created_at: string;
     gross_amount: number;
     fee_amount: number;
     net_amount: number;
@@ -229,9 +245,17 @@ export declare const JournalLedgerEntrySchema: z.ZodObject<{
     payee_user_id?: string | null | undefined;
     entity_type?: string | null | undefined;
     entity_id?: string | null | undefined;
+    related_entity_type?: string | null | undefined;
+    related_entity_id?: string | null | undefined;
     initiator_user_id?: string | null | undefined;
     meta_masked?: any;
     meta_full?: any;
+    escrow_delta_iqd?: number | undefined;
+    user_available_delta_iqd?: number | undefined;
+    freelancer_payables_available_delta_iqd?: number | undefined;
+    pending_payouts_delta_iqd?: number | undefined;
+    platform_revenue_delta_iqd?: number | undefined;
+    platform_cash_delta_iqd?: number | undefined;
 }>;
 export type JournalLedgerEntry = z.infer<typeof JournalLedgerEntrySchema>;
 export declare const WithdrawalRequestSchema: z.ZodObject<{
@@ -243,15 +267,15 @@ export declare const WithdrawalRequestSchema: z.ZodObject<{
     created_at: z.ZodString;
 }, "strip", z.ZodTypeAny, {
     status: "requested" | "processing" | "completed" | "failed";
-    created_at: string;
     id: string;
+    created_at: string;
     user_id: string;
     amount: number;
     currency: string;
 }, {
     status: "requested" | "processing" | "completed" | "failed";
-    created_at: string;
     id: string;
+    created_at: string;
     user_id: string;
     amount: number;
     currency: string;
@@ -262,6 +286,8 @@ export declare const WalletSummarySchema: z.ZodObject<{
     available_balance: z.ZodNumber;
     held_balance: z.ZodNumber;
     pending_withdrawal_balance: z.ZodNumber;
+    freelancer_payables_balance: z.ZodOptional<z.ZodNumber>;
+    other_wallet_liabilities_balance: z.ZodOptional<z.ZodNumber>;
     currency: z.ZodString;
     is_wallet_frozen: z.ZodOptional<z.ZodBoolean>;
 }, "strip", z.ZodTypeAny, {
@@ -269,15 +295,186 @@ export declare const WalletSummarySchema: z.ZodObject<{
     available_balance: number;
     held_balance: number;
     pending_withdrawal_balance: number;
+    freelancer_payables_balance?: number | undefined;
+    other_wallet_liabilities_balance?: number | undefined;
     is_wallet_frozen?: boolean | undefined;
 }, {
     currency: string;
     available_balance: number;
     held_balance: number;
     pending_withdrawal_balance: number;
+    freelancer_payables_balance?: number | undefined;
+    other_wallet_liabilities_balance?: number | undefined;
     is_wallet_frozen?: boolean | undefined;
 }>;
 export type WalletSummary = z.infer<typeof WalletSummarySchema>;
+export declare const UserHeldFundsSummarySchema: z.ZodObject<{
+    held_in_escrow: z.ZodNumber;
+    total_wallet_balances: z.ZodNumber;
+    total_owed_to_users: z.ZodNumber;
+    freelancer_payables_available: z.ZodNumber;
+    pending_payouts: z.ZodNumber;
+    freelancer_payables_total: z.ZodNumber;
+    total_user_wallet_liabilities: z.ZodNumber;
+    other_user_wallet_liabilities: z.ZodNumber;
+    total_platform_obligations: z.ZodNumber;
+}, "strip", z.ZodTypeAny, {
+    held_in_escrow: number;
+    total_wallet_balances: number;
+    total_owed_to_users: number;
+    freelancer_payables_available: number;
+    pending_payouts: number;
+    freelancer_payables_total: number;
+    total_user_wallet_liabilities: number;
+    other_user_wallet_liabilities: number;
+    total_platform_obligations: number;
+}, {
+    held_in_escrow: number;
+    total_wallet_balances: number;
+    total_owed_to_users: number;
+    freelancer_payables_available: number;
+    pending_payouts: number;
+    freelancer_payables_total: number;
+    total_user_wallet_liabilities: number;
+    other_user_wallet_liabilities: number;
+    total_platform_obligations: number;
+}>;
+export type UserHeldFundsSummary = z.infer<typeof UserHeldFundsSummarySchema>;
+export declare const CompanyFundsSummarySchema: z.ZodObject<{
+    total_fee_revenue: z.ZodNumber;
+    net_platform_earnings: z.ZodNumber;
+    actual_company_owned_balance: z.ZodNumber;
+    platform_revenue: z.ZodNumber;
+    actual_company_owned_cash: z.ZodNumber;
+}, "strip", z.ZodTypeAny, {
+    total_fee_revenue: number;
+    net_platform_earnings: number;
+    actual_company_owned_balance: number;
+    platform_revenue: number;
+    actual_company_owned_cash: number;
+}, {
+    total_fee_revenue: number;
+    net_platform_earnings: number;
+    actual_company_owned_balance: number;
+    platform_revenue: number;
+    actual_company_owned_cash: number;
+}>;
+export type CompanyFundsSummary = z.infer<typeof CompanyFundsSummarySchema>;
+export declare const FinanceReconciliationSummarySchema: z.ZodObject<{
+    gap_to_platform_revenue: z.ZodNumber;
+}, "strip", z.ZodTypeAny, {
+    gap_to_platform_revenue: number;
+}, {
+    gap_to_platform_revenue: number;
+}>;
+export type FinanceReconciliationSummary = z.infer<typeof FinanceReconciliationSummarySchema>;
+export declare const FinanceMetricsSummarySchema: z.ZodObject<{
+    platform_cash_position: z.ZodNumber;
+    userFunds: z.ZodObject<{
+        held_in_escrow: z.ZodNumber;
+        total_wallet_balances: z.ZodNumber;
+        total_owed_to_users: z.ZodNumber;
+        freelancer_payables_available: z.ZodNumber;
+        pending_payouts: z.ZodNumber;
+        freelancer_payables_total: z.ZodNumber;
+        total_user_wallet_liabilities: z.ZodNumber;
+        other_user_wallet_liabilities: z.ZodNumber;
+        total_platform_obligations: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        held_in_escrow: number;
+        total_wallet_balances: number;
+        total_owed_to_users: number;
+        freelancer_payables_available: number;
+        pending_payouts: number;
+        freelancer_payables_total: number;
+        total_user_wallet_liabilities: number;
+        other_user_wallet_liabilities: number;
+        total_platform_obligations: number;
+    }, {
+        held_in_escrow: number;
+        total_wallet_balances: number;
+        total_owed_to_users: number;
+        freelancer_payables_available: number;
+        pending_payouts: number;
+        freelancer_payables_total: number;
+        total_user_wallet_liabilities: number;
+        other_user_wallet_liabilities: number;
+        total_platform_obligations: number;
+    }>;
+    companyFunds: z.ZodObject<{
+        total_fee_revenue: z.ZodNumber;
+        net_platform_earnings: z.ZodNumber;
+        actual_company_owned_balance: z.ZodNumber;
+        platform_revenue: z.ZodNumber;
+        actual_company_owned_cash: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        total_fee_revenue: number;
+        net_platform_earnings: number;
+        actual_company_owned_balance: number;
+        platform_revenue: number;
+        actual_company_owned_cash: number;
+    }, {
+        total_fee_revenue: number;
+        net_platform_earnings: number;
+        actual_company_owned_balance: number;
+        platform_revenue: number;
+        actual_company_owned_cash: number;
+    }>;
+    reconciliation: z.ZodObject<{
+        gap_to_platform_revenue: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        gap_to_platform_revenue: number;
+    }, {
+        gap_to_platform_revenue: number;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    platform_cash_position: number;
+    userFunds: {
+        held_in_escrow: number;
+        total_wallet_balances: number;
+        total_owed_to_users: number;
+        freelancer_payables_available: number;
+        pending_payouts: number;
+        freelancer_payables_total: number;
+        total_user_wallet_liabilities: number;
+        other_user_wallet_liabilities: number;
+        total_platform_obligations: number;
+    };
+    companyFunds: {
+        total_fee_revenue: number;
+        net_platform_earnings: number;
+        actual_company_owned_balance: number;
+        platform_revenue: number;
+        actual_company_owned_cash: number;
+    };
+    reconciliation: {
+        gap_to_platform_revenue: number;
+    };
+}, {
+    platform_cash_position: number;
+    userFunds: {
+        held_in_escrow: number;
+        total_wallet_balances: number;
+        total_owed_to_users: number;
+        freelancer_payables_available: number;
+        pending_payouts: number;
+        freelancer_payables_total: number;
+        total_user_wallet_liabilities: number;
+        other_user_wallet_liabilities: number;
+        total_platform_obligations: number;
+    };
+    companyFunds: {
+        total_fee_revenue: number;
+        net_platform_earnings: number;
+        actual_company_owned_balance: number;
+        platform_revenue: number;
+        actual_company_owned_cash: number;
+    };
+    reconciliation: {
+        gap_to_platform_revenue: number;
+    };
+}>;
+export type FinanceMetricsSummary = z.infer<typeof FinanceMetricsSummarySchema>;
 /** Wallet activity row from vw_wallet_activity_user. Use this (not JournalLedgerEntry) for wallet activity; preserves spent semantics e.g. gateway_escrow. */
 export declare const WalletActivityEntrySchema: z.ZodObject<{
     journal_entry_id: z.ZodString;
@@ -294,29 +491,29 @@ export declare const WalletActivityEntrySchema: z.ZodObject<{
     user_id: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     status: string;
-    event_type: string;
     created_at: string;
+    event_type: string;
     fee_amount: number;
     currency: string;
     journal_entry_id: string;
     amount_gross: number;
     amount_net: number;
-    user_id?: string | undefined;
     related_entity_type?: string | null | undefined;
     related_entity_id?: string | null | undefined;
+    user_id?: string | undefined;
     counterparty_user_id?: string | null | undefined;
 }, {
     status: string;
-    event_type: string;
     created_at: string;
+    event_type: string;
     fee_amount: number;
     currency: string;
     journal_entry_id: string;
     amount_gross: number;
     amount_net: number;
-    user_id?: string | undefined;
     related_entity_type?: string | null | undefined;
     related_entity_id?: string | null | undefined;
+    user_id?: string | undefined;
     counterparty_user_id?: string | null | undefined;
 }>;
 export type WalletActivityEntry = z.infer<typeof WalletActivityEntrySchema>;
@@ -360,15 +557,15 @@ export declare const FinanceWorkflowCaseSchema: z.ZodObject<{
     entityType: string;
     entityId: string;
     bucket: "delivered_awaiting_client" | "disputed_money" | "stuck_direct_offer" | "held_funds" | "withdrawals_pending";
-    amount_cents?: number | undefined;
     created_at?: string | undefined;
+    amount_cents?: number | undefined;
     summary?: string | undefined;
 }, {
     entityType: string;
     entityId: string;
     bucket: "delivered_awaiting_client" | "disputed_money" | "stuck_direct_offer" | "held_funds" | "withdrawals_pending";
-    amount_cents?: number | undefined;
     created_at?: string | undefined;
+    amount_cents?: number | undefined;
     summary?: string | undefined;
 }>;
 export type FinanceWorkflowCase = z.infer<typeof FinanceWorkflowCaseSchema>;
@@ -423,14 +620,14 @@ export declare const PlatformFeeSettingsSchema: z.ZodObject<{
     updated_at: z.ZodString;
     updated_by: z.ZodOptional<z.ZodNullable<z.ZodString>>;
 }, "strip", z.ZodTypeAny, {
+    updated_at: string;
     fee_rate_default_bps: number;
     max_fee_rate_bps: number;
-    updated_at: string;
     updated_by?: string | null | undefined;
 }, {
+    updated_at: string;
     fee_rate_default_bps: number;
     max_fee_rate_bps: number;
-    updated_at: string;
     updated_by?: string | null | undefined;
 }>;
 export type PlatformFeeSettings = z.infer<typeof PlatformFeeSettingsSchema>;

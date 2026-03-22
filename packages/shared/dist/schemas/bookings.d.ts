@@ -55,6 +55,7 @@ export declare const BookingAnalyticsSeriesSchema: z.ZodObject<{
     updated_at: z.ZodString;
     is_stale: z.ZodOptional<z.ZodBoolean>;
 }, "strip", z.ZodTypeAny, {
+    updated_at: string;
     window: "7d";
     timezone: "UTC";
     points: {
@@ -62,9 +63,9 @@ export declare const BookingAnalyticsSeriesSchema: z.ZodObject<{
         bucket_start: string;
         booked: number;
     }[];
-    updated_at: string;
     is_stale?: boolean | undefined;
 }, {
+    updated_at: string;
     window: "7d";
     timezone: "UTC";
     points: {
@@ -72,7 +73,6 @@ export declare const BookingAnalyticsSeriesSchema: z.ZodObject<{
         bucket_start: string;
         booked: number;
     }[];
-    updated_at: string;
     is_stale?: boolean | undefined;
 }>;
 export type BookingAnalyticsSeries = z.infer<typeof BookingAnalyticsSeriesSchema>;
@@ -88,13 +88,13 @@ export declare const BookingAnalyticsKpiCardSchema: z.ZodObject<{
     tone: z.ZodEnum<["violet", "green", "amber", "red"]>;
 }, "strip", z.ZodTypeAny, {
     value: number;
-    id: "canceled" | "completed" | "total_bookings" | "revenue";
+    id: "completed" | "canceled" | "total_bookings" | "revenue";
     delta: number;
     sparkline: number[];
     tone: "violet" | "green" | "amber" | "red";
 }, {
     value: number;
-    id: "canceled" | "completed" | "total_bookings" | "revenue";
+    id: "completed" | "canceled" | "total_bookings" | "revenue";
     delta: number;
     sparkline: number[];
     tone: "violet" | "green" | "amber" | "red";
@@ -111,13 +111,13 @@ export declare const BookingAnalyticsKpisSchema: z.ZodObject<{
         tone: z.ZodEnum<["violet", "green", "amber", "red"]>;
     }, "strip", z.ZodTypeAny, {
         value: number;
-        id: "canceled" | "completed" | "total_bookings" | "revenue";
+        id: "completed" | "canceled" | "total_bookings" | "revenue";
         delta: number;
         sparkline: number[];
         tone: "violet" | "green" | "amber" | "red";
     }, {
         value: number;
-        id: "canceled" | "completed" | "total_bookings" | "revenue";
+        id: "completed" | "canceled" | "total_bookings" | "revenue";
         delta: number;
         sparkline: number[];
         tone: "violet" | "green" | "amber" | "red";
@@ -125,24 +125,24 @@ export declare const BookingAnalyticsKpisSchema: z.ZodObject<{
     updated_at: z.ZodString;
     is_stale: z.ZodOptional<z.ZodBoolean>;
 }, "strip", z.ZodTypeAny, {
-    window: "7d";
     updated_at: string;
     currency: "IQD";
+    window: "7d";
     cards: {
         value: number;
-        id: "canceled" | "completed" | "total_bookings" | "revenue";
+        id: "completed" | "canceled" | "total_bookings" | "revenue";
         delta: number;
         sparkline: number[];
         tone: "violet" | "green" | "amber" | "red";
     }[];
     is_stale?: boolean | undefined;
 }, {
-    window: "7d";
     updated_at: string;
     currency: "IQD";
+    window: "7d";
     cards: {
         value: number;
-        id: "canceled" | "completed" | "total_bookings" | "revenue";
+        id: "completed" | "canceled" | "total_bookings" | "revenue";
         delta: number;
         sparkline: number[];
         tone: "violet" | "green" | "amber" | "red";
@@ -158,17 +158,17 @@ export declare const BookingListQuerySchema: z.ZodObject<{
     status: z.ZodOptional<z.ZodEnum<["pending", "confirmed", "in_progress", "canceled", "completed", "paid_request_pending", "active", "delivered", "refunded", "expired_unanswered"]>>;
     sort: z.ZodDefault<z.ZodEnum<["created_desc", "created_asc", "price_desc", "price_asc"]>>;
 }, "strip", z.ZodTypeAny, {
-    sort: "created_desc" | "created_asc" | "price_desc" | "price_asc";
     page: number;
+    sort: "created_desc" | "created_asc" | "price_desc" | "price_asc";
     pageSize: number;
-    status?: "pending" | "confirmed" | "in_progress" | "canceled" | "completed" | "paid_request_pending" | "active" | "delivered" | "refunded" | "expired_unanswered" | undefined;
+    status?: "active" | "completed" | "canceled" | "in_progress" | "pending" | "confirmed" | "paid_request_pending" | "delivered" | "refunded" | "expired_unanswered" | undefined;
     q?: string | undefined;
 }, {
-    sort?: "created_desc" | "created_asc" | "price_desc" | "price_asc" | undefined;
-    status?: "pending" | "confirmed" | "in_progress" | "canceled" | "completed" | "paid_request_pending" | "active" | "delivered" | "refunded" | "expired_unanswered" | undefined;
     page?: number | undefined;
-    pageSize?: number | undefined;
+    sort?: "created_desc" | "created_asc" | "price_desc" | "price_asc" | undefined;
+    status?: "active" | "completed" | "canceled" | "in_progress" | "pending" | "confirmed" | "paid_request_pending" | "delivered" | "refunded" | "expired_unanswered" | undefined;
     q?: string | undefined;
+    pageSize?: number | undefined;
 }>;
 export type BookingListQuery = z.infer<typeof BookingListQuerySchema>;
 /** Single booking row (list item). */
@@ -190,14 +190,14 @@ export declare const BookingRowSchema: z.ZodObject<{
     provider_display_name: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     provider_short_name: z.ZodOptional<z.ZodNullable<z.ZodString>>;
 }, "strip", z.ZodTypeAny, {
-    status: "pending" | "confirmed" | "in_progress" | "canceled" | "completed" | "paid_request_pending" | "active" | "delivered" | "refunded" | "expired_unanswered";
+    status: "active" | "completed" | "canceled" | "in_progress" | "pending" | "confirmed" | "paid_request_pending" | "delivered" | "refunded" | "expired_unanswered";
     id: string;
+    created_at: string;
     task_id: string | null;
     client_id: string;
     provider_id: string;
     payment_status: "refunded" | "unpaid" | "held" | "released" | null;
     price: number | null;
-    created_at: string;
     completed_at?: string | null | undefined;
     delivered_at?: string | null | undefined;
     booking_code?: string | null | undefined;
@@ -207,14 +207,14 @@ export declare const BookingRowSchema: z.ZodObject<{
     provider_display_name?: string | null | undefined;
     provider_short_name?: string | null | undefined;
 }, {
-    status: "pending" | "confirmed" | "in_progress" | "canceled" | "completed" | "paid_request_pending" | "active" | "delivered" | "refunded" | "expired_unanswered";
+    status: "active" | "completed" | "canceled" | "in_progress" | "pending" | "confirmed" | "paid_request_pending" | "delivered" | "refunded" | "expired_unanswered";
     id: string;
+    created_at: string;
     task_id: string | null;
     client_id: string;
     provider_id: string;
     payment_status: "refunded" | "unpaid" | "held" | "released" | null;
     price: number | null;
-    created_at: string;
     completed_at?: string | null | undefined;
     delivered_at?: string | null | undefined;
     booking_code?: string | null | undefined;
@@ -253,14 +253,14 @@ export declare const BookingDetailSchema: z.ZodObject<{
     review_expires_at: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     slot_id: z.ZodOptional<z.ZodNullable<z.ZodString>>;
 }, "strip", z.ZodTypeAny, {
-    status: "pending" | "confirmed" | "in_progress" | "canceled" | "completed" | "paid_request_pending" | "active" | "delivered" | "refunded" | "expired_unanswered";
+    status: "active" | "completed" | "canceled" | "in_progress" | "pending" | "confirmed" | "paid_request_pending" | "delivered" | "refunded" | "expired_unanswered";
     id: string;
+    created_at: string;
     task_id: string | null;
     client_id: string;
     provider_id: string;
     payment_status: "refunded" | "unpaid" | "held" | "released" | null;
     price: number | null;
-    created_at: string;
     completed_at?: string | null | undefined;
     delivered_at?: string | null | undefined;
     booking_code?: string | null | undefined;
@@ -278,14 +278,14 @@ export declare const BookingDetailSchema: z.ZodObject<{
     review_expires_at?: string | null | undefined;
     slot_id?: string | null | undefined;
 }, {
-    status: "pending" | "confirmed" | "in_progress" | "canceled" | "completed" | "paid_request_pending" | "active" | "delivered" | "refunded" | "expired_unanswered";
+    status: "active" | "completed" | "canceled" | "in_progress" | "pending" | "confirmed" | "paid_request_pending" | "delivered" | "refunded" | "expired_unanswered";
     id: string;
+    created_at: string;
     task_id: string | null;
     client_id: string;
     provider_id: string;
     payment_status: "refunded" | "unpaid" | "held" | "released" | null;
     price: number | null;
-    created_at: string;
     completed_at?: string | null | undefined;
     delivered_at?: string | null | undefined;
     booking_code?: string | null | undefined;
@@ -324,14 +324,14 @@ export declare const BookingListResponseSchema: z.ZodObject<{
         provider_display_name: z.ZodOptional<z.ZodNullable<z.ZodString>>;
         provider_short_name: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     }, "strip", z.ZodTypeAny, {
-        status: "pending" | "confirmed" | "in_progress" | "canceled" | "completed" | "paid_request_pending" | "active" | "delivered" | "refunded" | "expired_unanswered";
+        status: "active" | "completed" | "canceled" | "in_progress" | "pending" | "confirmed" | "paid_request_pending" | "delivered" | "refunded" | "expired_unanswered";
         id: string;
+        created_at: string;
         task_id: string | null;
         client_id: string;
         provider_id: string;
         payment_status: "refunded" | "unpaid" | "held" | "released" | null;
         price: number | null;
-        created_at: string;
         completed_at?: string | null | undefined;
         delivered_at?: string | null | undefined;
         booking_code?: string | null | undefined;
@@ -341,14 +341,14 @@ export declare const BookingListResponseSchema: z.ZodObject<{
         provider_display_name?: string | null | undefined;
         provider_short_name?: string | null | undefined;
     }, {
-        status: "pending" | "confirmed" | "in_progress" | "canceled" | "completed" | "paid_request_pending" | "active" | "delivered" | "refunded" | "expired_unanswered";
+        status: "active" | "completed" | "canceled" | "in_progress" | "pending" | "confirmed" | "paid_request_pending" | "delivered" | "refunded" | "expired_unanswered";
         id: string;
+        created_at: string;
         task_id: string | null;
         client_id: string;
         provider_id: string;
         payment_status: "refunded" | "unpaid" | "held" | "released" | null;
         price: number | null;
-        created_at: string;
         completed_at?: string | null | undefined;
         delivered_at?: string | null | undefined;
         booking_code?: string | null | undefined;
@@ -361,15 +361,17 @@ export declare const BookingListResponseSchema: z.ZodObject<{
     count: z.ZodNumber;
     totalPages: z.ZodNumber;
 }, "strip", z.ZodTypeAny, {
+    totalPages: number;
+    count: number;
     bookings: {
-        status: "pending" | "confirmed" | "in_progress" | "canceled" | "completed" | "paid_request_pending" | "active" | "delivered" | "refunded" | "expired_unanswered";
+        status: "active" | "completed" | "canceled" | "in_progress" | "pending" | "confirmed" | "paid_request_pending" | "delivered" | "refunded" | "expired_unanswered";
         id: string;
+        created_at: string;
         task_id: string | null;
         client_id: string;
         provider_id: string;
         payment_status: "refunded" | "unpaid" | "held" | "released" | null;
         price: number | null;
-        created_at: string;
         completed_at?: string | null | undefined;
         delivered_at?: string | null | undefined;
         booking_code?: string | null | undefined;
@@ -379,18 +381,18 @@ export declare const BookingListResponseSchema: z.ZodObject<{
         provider_display_name?: string | null | undefined;
         provider_short_name?: string | null | undefined;
     }[];
-    count: number;
-    totalPages: number;
 }, {
+    totalPages: number;
+    count: number;
     bookings: {
-        status: "pending" | "confirmed" | "in_progress" | "canceled" | "completed" | "paid_request_pending" | "active" | "delivered" | "refunded" | "expired_unanswered";
+        status: "active" | "completed" | "canceled" | "in_progress" | "pending" | "confirmed" | "paid_request_pending" | "delivered" | "refunded" | "expired_unanswered";
         id: string;
+        created_at: string;
         task_id: string | null;
         client_id: string;
         provider_id: string;
         payment_status: "refunded" | "unpaid" | "held" | "released" | null;
         price: number | null;
-        created_at: string;
         completed_at?: string | null | undefined;
         delivered_at?: string | null | undefined;
         booking_code?: string | null | undefined;
@@ -400,8 +402,6 @@ export declare const BookingListResponseSchema: z.ZodObject<{
         provider_display_name?: string | null | undefined;
         provider_short_name?: string | null | undefined;
     }[];
-    count: number;
-    totalPages: number;
 }>;
 export type BookingListResponse = z.infer<typeof BookingListResponseSchema>;
 /** Cancel input: reason required; optional idempotency key (header or body). */

@@ -73,7 +73,20 @@ This file tracks current implemented/admin-facing capabilities for the Vite + Ta
 - Reference:
   - `Docs/features/logs.md`
 
-## 7) Other Admin Domains
+## 7) System Health (`/system-health`)
+
+- Implemented:
+  - Hero card (title, Live 15s toggle, Refresh, status strip, overall uptime %).
+  - Four KPI cards (Uptime 30D, Avg Latency, Error Rate, Req/min) with sparklines.
+  - 90-day uptime bar chart (operational/degraded/outage).
+  - 12 service cards (icon, name, description, status pill, latency, uptime %, checked time, sparkline).
+  - Loading skeleton and error state with Retry.
+- API:
+  - `GET /api/v1/observability` (RBAC: support, moderator, admin, super_admin; read-only).
+- Reference:
+  - `Docs/features/system_health.md`
+
+## 8) Other Admin Domains
 
 For disputes, cases, chat moderation, reports, finance, settings, bookings, and system health, see the feature docs index:
 - `Docs/features/README.md`

@@ -78,6 +78,8 @@ export const JournalLedgerEntrySchema = z.object({
     created_at: z.string(),
     event_type: z.string(),
     status: z.string(),
+    related_entity_type: z.string().nullable().optional(),
+    related_entity_id: z.string().uuid().nullable().optional(),
     entity_type: z.string().nullable().optional(),
     entity_id: z.string().uuid().nullable().optional(),
     payer_user_id: z.string().uuid().nullable().optional(),
@@ -88,6 +90,12 @@ export const JournalLedgerEntrySchema = z.object({
     initiator_user_id: z.string().uuid().nullable().optional(),
     meta_masked: z.any().optional(),
     meta_full: z.any().optional(),
+    escrow_delta_iqd: z.number().optional(),
+    user_available_delta_iqd: z.number().optional(),
+    freelancer_payables_available_delta_iqd: z.number().optional(),
+    pending_payouts_delta_iqd: z.number().optional(),
+    platform_revenue_delta_iqd: z.number().optional(),
+    platform_cash_delta_iqd: z.number().optional(),
 });
 export const WithdrawalRequestSchema = z.object({
     id: z.string().uuid(),
@@ -102,8 +110,37 @@ export const WalletSummarySchema = z.object({
     available_balance: z.number(),
     held_balance: z.number(),
     pending_withdrawal_balance: z.number(),
+    freelancer_payables_balance: z.number().optional(),
+    other_wallet_liabilities_balance: z.number().optional(),
     currency: z.string(),
     is_wallet_frozen: z.boolean().optional(),
+});
+export const UserHeldFundsSummarySchema = z.object({
+    held_in_escrow: z.number(),
+    total_wallet_balances: z.number(),
+    total_owed_to_users: z.number(),
+    freelancer_payables_available: z.number(),
+    pending_payouts: z.number(),
+    freelancer_payables_total: z.number(),
+    total_user_wallet_liabilities: z.number(),
+    other_user_wallet_liabilities: z.number(),
+    total_platform_obligations: z.number(),
+});
+export const CompanyFundsSummarySchema = z.object({
+    total_fee_revenue: z.number(),
+    net_platform_earnings: z.number(),
+    actual_company_owned_balance: z.number(),
+    platform_revenue: z.number(),
+    actual_company_owned_cash: z.number(),
+});
+export const FinanceReconciliationSummarySchema = z.object({
+    gap_to_platform_revenue: z.number(),
+});
+export const FinanceMetricsSummarySchema = z.object({
+    platform_cash_position: z.number(),
+    userFunds: UserHeldFundsSummarySchema,
+    companyFunds: CompanyFundsSummarySchema,
+    reconciliation: FinanceReconciliationSummarySchema,
 });
 /** Wallet activity row from vw_wallet_activity_user. Use this (not JournalLedgerEntry) for wallet activity; preserves spent semantics e.g. gateway_escrow. */
 export const WalletActivityEntrySchema = z.object({
@@ -149,4 +186,17 @@ export const FinanceWorkflowCaseDetailSchema = z.object({
     payer_user_id: z.string().uuid().nullable().optional(),
     payee_user_id: z.string().uuid().nullable().optional(),
     available_actions: z.array(z.string()).optional(),
+});
+// --- Platform fee settings (admin-controlled; single source: platform_settings) ---
+/** GET /api/v1/finance/fee-settings response. */
+export const PlatformFeeSettingsSchema = z.object({
+    fee_rate_default_bps: z.number().int().min(0).max(10000),
+    max_fee_rate_bps: z.number().int().min(0).max(10000),
+    updated_at: z.string(),
+    updated_by: z.string().uuid().nullable().optional(),
+});
+/** PATCH /api/v1/finance/fee-settings body; reason required. */
+export const UpdatePlatformFeeSettingsBodySchema = z.object({
+    fee_rate_default_bps: z.number().int().min(0).max(10000),
+    reason: z.string().min(1, 'Reason is required').max(500, 'Reason too long'),
 });

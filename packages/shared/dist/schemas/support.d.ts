@@ -39,20 +39,20 @@ export declare const SupportTicketSchema: z.ZodObject<{
     }>>;
     last_message: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
-    status: "open" | "in_progress" | "closed" | "resolved";
+    status: "open" | "resolved" | "in_progress" | "closed";
     id: string;
     created_at: string;
-    subject: string;
-    priority: "low" | "high" | "urgent" | "normal";
     updated_at: string;
     user_id: string;
+    subject: string;
+    priority: "low" | "high" | "normal" | "urgent";
+    category?: string | undefined;
     user?: {
         id: string;
         full_name: string;
         avatar_url: string | null;
         email: string;
     } | undefined;
-    category?: string | undefined;
     assignee?: {
         id: string;
         full_name: string;
@@ -60,20 +60,20 @@ export declare const SupportTicketSchema: z.ZodObject<{
     } | undefined;
     last_message?: string | undefined;
 }, {
-    status: "open" | "in_progress" | "closed" | "resolved";
+    status: "open" | "resolved" | "in_progress" | "closed";
     id: string;
     created_at: string;
-    subject: string;
-    priority: "low" | "high" | "urgent" | "normal";
     updated_at: string;
     user_id: string;
+    subject: string;
+    priority: "low" | "high" | "normal" | "urgent";
+    category?: string | undefined;
     user?: {
         id: string;
         full_name: string;
         avatar_url: string | null;
         email: string;
     } | undefined;
-    category?: string | undefined;
     assignee?: {
         id: string;
         full_name: string;
@@ -87,22 +87,22 @@ export declare const GetTicketsSchema: z.ZodObject<{
     status: z.ZodDefault<z.ZodString>;
     limit: z.ZodDefault<z.ZodNumber>;
 }, "strip", z.ZodTypeAny, {
+    page: number;
     status: string;
     limit: number;
-    page: number;
 }, {
+    page?: number | undefined;
     status?: string | undefined;
     limit?: number | undefined;
-    page?: number | undefined;
 }>;
 export declare const UpdateTicketStatusSchema: z.ZodObject<{
     id: z.ZodString;
     status: z.ZodEnum<["open", "in_progress", "resolved", "closed"]>;
 }, "strip", z.ZodTypeAny, {
-    status: "open" | "in_progress" | "closed" | "resolved";
+    status: "open" | "resolved" | "in_progress" | "closed";
     id: string;
 }, {
-    status: "open" | "in_progress" | "closed" | "resolved";
+    status: "open" | "resolved" | "in_progress" | "closed";
     id: string;
 }>;
 export declare const SUPPORT_READ_ROLES: string[];

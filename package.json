@@ -11,6 +11,7 @@
     "dev:api": "npm run dev -w @sline/api",
     "dev:admin": "npm run dev -w @sline/admin-ui",
     "build": "turbo run build",
+    "lint": "turbo run typecheck",
     "e2e": "npm run test:e2e -w @sline/admin-ui"
   },
   "devDependencies": {

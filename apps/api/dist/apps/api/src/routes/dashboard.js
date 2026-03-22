@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { requireAdminRole } from '../middleware/rbac.js';
 import { DashboardOverviewDataSchema, failure, success, } from '@sline/shared';
+import { getFinanceMetricsSnapshot } from './finance/metrics-summary.js';
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 function formatTrendLabel(direction, deltaPercent) {
     if (direction === 'flat')
@@ -41,10 +42,10 @@ export default async function dashboardRoutes(fastify) {
             currentWindowStart.setUTCDate(currentWindowStart.getUTCDate() - 30);
             const previousWindowStart = new Date(now);
             previousWindowStart.setUTCDate(previousWindowStart.getUTCDate() - 60);
-            const [profilesRes, revenueRes, disputesRes, jobsRes, openReportsRes, openCasesRes, bookingsTodayRes, signalLogsRes, usersCurrentRes, usersPreviousRes, jobsCurrentRes, jobsPreviousRes, disputesCurrentRes, disputesPreviousRes] = await Promise.all([
+            const [profilesRes, financeMetricsRes, disputesRes, jobsRes, openReportsRes, openCasesRes, bookingsTodayRes, signalLogsRes, usersCurrentRes, usersPreviousRes, jobsCurrentRes, jobsPreviousRes, disputesCurrentRes, disputesPreviousRes] = await Promise.all([
                 // Core KPI stats
                 supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('status', 'active'),
-                supabase.from('vw_financial_metrics_realtime').select('revenue_iqd').single(),
+                getFinanceMetricsSnapshot(supabase),
                 supabase
                     .from('disputes')
                     .select('*', { count: 'exact', head: true })
@@ -123,7 +124,7 @@ export default async function dashboardRoutes(fastify) {
             };
             const errorCount = [
                 profilesRes.error,
-                revenueRes.error,
+                financeMetricsRes.error,
                 disputesRes.error,
                 jobsRes.error,
                 openReportsRes.error,
@@ -154,9 +155,10 @@ export default async function dashboardRoutes(fastify) {
             }));
             const currentRevenue = revenueSeries.length > 0 ? revenueSeries[revenueSeries.length - 1].revenue : 0;
             const previousRevenue = revenueSeries.length > 1 ? revenueSeries[revenueSeries.length - 2].revenue : 0;
+            const financeSummary = financeMetricsRes.data;
             const kpiTrends = {
                 activeUsers: computeKpiTrend(usersCurrentRes.count || 0, usersPreviousRes.count || 0),
-                platformRevenue: computeKpiTrend(currentRevenue, previousRevenue),
+                feeRevenue: computeKpiTrend(currentRevenue, previousRevenue),
                 activeJobs: computeKpiTrend(jobsCurrentRes.count || 0, jobsPreviousRes.count || 0),
                 openDisputes: computeKpiTrend(disputesCurrentRes.count || 0, disputesPreviousRes.count || 0),
                 comparisonWindow: 'last 30d vs previous 30d',
@@ -164,10 +166,57 @@ export default async function dashboardRoutes(fastify) {
             const payload = {
                 stats: {
                     activeUsers: profilesRes.count || 0,
-                    platformRevenue: Number(revenueRes.data?.revenue_iqd) || 0,
+                    feeRevenue: financeSummary?.companyFunds.total_fee_revenue || 0,
                     openDisputes: disputesRes.count || 0,
                     activeJobs: jobsRes.count || 0
                 },
+                financeSummary: financeSummary
+                    ? {
+                        platformCashPosition: financeSummary.platform_cash_position,
+                        userFunds: {
+                            heldInEscrow: financeSummary.userFunds.held_in_escrow,
+                            totalWalletBalances: financeSummary.userFunds.total_wallet_balances,
+                            totalOwedToUsers: financeSummary.userFunds.total_owed_to_users,
+                            freelancerPayablesAvailable: financeSummary.userFunds.freelancer_payables_available,
+                            pendingPayouts: financeSummary.userFunds.pending_payouts,
+                            freelancerPayablesTotal: financeSummary.userFunds.freelancer_payables_total,
+                            otherUserWalletLiabilities: financeSummary.userFunds.other_user_wallet_liabilities,
+                            totalPlatformObligations: financeSummary.userFunds.total_platform_obligations,
+                        },
+                        companyFunds: {
+                            totalFeeRevenue: financeSummary.companyFunds.total_fee_revenue,
+                            netPlatformEarnings: financeSummary.companyFunds.net_platform_earnings,
+                            actualCompanyOwnedBalance: financeSummary.companyFunds.actual_company_owned_balance,
+                            platformRevenue: financeSummary.companyFunds.platform_revenue,
+                            actualCompanyOwnedCash: financeSummary.companyFunds.actual_company_owned_cash,
+                        },
+                        reconciliation: {
+                            gapToPlatformRevenue: financeSummary.reconciliation.gap_to_platform_revenue,
+                        },
+                    }
+                    : {
+                        platformCashPosition: 0,
+                        userFunds: {
+                            heldInEscrow: 0,
+                            totalWalletBalances: 0,
+                            totalOwedToUsers: 0,
+                            freelancerPayablesAvailable: 0,
+                            pendingPayouts: 0,
+                            freelancerPayablesTotal: 0,
+                            otherUserWalletLiabilities: 0,
+                            totalPlatformObligations: 0,
+                        },
+                        companyFunds: {
+                            totalFeeRevenue: 0,
+                            netPlatformEarnings: 0,
+                            actualCompanyOwnedBalance: 0,
+                            platformRevenue: 0,
+                            actualCompanyOwnedCash: 0,
+                        },
+                        reconciliation: {
+                            gapToPlatformRevenue: 0,
+                        },
+                    },
                 pulse: {
                     openReports: openReportsRes.count || 0,
                     openCases: openCasesRes.count || 0,

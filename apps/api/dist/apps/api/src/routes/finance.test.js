@@ -482,6 +482,78 @@ describe('PAGE 03 — Finance withdrawal approve/reject', () => {
             }
         });
     });
+    describe('GET /api/v1/finance/fee-settings', () => {
+        it('returns 401 when no auth', async () => {
+            const noAuthApp = await buildApp();
+            const res = await noAuthApp.inject({ method: 'GET', url: '/api/v1/finance/fee-settings' });
+            await noAuthApp.close();
+            expect(res.statusCode).toBe(401);
+        });
+        it('returns 200 with fee_rate_default_bps and max_fee_rate_bps (or 500 if table missing)', async () => {
+            const res = await app.inject({ method: 'GET', url: '/api/v1/finance/fee-settings' });
+            expect([200, 500]).toContain(res.statusCode);
+            if (res.statusCode === 200) {
+                const body = JSON.parse(res.body);
+                expect(body.ok).toBe(true);
+                expect(typeof body.data?.fee_rate_default_bps).toBe('number');
+                expect(typeof body.data?.max_fee_rate_bps).toBe('number');
+                expect(typeof body.data?.updated_at).toBe('string');
+            }
+        });
+    });
+    describe('PATCH /api/v1/finance/fee-settings', () => {
+        it('returns 401 when no auth', async () => {
+            const noAuthApp = await buildApp();
+            const res = await noAuthApp.inject({
+                method: 'PATCH',
+                url: '/api/v1/finance/fee-settings',
+                payload: { fee_rate_default_bps: 1200, reason: 'Test' },
+            });
+            await noAuthApp.close();
+            expect(res.statusCode).toBe(401);
+        });
+        it('returns 403 when admin (non-super_admin)', async () => {
+            const adminApp = await buildApp({ testUser: ADMIN_OTHER });
+            const res = await adminApp.inject({
+                method: 'PATCH',
+                url: '/api/v1/finance/fee-settings',
+                payload: { fee_rate_default_bps: 1200, reason: 'Test' },
+            });
+            await adminApp.close();
+            expect(res.statusCode).toBe(403);
+        });
+        it('returns 400 when reason is missing', async () => {
+            const res = await app.inject({
+                method: 'PATCH',
+                url: '/api/v1/finance/fee-settings',
+                payload: { fee_rate_default_bps: 1200 },
+            });
+            expect(res.statusCode).toBe(400);
+            const body = JSON.parse(res.body);
+            expect(body.ok).toBe(false);
+            expect(body.error?.code).toBe('VALIDATION_ERROR');
+        });
+        it('returns 400 when fee_rate_default_bps out of range', async () => {
+            const res = await app.inject({
+                method: 'PATCH',
+                url: '/api/v1/finance/fee-settings',
+                payload: { fee_rate_default_bps: 15000, reason: 'Test' },
+            });
+            expect(res.statusCode).toBe(400);
+        });
+        it('returns 200 on valid payload (or 500 if table/RPC missing)', async () => {
+            const res = await app.inject({
+                method: 'PATCH',
+                url: '/api/v1/finance/fee-settings',
+                payload: { fee_rate_default_bps: 1000, reason: 'Test fixture reset' },
+            });
+            expect([200, 500]).toContain(res.statusCode);
+            if (res.statusCode === 200) {
+                const body = JSON.parse(res.body);
+                expect(body.ok).toBe(true);
+            }
+        });
+    });
     const runFinanceIntegration = process.env.RUN_FINANCE_INTEGRATION === '1' && process.env.SUPABASE_URL && !process.env.SUPABASE_URL.includes('placeholder');
     describe('PAGE 03 — Idempotency (requires real DB)', () => {
         // With real DB: exactly one audit_logs row per approve/reject (RPC writes it; API does not use withAudit)

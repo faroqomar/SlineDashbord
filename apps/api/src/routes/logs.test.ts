@@ -8,6 +8,7 @@ if (!process.env.SUPABASE_SERVICE_ROLE_KEY)
   process.env.SUPABASE_SERVICE_ROLE_KEY = 'placeholder-key';
 
 const SUPPORT: TestUser = { id: '00000000-0000-0000-0000-000000000011', role: 'support' };
+const ADMIN: TestUser = { id: '00000000-0000-0000-0000-000000000012', role: 'admin' };
 const NOT_ADMIN: TestUser = { id: '00000000-0000-0000-0000-000000000099', role: 'authenticated' };
 
 describe('Logs API', () => {
@@ -58,5 +59,42 @@ describe('Logs API', () => {
     } else {
       expect(body.ok).toBe(false);
     }
+  });
+
+  it('returns 403 for support role on export', async () => {
+    const app = await buildApp({ testUser: SUPPORT });
+    const res = await app.inject({ method: 'GET', url: '/api/v1/logs/export?limit=1000' });
+    await app.close();
+
+    expect(res.statusCode).toBe(403);
+    const body = JSON.parse(res.body);
+    expect(body.ok).toBe(false);
+    expect(body.error?.code).toBe('FORBIDDEN');
+  });
+
+  it('accepts export limits above the list cap for admin roles (or 500 if datasource unavailable)', async () => {
+    const app = await buildApp({ testUser: ADMIN });
+    const res = await app.inject({ method: 'GET', url: '/api/v1/logs/export?limit=1000' });
+    await app.close();
+
+    expect([200, 500]).toContain(res.statusCode);
+    if (res.statusCode === 200) {
+      expect(res.headers['content-type']).toContain('text/csv');
+    } else {
+      const body = JSON.parse(res.body);
+      expect(body.ok).toBe(false);
+      expect(body.error?.code).not.toBe('VALIDATION_ERROR');
+    }
+  });
+
+  it('returns 400 for invalid export query params', async () => {
+    const app = await buildApp({ testUser: ADMIN });
+    const res = await app.inject({ method: 'GET', url: '/api/v1/logs/export?limit=10001' });
+    await app.close();
+
+    expect(res.statusCode).toBe(400);
+    const body = JSON.parse(res.body);
+    expect(body.ok).toBe(false);
+    expect(body.error?.code).toBe('VALIDATION_ERROR');
   });
 });
