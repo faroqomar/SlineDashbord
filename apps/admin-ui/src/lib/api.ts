@@ -1,8 +1,11 @@
 import axios from 'axios';
 import { type ServiceResult, failure } from '@sline/shared';
 
+const apiBaseUrl =
+  import.meta.env.VITE_API_BASE_URL || 'https://slineapi-production.up.railway.app';
+
 const api = axios.create({
-  baseURL: '/api/v1',
+  baseURL: `${apiBaseUrl}/api/v1`,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
